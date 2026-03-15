@@ -267,14 +267,34 @@
             gap: 8px;
         }
 
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 18px 0;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
         @media (max-width: 900px) {
-            .login-left{
+            .login-left {
                 display: none;
             }
+
             .login-right {
                 width: 100%;
                 padding: 40px 28px;
             }
+
             .container {
                 margin: 10px auto;
             }
@@ -346,6 +366,14 @@
                 <button type="submit" class="btn-login">
                     <i class="bi bi-box-arrow-in-right"></i> Sign In
                 </button>
+                <div class="divider">or</div>
+
+                <div style="text-align:center; font-size:13px; color:#64748b">
+                    Not registered?
+                    <a href="/register" style="color:#1a56db;font-weight:600;text-decoration:none">
+                        Sign up to your dashboard →
+                    </a>
+                </div>
             </form>
         </div>
     </div>
