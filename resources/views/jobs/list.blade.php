@@ -1,153 +1,168 @@
 @extends('layouts.app')
 
-@section('title', 'Jobs List')
-@section('page-title', 'Jobs List')
-@section('breadcrumb', 'Jobs Manager / Jobs List')
+@section('title', 'Job Lists')
+@section('page-title', 'Job Lists')
+@section('breadcrumb', 'Jobs Manager / Job List')
 
 @section('content')
 
-{{-- ── Header ────────────────────────────────────────────────────────────── --}}
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
-    <div>
-        <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text-primary)">
-            All Jobs
-        </h2>
-        <p style="font-size:13px;color:var(--text-muted);margin-top:3px">
-            {{ $jobs->total() }} total jobs found
-        </p>
-    </div>
-    <a href="{{ route('jobs.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i> Create Job
-    </a>
+{{-- ── Header ── --}}
+<div style="margin-bottom:20px">
+    <h2 style="font-family:'Inter',sans-serif;font-size:22px;font-weight:800;color:var(--text-primary);text-transform:uppercase;letter-spacing:.04em">
+        JOB LISTS
+    </h2>
 </div>
 
-{{-- ── Filters ──────────────────────────────────────────────────────────────── --}}
+{{-- ── Filter Box ── --}}
 <div class="card" style="margin-bottom:20px">
-    <div class="card-body" style="padding:16px 22px">
+    <div class="card-body" style="padding:18px 22px">
+        <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:14px">Filter Jobs</div>
         <form method="GET" action="{{ route('jobs.list') }}"
-            style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
-            <div class="form-group" style="flex:1;min-width:200px;margin:0">
-                <label class="form-label" style="font-size:12px">Search</label>
-                <div style="position:relative">
-                    <i class="bi bi-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:14px"></i>
-                    <input type="text" name="search" class="form-control"
-                        placeholder="Job ID, client, origin..."
-                        style="padding-left:36px"
-                        value="{{ request('search') }}">
-                </div>
-            </div>
-            <div class="form-group" style="min-width:160px;margin:0">
-                <label class="form-label" style="font-size:12px">Status</label>
-                <select name="status" class="form-select">
-                    <option value="">All Statuses</option>
-                    <option value="pending" {{ request('status') == 'pending'    ? 'selected' : '' }}>Pending</option>
-                    <option value="in-transit" {{ request('status') == 'in-transit' ? 'selected' : '' }}>In Transit</option>
-                    <option value="delivered" {{ request('status') == 'delivered'  ? 'selected' : '' }}>Delivered</option>
-                    <option value="cancelled" {{ request('status') == 'cancelled'  ? 'selected' : '' }}>Cancelled</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary" style="height:42px">
-                <i class="bi bi-funnel"></i> Filter
+            style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+
+            {{-- Select Client --}}
+            <select name="client" class="form-select" style="flex:1;min-width:180px;max-width:260px">
+                <option value="">Select Client</option>
+                @foreach($clients as $client)
+                <option value="{{ $client }}" {{ request('client') == $client ? 'selected' : '' }}>
+                    {{ $client }}
+                </option>
+                @endforeach
+            </select>
+
+            {{-- Job Bill Number --}}
+            <select name="job_bill" class="form-select" style="flex:1;min-width:180px;max-width:220px">
+                <option value="">Job Bill Number</option>
+                @foreach($jobNos as $jno)
+                <option value="{{ $jno }}" {{ request('job_bill') == $jno ? 'selected' : '' }}>
+                    {{ $jno }}
+                </option>
+                @endforeach
+            </select>
+
+            {{-- Select Status --}}
+            <select name="status" class="form-select" style="flex:1;min-width:160px;max-width:200px">
+                <option value="">Select Status</option>
+                <option value="Not Started" {{ request('status')=='Not Started' ?'selected':'' }}>Not Started</option>
+                <option value="In Progress" {{ request('status')=='In Progress'  ?'selected':'' }}>In Progress</option>
+                <option value="pending" {{ request('status')=='pending'      ?'selected':'' }}>Pending</option>
+                <option value="in-transit" {{ request('status')=='in-transit'   ?'selected':'' }}>In Transit</option>
+                <option value="delivered" {{ request('status')=='delivered'    ?'selected':'' }}>Delivered</option>
+                <option value="cancelled" {{ request('status')=='cancelled'    ?'selected':'' }}>Cancelled</option>
+            </select>
+
+            {{-- Date From --}}
+            <input type="date" name="date_from" class="form-control"
+                style="flex:1;min-width:150px;max-width:180px"
+                value="{{ request('date_from') }}">
+
+            {{-- Date To --}}
+            <input type="date" name="date_to" class="form-control"
+                style="flex:1;min-width:150px;max-width:180px"
+                value="{{ request('date_to') }}">
+
+            <button type="submit" class="btn btn-primary" style="min-width:90px">
+                Filter
             </button>
-            @if(request('search') || request('status'))
-            <a href="{{ route('jobs.list') }}" class="btn btn-outline" style="height:42px">
-                <i class="bi bi-x"></i> Clear
-            </a>
+
+            @if(request()->hasAny(['client','job_bill','status','date_from','date_to']))
+            <a href="{{ route('jobs.list') }}" class="btn btn-outline">Clear</a>
             @endif
         </form>
     </div>
 </div>
 
-{{-- ── Table ────────────────────────────────────────────────────────────────── --}}
+{{-- ── Jobs Table ── --}}
 <div class="card">
+    <div class="card-body" style="padding:18px 22px 10px">
+        <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:14px">Job List</div>
+    </div>
     <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
-                    <th>Job ID</th>
-                    <th>Client</th>
-                    <th>Route</th>
-                    <th>Cargo</th>
-                    <th>Invoice</th>
-                    <th>Agent</th>
+                    <th style="width:50px">SL.</th>
+                    <th>Job No</th>
+                    <th>B/E Number</th>
+                    <th>Received Date</th>
+                    <th style="text-align:center">Client Name</th>
+                    <th>AWB NO</th>
+                    <th style="text-align:right">Total Expenses</th>
+                    <th style="text-align:right">Billed Amount</th>
+                    <th style="text-align:right">Profit / Loss</th>
                     <th>Status</th>
-                    <th>Payment</th>
-                    <th>Date</th>
-                    <th style="text-align:center">Actions</th>
+                    <th style="text-align:center">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($jobs as $job)
+                @php
+                $expense = floatval($job->expense_amount ?? 0);
+                $billed = floatval($job->cost_amount ?? 0);
+                $profitLoss = $billed - $expense;
+                $sl = $jobs->total() - (($jobs->currentPage() - 1) * $jobs->perPage()) - $loop->index;
+                @endphp
                 <tr>
+                    <td style="color:var(--text-muted);font-size:13px">{{ $sl }}</td>
                     <td>
-                        <span style="font-weight:700;color:var(--primary);font-size:13px">
-                            {{ $job->job_id }}
-                        </span>
+                        <a href="{{ route('jobs.show', $job) }}"
+                            style="font-weight:700;color:var(--primary);font-size:13px;text-decoration:none">
+                            {{ $job->job_no ?? $job->job_id ?? '—' }}
+                        </a>
                     </td>
-                    <td>
-                        <div style="font-weight:600;font-size:13.5px">{{ $job->client_name ?? '—' }}</div>
-                        @if($job->client_phone)
-                        <div style="font-size:11px;color:var(--text-muted)">{{ $job->client_phone }}</div>
-                        @endif
-                    </td>
-                    <td style="font-size:13px">
-                        {{ $job->origin ?? '—' }}
-                        @if($job->destination)
-                        <span style="color:var(--text-muted)"> → </span>
-                        {{ $job->destination }}
-                        @endif
-                    </td>
-                    <td style="font-size:13px">
-                        {{ $job->cargo_type ?? '—' }}
-                        @if($job->cargo_weight)
-                        <div style="font-size:11px;color:var(--text-muted)">{{ $job->cargo_weight }} KG</div>
-                        @endif
-                    </td>
-                    <td style="font-weight:600">
-                        ৳ {{ number_format($job->cost_amount ?? 0, 0) }}
-                    </td>
+                    <td style="font-size:13px">{{ $job->be_no ?? '—' }}</td>
                     <td style="font-size:13px;color:var(--text-muted)">
-                        {{ $job->assigned_agent ?? '—' }}
+                        {{ $job->receive_date ? $job->receive_date->format('Y-m-d') : '—' }}
+                    </td>
+                    <td style="font-size:13px;text-align:center;font-weight:500">
+                        {{ $job->client_name ?? '—' }}
+                    </td>
+                    <td style="font-size:13px">{{ $job->awb_no ?? '—' }}</td>
+                    <td style="text-align:right;font-size:13px;font-weight:500">
+                        {{ number_format($expense, 2) }}
+                    </td>
+                    <td style="text-align:right;font-size:13px;font-weight:500">
+                        {{ number_format($billed, 2) }}
+                    </td>
+                    <td style="text-align:right;font-size:13px;font-weight:700; color:{{ $profitLoss >= 0 ? 'var(--success)' : 'var(--danger)' }}">
+                        {{ number_format($profitLoss, 2) }}
                     </td>
                     <td>
-                        <span class="badge badge-{{ str_replace(' ', '-', $job->status) }}">
-                            {{ ucfirst($job->status) }}
+                        @php
+                        $statusColors = [
+                        'Not Started' => 'background:#e2e8f0;color:#475569',
+                        'In Progress' => 'background:#dbeafe;color:#1e40af',
+                        'pending' => 'background:#fef3c7;color:#92400e',
+                        'in-transit' => 'background:#dbeafe;color:#1e40af',
+                        'delivered' => 'background:#d1fae5;color:#065f46',
+                        'cancelled' => 'background:#fee2e2;color:#991b1b',
+                        ];
+                        $sc = $statusColors[$job->status] ?? 'background:#e2e8f0;color:#475569';
+                        @endphp
+                        <span style="display:inline-block;padding:3px 10px;border-radius:20px; font-size:11px;font-weight:700;white-space:nowrap;{{ $sc }}">
+                            {{ $job->status ?? 'Not Started' }}
                         </span>
                     </td>
-                    <td>
-                        @if($job->is_paid)
-                        <span class="badge" style="background:#d1fae5;color:#065f46">Paid</span>
-                        @else
-                        <span class="badge" style="background:#fee2e2;color:#991b1b">Unpaid</span>
-                        @endif
-                    </td>
-                    <td style="color:var(--text-muted);font-size:12px">
-                        {{ $job->created_at->format('d M Y') }}
-                    </td>
-                    <td>
-                        <div style="display:flex;gap:6px;justify-content:center">
-                            <a href="{{ route('jobs.show', $job) }}"
-                                class="btn btn-sm btn-outline" title="View">
-                                <i class="bi bi-eye"></i>
-                            </a>
+                    <td style="text-align:center">
+                        <div style="display:flex;gap:5px;justify-content:center">
                             <a href="{{ route('jobs.edit', $job) }}"
-                                class="btn btn-sm" title="Edit"
-                                style="background:var(--primary-light);color:var(--primary);border:none">
-                                <i class="bi bi-pencil"></i>
+                                style="display:inline-flex;align-items:center;gap:4px; padding:5px 12px;border-radius:5px; background:#1a56db;color:#fff; font-size:12px;font-weight:600;text-decoration:none; transition:background .15s"
+                                onmouseover="this.style.background='#1340b0'"
+                                onmouseout="this.style.background='#1a56db'">
+                                Edit
                             </a>
-                            <form method="POST" action="{{ route('jobs.destroy', $job) }}"
-                                onsubmit="return confirm('Delete this job?')" style="display:inline">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger" title="Delete">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+                            <a href="{{ route('jobs.show', $job) }}"
+                                style="display:inline-flex; align-items:center; gap:4px; padding:5px 12px; border-radius:5px; background:#10b981; color:#fff; font-size:12px; font-weight:600; text-decoration:none; transition:background .15s"
+                                onmouseover="this.style.background='#059669'"
+                                onmouseout="this.style.background='#10b981'">
+                                View PDF
+                            </a>
                         </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="10" style="text-align:center;padding:40px;color:var(--text-muted)">
+                    <td colspan="11" style="text-align:center;padding:48px;color:var(--text-muted)">
                         <i class="bi bi-inbox" style="font-size:40px;display:block;margin-bottom:10px;opacity:.35"></i>
                         No jobs found.
                         <a href="{{ route('jobs.create') }}" style="color:var(--primary)">Create one now →</a>
@@ -160,7 +175,10 @@
 
     {{-- Pagination --}}
     @if($jobs->hasPages())
-    <div class="pagination-wrapper">
+    <div class="pagination-wrapper" style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;color:var(--text-muted)">
+            Showing {{ $jobs->firstItem() }}–{{ $jobs->lastItem() }} of {{ $jobs->total() }} jobs
+        </div>
         {{ $jobs->withQueryString()->links() }}
     </div>
     @endif
@@ -170,17 +188,17 @@
 
 @push('styles')
 <style>
-    /* Override default Laravel pagination */
     nav[role="navigation"] {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-end;
     }
 
     .pagination {
         display: flex;
         gap: 4px;
         list-style: none;
+        margin: 0;
     }
 
     .pagination li a,
@@ -188,9 +206,9 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 34px;
-        height: 34px;
-        border-radius: var(--radius-sm);
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
         font-size: 13px;
         font-weight: 600;
         border: 1px solid var(--border);

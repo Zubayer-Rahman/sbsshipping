@@ -44,7 +44,6 @@
 
 {{-- ── ROW 1: Line Chart + Pie Chart ───────────────────────────────────────── --}}
 <div class="charts-grid" style="margin-bottom:18px">
-
     {{-- Monthly Jobs Line Chart --}}
     <div class="card">
         <div class="card-header">
@@ -62,7 +61,7 @@
             <span class="card-title"><i class="bi bi-pie-chart" style="color:var(--accent);margin-right:6px"></i>Job Status</span>
         </div>
         <div class="card-body" style="display:flex;align-items:center;justify-content:center">
-            <canvas id="statusPie" height="160" style="max-width:220px"></canvas>
+            <canvas id="statusPie" height="160" style="max-height:300px"></canvas>
         </div>
     </div>
 
@@ -88,7 +87,7 @@
             <span class="card-title"><i class="bi bi-boxes" style="color:var(--warning);margin-right:6px"></i>Cargo Types</span>
         </div>
         <div class="card-body" style="display:flex;align-items:center;justify-content:center">
-            <canvas id="cargoPie" height="160" style="max-width:220px"></canvas>
+            <canvas id="cargoPie" height="160" style="max-height:300px"></canvas>
         </div>
     </div>
 

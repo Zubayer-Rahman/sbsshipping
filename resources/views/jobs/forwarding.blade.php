@@ -8,7 +8,7 @@
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
     <div>
-        <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text-primary)">
+        <h2 style="font-family:'Inter',sans-serif;font-size:22px;font-weight:800;color:var(--text-primary)">
             Forwarding & Bill Generation
         </h2>
         <p style="font-size:13px;color:var(--text-muted);margin-top:3px">
@@ -23,7 +23,7 @@
                 font-size:36px;color:var(--primary);margin:0 auto 20px">
         <i class="bi bi-file-earmark-text"></i>
     </div>
-    <h3 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;
+    <h3 style="font-family:'Inter',sans-serif;font-size:20px;font-weight:800;
                color:var(--text-primary);margin-bottom:10px">
         Forwarding / Bill Generation
     </h3>
