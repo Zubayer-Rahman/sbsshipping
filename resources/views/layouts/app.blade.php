@@ -44,7 +44,7 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             background: var(--body-bg);
             color: var(--text-primary);
             display: flex;
@@ -81,7 +81,7 @@
             box-shadow: 0 4px 12px rgba(26,86,219,.4);
         }
         .sidebar-brand .brand-text {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 18px; font-weight: 800;
             color: #fff; line-height: 1;
         }
@@ -192,7 +192,7 @@
             box-shadow: var(--shadow-sm);
         }
         .topbar-title {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 18px; font-weight: 700;
             color: var(--text-primary);
         }
@@ -284,7 +284,7 @@
         .stat-card.red    .stat-icon { background: #fee2e2; color: var(--danger); }
 
         .stat-value {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 26px; font-weight: 800;
             color: var(--text-primary); line-height: 1;
         }
