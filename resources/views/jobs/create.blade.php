@@ -68,17 +68,18 @@
                             <option value="SALMAN G AHMED" {{ old('assigned_agent')=='SALMAN G AHMED' ?'selected':'' }}>SALMAN G AHMED</option>
                             <option value="Pallab Hore" {{ old('assigned_agent')=='Pallab Hore'    ?'selected':'' }}>Pallab Hore</option>
                             <option value="Md. AL-Amin" {{ old('assigned_agent')=='Md. AL-Amin'    ?'selected':'' }}>Md. AL-Amin</option>
-                            <option value="Jaya Sofyan" {{ old('assigned_agent')=='Jaya Sofyan'    ?'selected':'' }}>Jaya Sofyan</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Category</label>
                         <select name="category" class="form-select" style="margin-bottom:10px">
                             <option value="">Select Category</option>
-                            <option value="Import" {{ old('category')=='Import'  ?'selected':'' }}>Import</option>
-                            <option value="Export" {{ old('category')=='Export'  ?'selected':'' }}>Export</option>
-                            <option value="Local" {{ old('category')=='Local'   ?'selected':'' }}>Local</option>
-                            <option value="Transit" {{ old('category')=='Transit' ?'selected':'' }}>Transit</option>
+                            <option value="Import by Air" {{ old('category')=='Import by Air'  ?'selected':'' }}>Import by Air</option>
+                            <option value="Import by Sea" {{ old('category')=='Import by Sea'  ?'selected':'' }}>Import by Sea</option>
+                            <option value="Export by Air" {{ old('category')=='Export by Air'  ?'selected':'' }}>Export by Air</option>
+                            <option value="Export by Sea" {{ old('category')=='Export by Sea'  ?'selected':'' }}>Export by Sea</option>
+                            <option value="By Truck" {{ old('category')=='By Truck'   ?'selected':'' }}>By Truck</option>
+                            <option value="Other" {{ old('category')=='Other' ?'selected':'' }}>Other</option>
                         </select>
                         <label class="form-label" style="margin-top:6px">Items</label>
                         <input type="text" name="items" class="form-control" value="{{ old('items') }}" style="margin-bottom:8px">
