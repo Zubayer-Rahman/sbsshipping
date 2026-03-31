@@ -2,17 +2,16 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ItemController;
 use App\Http\Controllers\JobController;
 use Illuminate\Support\Facades\Route;
 
-// ── Auth Routes ──────────────────────────────────────────────────────────────
-Route::get('/login',    [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login',   [AuthController::class, 'login']);
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register',[AuthController::class, 'register']);
-Route::post('/logout',  [AuthController::class, 'logout'])->name('logout');
+// ── Auth Routes ─────────────────────────────────────────────────────────────
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// ── Protected Routes (must be logged in) ─────────────────────────────────────
+// ── Protected Routes ─────────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
 
     Route::get('/', fn() => redirect('/dashboard'));
@@ -22,14 +21,23 @@ Route::middleware('auth')->group(function () {
 
     // Jobs Manager
     Route::prefix('jobs')->name('jobs.')->group(function () {
-        Route::get('/',                [JobController::class, 'index'])->name('list');
-        Route::get('/create',          [JobController::class, 'create'])->name('create');
-        Route::post('/store',          [JobController::class, 'store'])->name('store');
+        Route::get('/',          [JobController::class, 'index'])->name('list');
+        Route::get('/create',    [JobController::class, 'create'])->name('create');
+        Route::post('/store',    [JobController::class, 'store'])->name('store');
+        Route::get('/{job}',     [JobController::class, 'show'])->name('show');
+        Route::get('/{job}/edit',[JobController::class, 'edit'])->name('edit');
+        Route::put('/{job}',     [JobController::class, 'update'])->name('update');
+        Route::delete('/{job}',  [JobController::class, 'destroy'])->name('destroy');
         Route::get('/forwarding/page', [JobController::class, 'forwarding'])->name('forwarding');
-        Route::get('/{job}',           [JobController::class, 'show'])->name('show');
-        Route::get('/{job}/edit',      [JobController::class, 'edit'])->name('edit');
-        Route::put('/{job}',           [JobController::class, 'update'])->name('update');
-        Route::delete('/{job}',        [JobController::class, 'destroy'])->name('destroy');
     });
 
+    // Items
+    Route::prefix('items')->name('items.')->group(function () {
+        Route::get('/',            [ItemController::class, 'index'])->name('list');
+        Route::get('/create',      [ItemController::class, 'create'])->name('create');
+        Route::post('/store',      [ItemController::class, 'store'])->name('store');
+        Route::get('/{item}/edit', [ItemController::class, 'edit'])->name('edit');
+        Route::put('/{item}',      [ItemController::class, 'update'])->name('update');
+        Route::delete('/{item}',   [ItemController::class, 'destroy'])->name('destroy');
+    });
 });
