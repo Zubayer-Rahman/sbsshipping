@@ -62,7 +62,7 @@
                         @forelse($contacts as $contact)
                         <tr class="{{ !$contact->is_active ? 'row-inactive' : '' }}">
                             {{-- Sticky Action Column --}}
-                            <td style="position:sticky;left:0;z-index:1;background:var(--card-bg,#fff)">
+                            <td style="position:sticky;left:0;z-index:999;background:var(--card-bg,#fff)">
                                 <div class="action-dropdown">
                                     <button class="action-btn" onclick="toggleDropdown(this)">
                                         Actions <span class="action-caret">▼</span>
