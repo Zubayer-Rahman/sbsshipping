@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\JobController;
@@ -39,5 +40,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/{item}/edit', [ItemController::class, 'edit'])->name('edit');
         Route::put('/{item}',      [ItemController::class, 'update'])->name('update');
         Route::delete('/{item}',   [ItemController::class, 'destroy'])->name('destroy');
+    });
+
+    // Contacts (Suppliers & Clients)
+    Route::prefix('contacts')->name('contacts.')->group(function () {
+        Route::get('/create/new',          [ContactController::class, 'create'])->name('create');
+        Route::post('/store',              [ContactController::class, 'store'])->name('store');
+        Route::get('/show/{contact}',      [ContactController::class, 'show'])->name('show');
+        Route::get('/{contact}/edit',      [ContactController::class, 'edit'])->name('edit');
+        Route::put('/{contact}',           [ContactController::class, 'update'])->name('update');
+        Route::delete('/{contact}',        [ContactController::class, 'destroy'])->name('destroy');
+        Route::post('/{contact}/toggle',   [ContactController::class, 'toggleActive'])->name('toggle');
+        Route::get('/{type}',              [ContactController::class, 'index'])
+            ->where('type', 'supplier|client')
+            ->name('index');
     });
 });
