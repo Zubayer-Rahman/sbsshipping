@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ForwardingController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\JobController;
 use Illuminate\Support\Facades\Route;
@@ -22,14 +23,23 @@ Route::middleware('auth')->group(function () {
 
     // Jobs Manager
     Route::prefix('jobs')->name('jobs.')->group(function () {
-        Route::get('/',          [JobController::class, 'index'])->name('list');
-        Route::get('/create',    [JobController::class, 'create'])->name('create');
-        Route::post('/store',    [JobController::class, 'store'])->name('store');
-        Route::get('/{job}',     [JobController::class, 'show'])->name('show');
-        Route::get('/{job}/edit',[JobController::class, 'edit'])->name('edit');
-        Route::put('/{job}',     [JobController::class, 'update'])->name('update');
-        Route::delete('/{job}',  [JobController::class, 'destroy'])->name('destroy');
-        Route::get('/forwarding/page', [JobController::class, 'forwarding'])->name('forwarding');
+        Route::get('/',                    [JobController::class, 'index'])->name('list');
+        Route::get('/create',              [JobController::class, 'create'])->name('create');
+        Route::post('/store',              [JobController::class, 'store'])->name('store');
+        Route::get('/forwarding/page',     [ForwardingController::class, 'create'])->name('forwarding');
+        Route::get('/{job}',               [JobController::class, 'show'])->name('show');
+        Route::get('/{job}/edit',          [JobController::class, 'edit'])->name('edit');
+        Route::put('/{job}',               [JobController::class, 'update'])->name('update');
+        Route::delete('/{job}',            [JobController::class, 'destroy'])->name('destroy');
+    });
+
+    // Forwarding Letters
+    Route::prefix('forwarding')->name('forwarding.')->group(function () {
+        Route::get('/list',                [ForwardingController::class, 'index'])->name('list');
+        Route::post('/store',              [ForwardingController::class, 'store'])->name('store');
+        Route::get('/preview/{letter}',    [ForwardingController::class, 'preview'])->name('preview');
+        Route::delete('/{letter}',         [ForwardingController::class, 'destroy'])->name('destroy');
+        Route::get('/jobs-for-contact',    [ForwardingController::class, 'jobsForContact'])->name('jobs');
     });
 
     // Items
@@ -44,15 +54,16 @@ Route::middleware('auth')->group(function () {
 
     // Contacts (Suppliers & Clients)
     Route::prefix('contacts')->name('contacts.')->group(function () {
-        Route::get('/create/new',          [ContactController::class, 'create'])->name('create');
-        Route::post('/store',              [ContactController::class, 'store'])->name('store');
-        Route::get('/show/{contact}',      [ContactController::class, 'show'])->name('show');
-        Route::get('/{contact}/edit',      [ContactController::class, 'edit'])->name('edit');
-        Route::put('/{contact}',           [ContactController::class, 'update'])->name('update');
-        Route::delete('/{contact}',        [ContactController::class, 'destroy'])->name('destroy');
-        Route::post('/{contact}/toggle',   [ContactController::class, 'toggleActive'])->name('toggle');
-        Route::get('/{type}',              [ContactController::class, 'index'])
+        Route::get('/create/new',        [ContactController::class, 'create'])->name('create');
+        Route::post('/store',            [ContactController::class, 'store'])->name('store');
+        Route::get('/show/{contact}',    [ContactController::class, 'show'])->name('show');
+        Route::get('/{contact}/edit',    [ContactController::class, 'edit'])->name('edit');
+        Route::put('/{contact}',         [ContactController::class, 'update'])->name('update');
+        Route::delete('/{contact}',      [ContactController::class, 'destroy'])->name('destroy');
+        Route::post('/{contact}/toggle', [ContactController::class, 'toggleActive'])->name('toggle');
+        Route::get('/{type}',            [ContactController::class, 'index'])
             ->where('type', 'supplier|client')
             ->name('index');
     });
+
 });
