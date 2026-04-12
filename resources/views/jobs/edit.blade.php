@@ -6,8 +6,7 @@
 
 @section('content')
 
-<div style="max-width:960px">
-
+<div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
         <div>
             <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text-primary)">
@@ -35,7 +34,17 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Client Name</label>
-                        <input type="text" name="client_name" class="form-control" value="{{ old('client_name', $job->client_name) }}">
+                        <select name="client_name" class="form-select">
+                            <option value="">Select Client</option>
+                            @foreach($clients as $client)
+                            <option value="{{ $client->business_name }}"
+                                {{ old('client_name', $job->client_name) == $client->business_name ? 'selected' : '' }}>
+                                {{ $client->business_name }}
+                            </option>
+                            @endforeach
+                        </select>
+                        <!-- <label class="form-label">Client Name</label>
+                        <input type="text" name="client_name" class="form-control" value="{{ old('client_name', $job->client_name) }}"> -->
                     </div>
                     <div class="form-group">
                         <label class="form-label">Client Email</label>
@@ -72,7 +81,7 @@
                         <select name="cargo_type" class="form-select">
                             <option value="">— Select —</option>
                             @foreach(['General','Fragile','Hazardous','Perishable','Oversized','Electronics','Livestock'] as $type)
-                                <option value="{{ $type }}" {{ old('cargo_type', $job->cargo_type) == $type ? 'selected' : '' }}>{{ $type }}</option>
+                            <option value="{{ $type }}" {{ old('cargo_type', $job->cargo_type) == $type ? 'selected' : '' }}>{{ $type }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -88,7 +97,7 @@
                         <label class="form-label">Status</label>
                         <select name="status" class="form-select">
                             @foreach(['pending','in-transit','delivered','cancelled'] as $s)
-                                <option value="{{ $s }}" {{ old('status', $job->status) == $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
+                            <option value="{{ $s }}" {{ old('status', $job->status) == $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
                             @endforeach
                         </select>
                     </div>

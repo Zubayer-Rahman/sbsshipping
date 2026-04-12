@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Job;
+use App\Models\Contact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -28,9 +29,7 @@ class JobController extends Controller
             $query->whereDate('receive_date', '<=', $request->date_to);
         }
 
-        $jobs = $query->paginate(20);
-
-        // Populate filter dropdowns
+        $jobs    = $query->paginate(20);
         $clients = Job::whereNotNull('client_name')->distinct()->pluck('client_name')->sort()->values();
         $jobNos  = Job::whereNotNull('job_no')->distinct()->pluck('job_no')->sortDesc()->values();
 
@@ -39,7 +38,13 @@ class JobController extends Controller
 
     public function create()
     {
-        return view('jobs.create');
+        // Load all active clients from the contacts table
+        $clients = Contact::where('type', 'client')
+            ->where('is_active', true)
+            ->orderBy('business_name')
+            ->get();
+
+        return view('jobs.create', compact('clients'));
     }
 
     public function store(Request $request)
@@ -64,7 +69,12 @@ class JobController extends Controller
 
     public function edit(Job $job)
     {
-        return view('jobs.edit', compact('job'));
+        $clients = Contact::where('type', 'client')
+            ->where('is_active', true)
+            ->orderBy('business_name')
+            ->get();
+
+        return view('jobs.edit', compact('job', 'clients'));
     }
 
     public function update(Request $request, Job $job)
@@ -83,11 +93,5 @@ class JobController extends Controller
     {
         $job->delete();
         return redirect()->route('jobs.list')->with('success', 'Job deleted.');
-    }
-
-    public function forwarding()
-    {
-        $jobs = Job::latest()->get();
-        return view('jobs.forwarding', compact('jobs'));
     }
 }

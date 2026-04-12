@@ -49,10 +49,20 @@
                 {{-- ROW 2: Client Name | User | Assign To | Category + Items + Qty --}}
                 <div class="cj-grid4" style="margin-bottom:20px">
                     <div class="form-group">
+                        <!-- <select name="client_name" class="form-select">
+                            <option value="">Select Client</option>
+                            <option value="walk-in" {{ old('client_name')=='walk-in'?'selected':'' }}>Walk-in Client</option>
+                        </select>  -->
+                        
                         <label class="form-label">Client Name</label>
                         <select name="client_name" class="form-select">
                             <option value="">Select Client</option>
-                            <option value="walk-in" {{ old('client_name')=='walk-in'?'selected':'' }}>Walk-in Client</option>
+                            @foreach($clients as $client)
+                            <option value="{{ $client->business_name }}"
+                                {{ old('client_name') == $client->business_name ? 'selected' : '' }}>
+                                {{ $client->business_name }}
+                            </option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="form-group">
