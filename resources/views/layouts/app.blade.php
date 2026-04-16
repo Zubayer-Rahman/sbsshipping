@@ -790,6 +790,20 @@
                         <li class="nav-item"><a href="{{ route('items.create') }}" class="nav-link {{ request()->routeIs('items.create') ? 'active' : '' }}">Add Item</a></li>
                     </ul>
                 </li>
+
+                <li class="nav-section-label">Expenses</li>
+                <li class="nav-item {{ request()->routeIs('expenses.*') || request()->routeIs('expense-categories.*') ? 'open' : '' }}">
+                    <a href="#" class="nav-link {{ request()->routeIs('expenses.*') || request()->routeIs('expense-categories.*') ? 'active' : '' }}"
+                        onclick="toggleSubmenu(this);return false;">
+                        <i class="bi bi-receipt"></i> Expenses
+                        <i class="bi bi-chevron-right nav-arrow"></i>
+                    </a>
+                    <ul class="nav-submenu {{ request()->routeIs('expenses.*') || request()->routeIs('expense-categories.*') ? 'open' : '' }}">
+                        <li class="nav-item"><a href="{{ route('expenses.list') }}" class="nav-link {{ request()->routeIs('expenses.list')           ? 'active' : '' }}">List Expenses</a></li>
+                        <li class="nav-item"><a href="{{ route('expenses.create') }}" class="nav-link {{ request()->routeIs('expenses.create')         ? 'active' : '' }}">Add Expense</a></li>
+                        <li class="nav-item"><a href="{{ route('expense-categories.list') }}" class="nav-link {{ request()->routeIs('expense-categories.list') ? 'active' : '' }}">Expense Categories</a></li>
+                    </ul>
+                </li>
             </ul>
         </nav>
         <div class="sidebar-footer">
