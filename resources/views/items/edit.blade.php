@@ -7,7 +7,6 @@
 @section('content')
 
 <div>
-
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text-primary)">
             Edit Item

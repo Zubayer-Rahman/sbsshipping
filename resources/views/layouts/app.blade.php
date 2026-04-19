@@ -112,14 +112,14 @@
             overflow-y: auto
         }
 
-        .nav-section-label {
+        /* .nav-section-label {
             font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: .12em;
             color: rgba(255, 255, 255, .3);
             padding: 12px 12px 6px
-        }
+        } */
 
         .nav-item {
             list-style: none;
@@ -735,14 +735,14 @@
         </div>
         <nav class="sidebar-nav">
             <ul style="list-style:none">
-                <li class="nav-section-label">Main</li>
+                <!-- <li class="nav-section-label">Main</li> -->
                 <li class="nav-item">
                     <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                         <i class="bi bi-grid-1x2"></i> Dashboard
                     </a>
                 </li>
 
-                <li class="nav-section-label">Contacts</li>
+                <!-- <li class="nav-section-label">Contacts</li> -->
                 <li class="nav-item {{ request()->routeIs('contacts.*') ? 'open' : '' }}">
                     <a href="#" class="nav-link {{ request()->routeIs('contacts.*') ? 'active' : '' }}" onclick="toggleSubmenu(this);return false;">
                         <i class="bi bi-people"></i> Contacts
@@ -764,7 +764,7 @@
                     </ul>
                 </li>
 
-                <li class="nav-section-label">Jobs Manager</li>
+                <!-- <li class="nav-section-label">Jobs Manager</li> -->
                 @php $jobsActive = request()->routeIs('jobs.*') || request()->routeIs('forwarding.*'); @endphp
                 <li class="nav-item {{ $jobsActive ? 'open' : '' }}">
                     <a href="#" class="nav-link {{ $jobsActive ? 'active' : '' }}" onclick="toggleSubmenu(this);return false;">
@@ -779,7 +779,7 @@
                     </ul>
                 </li>
 
-                <li class="nav-section-label">Inventory</li>
+                <!-- <li class="nav-section-label">Inventory</li> -->
                 <li class="nav-item {{ request()->routeIs('items.*') ? 'open' : '' }}">
                     <a href="#" class="nav-link {{ request()->routeIs('items.*') ? 'active' : '' }}" onclick="toggleSubmenu(this);return false;">
                         <i class="bi bi-box-seam"></i> Items
@@ -791,7 +791,7 @@
                     </ul>
                 </li>
 
-                <li class="nav-section-label">Expenses</li>
+                <!-- <li class="nav-section-label">Expenses</li> -->
                 <li class="nav-item {{ request()->routeIs('expenses.*') || request()->routeIs('expense-categories.*') ? 'open' : '' }}">
                     <a href="#" class="nav-link {{ request()->routeIs('expenses.*') || request()->routeIs('expense-categories.*') ? 'active' : '' }}"
                         onclick="toggleSubmenu(this);return false;">

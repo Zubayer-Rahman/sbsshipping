@@ -118,7 +118,7 @@
                     <th class="exp-th">Action</th>
                     <th class="exp-th">Date</th>
                     <th class="exp-th">Job/Ref. No</th>
-                    <th class="exp-th">Recurring details</th>
+                    <!-- <th class="exp-th">Recurring details</th> -->
                     <th class="exp-th">Expense Category</th>
                     <th class="exp-th">Sub category</th>
                     <th class="exp-th">Location</th>
@@ -164,9 +164,9 @@
                         <span style="font-size:11px;color:var(--primary);font-weight:600">{{ $exp->expense_ref }}</span>
                     </td>
                     <td class="exp-td" style="font-weight:600;color:var(--primary)">{{ $exp->job_ref_no ?? '—' }}</td>
-                    <td class="exp-td" style="font-size:12px;color:var(--text-muted)">
+                    <!-- <td class="exp-td" style="font-size:12px;color:var(--text-muted)">
                         @if($exp->is_recurring) Recurring @else — @endif
-                    </td>
+                    </td> -->
                     <td class="exp-td">{{ $exp->expense_category ?? '—' }}</td>
                     <td class="exp-td" style="color:var(--text-muted)">{{ $exp->sub_category ?? '—' }}</td>
                     <td class="exp-td">{{ $exp->business_location }}</td>

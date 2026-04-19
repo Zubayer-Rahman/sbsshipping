@@ -52,9 +52,13 @@ class ExpenseController extends Controller
     // ── Store ─────────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
-        $data = $request->except('_token');
+        $data = $request->except('_token', 'job_ids');
 
-        // Handle file upload
+        // Handle multiple job selections — before redirect
+        $jobIds = array_filter((array) $request->input('job_ids', []));
+        $data['job_id']     = !empty($jobIds) ? $jobIds[0] : null;
+        $data['job_ref_no'] = $request->input('job_ref_no');
+
         if ($request->hasFile('document')) {
             $data['document_path'] = $request->file('document')
                 ->store('expense_docs', 'public');
@@ -62,15 +66,12 @@ class ExpenseController extends Controller
 
         $data['user_id']  = Auth::id();
         $data['added_by'] = Auth::user()->name;
+        $data['is_refund']    = $request->boolean('is_refund');
+        $data['is_recurring'] = $request->boolean('is_recurring');
 
-        // Null-out empty strings
         foreach ($data as $k => $v) {
             if ($v === '') $data[$k] = null;
         }
-
-        // Booleans
-        $data['is_refund']    = $request->boolean('is_refund');
-        $data['is_recurring'] = $request->boolean('is_recurring');
 
         Expense::create($data);
 
