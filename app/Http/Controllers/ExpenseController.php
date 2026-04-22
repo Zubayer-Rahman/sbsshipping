@@ -42,7 +42,7 @@ class ExpenseController extends Controller
     public function create()
     {
         $users      = User::orderBy('name')->get();
-        $contacts   = Contact::where('is_active', true)->orderBy('business_name')->get();
+        $contacts   = Contact::where('is_active', true)->whereIn('type', ['client', 'both'])->orderBy('business_name')->get();
         $jobs       = DB::table('sbs_jobs')->orderByDesc('id')->get(['id', 'job_no', 'job_id']);
         $categories = ExpenseCategory::orderBy('parent_category')->orderBy('name')->get();
 

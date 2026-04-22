@@ -8,6 +8,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ForwardingController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\JobController;
+use App\Http\Controllers\PurchaseController;
 use Illuminate\Support\Facades\Route;
 
 // ── Auth Routes ─────────────────────────────────────────────────────────────
@@ -87,6 +88,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/store',        [ExpenseCategoryController::class, 'store'])->name('store');
         Route::put('/{expenseCategory}',    [ExpenseCategoryController::class, 'update'])->name('update');
         Route::delete('/{expenseCategory}', [ExpenseCategoryController::class, 'destroy'])->name('destroy');
+    });
+
+    // Purchases
+    Route::prefix('purchases')->name('purchases.')->group(function () {
+        Route::get('/',                  [PurchaseController::class, 'index'])->name('list');
+        Route::get('/create',            [PurchaseController::class, 'create'])->name('create');
+        Route::post('/store',            [PurchaseController::class, 'store'])->name('store');
+        Route::get('/{purchase}',        [PurchaseController::class, 'show'])->name('show');
+        Route::delete('/{purchase}',     [PurchaseController::class, 'destroy'])->name('destroy');
+        Route::get('/items/search',      [PurchaseController::class, 'searchItems'])->name('items.search');
     });
 
 });

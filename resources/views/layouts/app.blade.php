@@ -8,6 +8,7 @@
     <title>@yield('title', 'SBS Shipping') — Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
@@ -88,7 +89,7 @@
         }
 
         .brand-text {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 18px;
             font-weight: 800;
             color: #fff;
@@ -270,7 +271,7 @@
         }
 
         .topbar-title {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 18px;
             font-weight: 700;
             color: var(--text-primary)
@@ -434,7 +435,7 @@
         }
 
         .stat-value {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 26px;
             font-weight: 800;
             color: var(--text-primary);
@@ -802,6 +803,8 @@
                         <li class="nav-item"><a href="{{ route('expenses.list') }}" class="nav-link {{ request()->routeIs('expenses.list')           ? 'active' : '' }}">List Expenses</a></li>
                         <li class="nav-item"><a href="{{ route('expenses.create') }}" class="nav-link {{ request()->routeIs('expenses.create')         ? 'active' : '' }}">Add Expense</a></li>
                         <li class="nav-item"><a href="{{ route('expense-categories.list') }}" class="nav-link {{ request()->routeIs('expense-categories.list') ? 'active' : '' }}">Expense Categories</a></li>
+                        <li class="nav-item"><a href="{{ route('purchases.list') }}" class="nav-link {{ request()->routeIs('purchases.list')   ? 'active' : '' }}">List Purchases</a></li>
+                        <li class="nav-item"><a href="{{ route('purchases.create') }}" class="nav-link {{ request()->routeIs('purchases.create') ? 'active' : '' }}">Add Purchase</a></li>
                     </ul>
                 </li>
             </ul>

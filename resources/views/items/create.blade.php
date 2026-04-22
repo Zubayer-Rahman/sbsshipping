@@ -70,11 +70,6 @@
             </div>
         </div>
 
-        {{-- ── SECTION 2: (empty middle section as per screenshot) ── --}}
-        <div class="card" style="margin-bottom:6px;min-height:54px">
-            <div class="card-body" style="padding:16px 24px"></div>
-        </div>
-
         {{-- ── SECTION 3: Tax | Selling Price Type | Item Type + Pricing Grid ── --}}
         <div class="card" style="margin-bottom:28px">
             <div class="card-body" style="padding:24px">
