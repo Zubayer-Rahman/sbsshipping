@@ -118,14 +118,10 @@
                     <th class="exp-th">Action</th>
                     <th class="exp-th">Date</th>
                     <th class="exp-th">Job/Ref. No</th>
-                    <!-- <th class="exp-th">Recurring details</th> -->
+                    <th class="exp-th">Recurring details</th>
                     <th class="exp-th">Expense Category</th>
                     <th class="exp-th">Sub category</th>
-                    <th class="exp-th">Location</th>
-                    <th class="exp-th">Payment Status</th>
-                    <th class="exp-th">Tax</th>
                     <th class="exp-th" style="text-align:right">Total amount</th>
-                    <th class="exp-th" style="text-align:right">Payment due</th>
                     <th class="exp-th">Expense for</th>
                     <th class="exp-th">Contact</th>
                     <th class="exp-th">Expense note</th>
@@ -164,27 +160,12 @@
                         <span style="font-size:11px;color:var(--primary);font-weight:600">{{ $exp->expense_ref }}</span>
                     </td>
                     <td class="exp-td" style="font-weight:600;color:var(--primary)">{{ $exp->job_ref_no ?? '—' }}</td>
-                    <!-- <td class="exp-td" style="font-size:12px;color:var(--text-muted)">
-                        @if($exp->is_recurring) Recurring @else — @endif
-                    </td> -->
+                    <td class="exp-td" style="font-size:12px">
+                        {{ $exp->is_recurring ? 'Recurring' : '—' }}
+                    </td>
                     <td class="exp-td">{{ $exp->expense_category ?? '—' }}</td>
                     <td class="exp-td" style="color:var(--text-muted)">{{ $exp->sub_category ?? '—' }}</td>
-                    <td class="exp-td">{{ $exp->business_location }}</td>
-                    <td class="exp-td">
-                        @php
-                        $sc = ['Paid'=>'background:#d1fae5;color:#065f46','Due'=>'background:#fee2e2;color:#991b1b','Partial'=>'background:#fef3c7;color:#92400e'];
-                        $s = $exp->payment_status ?? 'Due';
-                        @endphp
-                        <span style="display:inline-block;padding:3px 10px;border-radius:20px;
-                                     font-size:11px;font-weight:700;{{ $sc[$s] ?? '' }}">
-                            {{ $s }}
-                        </span>
-                    </td>
-                    <td class="exp-td">{{ $exp->applicable_tax }}</td>
                     <td class="exp-td" style="text-align:right;font-weight:600">TK. {{ number_format($exp->total_amount,2) }}</td>
-                    <td class="exp-td" style="text-align:right;color:{{ $exp->payment_due > 0 ? 'var(--danger)' : 'var(--success)' }};font-weight:600">
-                        TK. {{ number_format($exp->payment_due,2) }}
-                    </td>
                     <td class="exp-td">{{ $exp->expense_for ?? '—' }}</td>
                     <td class="exp-td" style="font-size:12px">{{ $exp->expense_for_contact ?? '—' }}</td>
                     <td class="exp-td" style="max-width:180px;font-size:12px;color:var(--text-muted)">
@@ -194,7 +175,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="15" style="text-align:center;padding:48px;color:var(--text-muted)">
+                    <td colspan="11" style="text-align:center;padding:48px;color:var(--text-muted)">
                         <i class="bi bi-receipt" style="font-size:40px;display:block;margin-bottom:10px;opacity:.3"></i>
                         No expenses found.
                         <a href="{{ route('expenses.create') }}" style="color:var(--primary)">Add your first expense →</a>

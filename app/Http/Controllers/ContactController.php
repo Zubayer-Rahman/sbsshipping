@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/ContactController.php
 
 namespace App\Http\Controllers;
 

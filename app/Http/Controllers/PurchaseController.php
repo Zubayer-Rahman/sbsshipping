@@ -21,11 +21,11 @@ class PurchaseController extends Controller
             $s = $request->search;
             $query->where(function ($q) use ($s) {
                 $q->where('reference_no', 'like', "%$s%")
-                  ->orWhere('supplier_name', 'like', "%$s%");
+                    ->orWhere('supplier_name', 'like', "%$s%");
             });
         }
         if ($request->filled('status'))        $query->where('purchase_status', $request->status);
-        if ($request->filled('payment_status'))$query->where('payment_status', $request->payment_status);
+        if ($request->filled('payment_status')) $query->where('payment_status', $request->payment_status);
         if ($request->filled('date_from'))     $query->whereDate('purchase_date', '>=', $request->date_from);
         if ($request->filled('date_to'))       $query->whereDate('purchase_date', '<=', $request->date_to);
 
@@ -43,8 +43,9 @@ class PurchaseController extends Controller
             ->get();
 
         $items = Item::orderBy('item_name')->get();
+        $jobs  = DB::table('sbs_jobs')->orderByDesc('id')->get(['id', 'job_no', 'job_id', 'client_name']);
 
-        return view('expenses.PurchaseCreate', compact('suppliers', 'items'));
+        return view('expenses.PurchaseCreate', compact('suppliers', 'items', 'jobs'));
     }
 
     // ── Store ─────────────────────────────────────────────────────────────────
@@ -105,13 +106,13 @@ class PurchaseController extends Controller
 
             $paymentAmount = floatval($request->input('payment_amount', 0));
             $paymentStatus = $paymentAmount >= $netTotal ? 'Paid'
-                           : ($paymentAmount > 0 ? 'Partial' : 'Due');
+                : ($paymentAmount > 0 ? 'Partial' : 'Due');
 
             $purchase = Purchase::create([
                 'supplier_id'      => $request->supplier_id,
                 'supplier_name'    => $supplier?->business_name,
                 'supplier_address' => $supplier?->address,
-                'business_location'=> 'SBS Shipping (BL0001)',
+                'business_location' => 'SBS Shipping (BL0001)',
                 'purchase_date'    => $request->purchase_date,
                 'pay_term_number'  => $request->pay_term_number,
                 'pay_term_type'    => $request->pay_term_type,

@@ -66,6 +66,24 @@
             transition: transform .3s ease
         }
 
+        /* .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar.expanded {
+            width: 250px;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.2s;
+        } */
+
         .sidebar-brand {
             padding: 20px 24px 16px;
             border-bottom: 1px solid rgba(255, 255, 255, .08);
@@ -698,7 +716,7 @@
             }
         }
 
-        @media(max-width:768px) {
+        @media(max-width:1100px) {
             .sidebar {
                 transform: translateX(-100%)
             }
@@ -733,6 +751,9 @@
                 <div class="brand-text"><span>SBS</span> Shipping</div>
                 <div class="brand-sub">Management System</div>
             </div>
+            <!-- <button class="toggle-btn" onclick="toggleSidebar()">
+                <span class="icon">☰</span>
+            </button> -->
         </div>
         <nav class="sidebar-nav">
             <ul style="list-style:none">
@@ -850,6 +871,25 @@
     </div>
 
     <script>
+        // function toggleSidebar() {
+        //     const sidebar = document.getElementById('sidebar');
+        //     sidebar.classList.toggle('collapsed');
+        //     sidebar.classList.toggle('expanded');
+
+        //     // Save state to localStorage
+        //     const isExpanded = sidebar.classList.contains('expanded');
+        //     localStorage.setItem('sidebarExpanded', isExpanded);
+        // }
+
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     const sidebar = document.getElementById('sidebar');
+        //     const isExpanded = localStorage.getItem('sidebarExpanded') === 'true';
+
+        //     if (isExpanded) {
+        //         sidebar.classList.remove('collapsed');
+        //         sidebar.classList.add('expanded');
+        //     }
+        // });
         const d = new Date();
         document.getElementById('topbar-date').textContent = d.toLocaleDateString('en-GB', {
             weekday: 'short',

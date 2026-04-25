@@ -35,50 +35,52 @@
                         </select>
                     </div>
 
-                    {{-- JOB Number --}}
-                    <div class="form-group">
-                        <label class="form-label" style="font-weight:700">
-                            JOB Number
-                            <span style="font-weight:400;color:var(--text-muted);font-size:12px">
-                                (No Need To Select Job No. If Office Expenses)
-                            </span>
-                        </label>
-    
-                        <div id="jobTrigger"
-                            style="display:flex;align-items:center;gap:8px;
-                                border:1.5px solid var(--border);border-radius:var(--radius-sm);
-                                background:#fff;padding:0 12px;height:40px;cursor:pointer;
-                                max-width:560px;transition:border-color .2s"
-                            onclick="toggleJobDropdown(event)">
-                            <i class="bi bi-search" style="color:var(--text-muted);font-size:13px;flex-shrink:0"></i>
-                            <input type="text" id="jobSearch"
-                                placeholder="Search or select job numbers..."
-                                autocomplete="off"
-                                style="border:none;outline:none;flex:1;font-size:13px;
-                                      font-family:'Inter',sans-serif;background:transparent;
-                                      cursor:text;color:var(--text-primary)"
-                                onclick="event.stopPropagation();openJobDropdown()"
-                                oninput="filterJobs(this.value)">
-                            <i class="bi bi-chevron-down" id="jobChevron"
-                                style="color:var(--text-muted);font-size:11px;flex-shrink:0;transition:transform .2s"></i>
-                        </div>
-    
-                        <div id="jobTags" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px"></div>
-    
-                        <input type="hidden" name="job_id" id="jobIdSingle">
-                        <input type="hidden" name="job_ref_no" id="jobRefNo">
-    
-                        <div style="font-size:12px;color:var(--text-muted);margin-top:5px;
-                                display:flex;align-items:center;gap:10px">
-                            <span>Multiple jobs can be selected</span>
-                            <span id="jobSelectedCount"
-                                style="display:none;background:var(--primary);color:#fff;
-                                     font-size:11px;font-weight:700;padding:2px 10px;
-                                     border-radius:20px;white-space:nowrap">
-                            </span>
-                        </div>
+                </div>
+
+                {{-- JOB Number --}}
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:700">
+                        JOB Number
+                        <span style="font-weight:400;color:var(--text-muted);font-size:12px">
+                            (No Need To Select Job No. If Office Expenses)
+                        </span>
+                    </label>
+
+                    <div id="jobTrigger"
+                        style="display:flex;align-items:center;gap:8px;
+                            border:1.5px solid var(--border);border-radius:var(--radius-sm);
+                            background:#fff;padding:0 12px;height:40px;cursor:pointer;
+                            max-width:560px;transition:border-color .2s"
+                        onclick="toggleJobDropdown(event)">
+                        <i class="bi bi-search" style="color:var(--text-muted);font-size:13px;flex-shrink:0"></i>
+                        <input type="text" id="jobSearch"
+                            placeholder="Search or select job numbers..."
+                            autocomplete="off"
+                            style="border:none;outline:none;flex:1;font-size:13px;
+                                  font-family:'Inter',sans-serif;background:transparent;
+                                  cursor:text;color:var(--text-primary)"
+                            onclick="event.stopPropagation();openJobDropdown()"
+                            oninput="filterJobs(this.value)">
+                        <i class="bi bi-chevron-down" id="jobChevron"
+                            style="color:var(--text-muted);font-size:11px;flex-shrink:0;transition:transform .2s"></i>
+                    </div>
+
+                    <div id="jobTags" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px"></div>
+
+                    <input type="hidden" name="job_id" id="jobIdSingle">
+                    <input type="hidden" name="job_ref_no" id="jobRefNo">
+
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:5px;
+                            display:flex;align-items:center;gap:10px">
+                        <span>Leave empty to autogenerate · Multiple jobs can be selected</span>
+                        <span id="jobSelectedCount"
+                            style="display:none;background:var(--primary);color:#fff;
+                                 font-size:11px;font-weight:700;padding:2px 10px;
+                                 border-radius:20px;white-space:nowrap">
+                        </span>
                     </div>
                 </div>
+
             </div>
         </div>
 
@@ -224,9 +226,9 @@
                 </div>
 
                 <hr style="border:none;border-top:1px solid var(--border);margin-bottom:12px">
-                <!-- <div style="text-align:right;font-size:14px;font-weight:700;color:var(--text-primary)">
+                <div style="text-align:right;font-size:14px;font-weight:700;color:var(--text-primary)">
                     Total Amount: <span style="color:var(--primary)" id="totalAmountDisplay">0.00</span>
-                </div> -->
+                </div>
             </div>
         </div>
 
@@ -244,10 +246,10 @@
         {{-- Save --}}
         <div style="display:flex;justify-content:center;margin-bottom:32px">
             <button type="submit" class="btn"
-                style="background:#7c3aed;color:#fff;
-                       font-size:15px;font-weight:700;padding:15px 50px;
+                style="background:#7c3aed;color:#fff;min-width:160px;
+                       font-size:15px;font-weight:700;padding:13px 36px;
                        border-radius:8px;box-shadow:0 4px 14px rgba(124,58,237,.3);
-                       font-family:'Inter',sans-serif; text-align: center">
+                       font-family:'Inter',sans-serif">
                 Save
             </button>
         </div>
@@ -396,12 +398,34 @@
 
 @push('scripts')
 <script>
-    // ── Subcategories ─────────────────────────────────────────────────────────────
+    // ── Subcategories + disable job/sub when Office Expense ──────────────────────
     document.getElementById('expCat').addEventListener('change', function() {
         const parent = this.value;
         const subCat = document.getElementById('subCat');
+        const jobWrap = document.getElementById('jobTrigger');
+        const jobSearch = document.getElementById('jobSearch');
+        const isOffice = parent === 'Office Expense';
+
+        // Disable sub-category for Office Expense
         subCat.innerHTML = '<option value="">Please Select</option>';
-        if (!parent) return;
+        subCat.disabled = isOffice;
+        subCat.style.opacity = isOffice ? '.45' : '1';
+        subCat.style.cursor = isOffice ? 'not-allowed' : '';
+        subCat.style.background = isOffice ? '#f1f5f9' : '';
+
+        // Disable job number trigger for Office Expense
+        jobWrap.style.opacity = isOffice ? '.45' : '1';
+        jobWrap.style.pointerEvents = isOffice ? 'none' : '';
+        jobWrap.style.cursor = isOffice ? 'not-allowed' : 'pointer';
+        jobWrap.style.background = isOffice ? '#f1f5f9' : '#fff';
+        jobSearch.disabled = isOffice;
+        if (isOffice) {
+            closeJobDropdown();
+            clearAllJobs();
+        }
+
+        if (!parent || isOffice) return;
+
         fetch(`/expenses/subcategories/ajax?parent=${encodeURIComponent(parent)}`)
             .then(r => r.json())
             .then(data => {
