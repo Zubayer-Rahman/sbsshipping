@@ -231,7 +231,6 @@
                             <i class="bi bi-cash-stack" style="color:var(--text-muted)"></i>
                         </span>
                         <select name="payment_account" class="form-select" style="border:none;border-radius:0;flex:1">
-                            <option value="None">None</option>
                             <option value="Cash in Hand">Cash in Hand</option>
                             <option value="Bank Account">Bank Account</option>
                         </select>

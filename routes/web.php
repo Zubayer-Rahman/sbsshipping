@@ -9,12 +9,13 @@ use App\Http\Controllers\ForwardingController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\IouController;
 use Illuminate\Support\Facades\Route;
 
 // ── Auth Routes ─────────────────────────────────────────────────────────────
 Route::get('/login',  [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout',[AuthController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 //Registration
 Route::get('/register',  [AuthController::class, 'showRegister'])->name('register');
@@ -100,4 +101,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/items/search',      [PurchaseController::class, 'searchItems'])->name('items.search');
     });
 
+
+    // IOU Management Routes
+    Route::prefix('ious')->name('ious.')->group(function () {
+        Route::get('/', [IouController::class, 'index'])->name('index');
+        Route::get('/create', [IouController::class, 'create'])->name('create');
+        Route::post('/', [IouController::class, 'store'])->name('store');
+        Route::get('/{iou}', [IouController::class, 'show'])->name('show');
+        Route::get('/{iou}/edit', [IouController::class, 'edit'])->name('edit');
+        Route::put('/{iou}', [IouController::class, 'update'])->name('update');
+        Route::delete('/{iou}', [IouController::class, 'destroy'])->name('destroy');
+        Route::post('/{iou}/payment', [IouController::class, 'addPayment'])->name('payment');
+    });
 });

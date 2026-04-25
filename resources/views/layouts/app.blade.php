@@ -828,6 +828,27 @@
                         <li class="nav-item"><a href="{{ route('purchases.create') }}" class="nav-link {{ request()->routeIs('purchases.create') ? 'active' : '' }}">Add Purchase</a></li>
                     </ul>
                 </li>
+
+                <!-- IOU Management Section -->
+                <li class="nav-item {{ request()->routeIs('ious.*') ? 'open' : '' }}">
+                    <a href="#" class="nav-link {{ request()->routeIs('ious.*') ? 'active' : '' }}"
+                        onclick="toggleSubmenu(this);return false;">
+                        <i class="bi bi-wallet2"></i> IOU Management
+                        <i class="bi bi-chevron-right nav-arrow"></i>
+                    </a>
+                    <ul class="nav-submenu {{ request()->routeIs('ious.*') ? 'open' : '' }}">
+                        <li class="nav-item">
+                            <a href="{{ route('ious.index') }}" class="nav-link {{ request()->routeIs('ious.index') || request()->routeIs('ious.show') ? 'active' : '' }}">
+                                List IOUs
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('ious.create') }}" class="nav-link {{ request()->routeIs('ious.create') ? 'active' : '' }}">
+                                Add IOU
+                            </a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
         </nav>
         <div class="sidebar-footer">
