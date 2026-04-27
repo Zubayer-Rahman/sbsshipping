@@ -1,4 +1,7 @@
 @extends('layouts.app')
+@section('title','Edit IOU')
+@section('page-title','Edit IOU')
+@section('breadcrumb','IOUs / Edit IOU')
 
 @section('content')
 <style>
@@ -244,13 +247,13 @@
                 <select name="contact_id" required class="form-control @error('contact_id') error @enderror">
                     <option value="">Select Contact</option>
                     @foreach($contacts as $contact)
-                        <option value="{{ $contact->id }}" {{ (old('contact_id', $iou->contact_id) == $contact->id) ? 'selected' : '' }}>
-                            {{ $contact->name }}
-                        </option>
+                    <option value="{{ $contact->id }}" {{ (old('contact_id', $iou->contact_id) == $contact->id) ? 'selected' : '' }}>
+                        {{ $contact->name }}
+                    </option>
                     @endforeach
                 </select>
                 @error('contact_id')
-                    <p class="error-text">{{ $message }}</p>
+                <p class="error-text">{{ $message }}</p>
                 @enderror
             </div>
 
@@ -259,16 +262,16 @@
                 <label class="form-label">Type <span class="required">*</span></label>
                 <div class="radio-group">
                     <label class="radio-option receivable {{ old('type', $iou->type) == 'receivable' ? 'selected' : '' }}">
-                        <input type="radio" name="type" value="receivable" 
-                               {{ old('type', $iou->type) == 'receivable' ? 'checked' : '' }} required>
+                        <input type="radio" name="type" value="receivable"
+                            {{ old('type', $iou->type) == 'receivable' ? 'checked' : '' }} required>
                         <div class="radio-content">
                             <div class="radio-content-title">Receivable</div>
                             <div class="radio-content-desc">They owe you</div>
                         </div>
                     </label>
                     <label class="radio-option payable {{ old('type', $iou->type) == 'payable' ? 'selected' : '' }}">
-                        <input type="radio" name="type" value="payable" 
-                               {{ old('type', $iou->type) == 'payable' ? 'checked' : '' }} required>
+                        <input type="radio" name="type" value="payable"
+                            {{ old('type', $iou->type) == 'payable' ? 'checked' : '' }} required>
                         <div class="radio-content">
                             <div class="radio-content-title">Payable</div>
                             <div class="radio-content-desc">You owe them</div>
@@ -276,32 +279,32 @@
                     </label>
                 </div>
                 @error('type')
-                    <p class="error-text">{{ $message }}</p>
+                <p class="error-text">{{ $message }}</p>
                 @enderror
             </div>
 
             <!-- Amount -->
             <div class="form-group">
                 <label class="form-label">Amount <span class="required">*</span></label>
-                <input type="number" name="amount" step="0.01" min="0.01" 
-                       value="{{ old('amount', $iou->amount) }}" 
-                       required class="form-control @error('amount') error @enderror">
+                <input type="number" name="amount" step="0.01" min="0.01"
+                    value="{{ old('amount', $iou->amount) }}"
+                    required class="form-control @error('amount') error @enderror">
                 @if($iou->paid_amount > 0)
-                    <p class="warning-text">⚠️ ৳{{ number_format($iou->paid_amount, 2) }} has already been paid</p>
+                <p class="warning-text">⚠️ ৳{{ number_format($iou->paid_amount, 2) }} has already been paid</p>
                 @endif
                 @error('amount')
-                    <p class="error-text">{{ $message }}</p>
+                <p class="error-text">{{ $message }}</p>
                 @enderror
             </div>
 
             <!-- Against -->
             <div class="form-group">
                 <label class="form-label">Against</label>
-                <input type="text" name="against" value="{{ old('against', $iou->against) }}" 
-                       placeholder="e.g., Job #123, Purchase Order, Personal Loan"
-                       class="form-control @error('against') error @enderror">
+                <input type="text" name="against" value="{{ old('against', $iou->against) }}"
+                    placeholder="e.g., Job #123, Purchase Order, Personal Loan"
+                    class="form-control @error('against') error @enderror">
                 @error('against')
-                    <p class="error-text">{{ $message }}</p>
+                <p class="error-text">{{ $message }}</p>
                 @enderror
             </div>
 
@@ -310,18 +313,18 @@
                 <label class="form-label">Description</label>
                 <textarea name="description" class="form-control @error('description') error @enderror">{{ old('description', $iou->description) }}</textarea>
                 @error('description')
-                    <p class="error-text">{{ $message }}</p>
+                <p class="error-text">{{ $message }}</p>
                 @enderror
             </div>
 
             <!-- Due Date -->
             <div class="form-group">
                 <label class="form-label">Due Date</label>
-                <input type="date" name="due_date" 
-                       value="{{ old('due_date', $iou->due_date ? $iou->due_date->format('Y-m-d') : '') }}"
-                       class="form-control @error('due_date') error @enderror">
+                <input type="date" name="due_date"
+                    value="{{ old('due_date', $iou->due_date ? $iou->due_date->format('Y-m-d') : '') }}"
+                    class="form-control @error('due_date') error @enderror">
                 @error('due_date')
-                    <p class="error-text">{{ $message }}</p>
+                <p class="error-text">{{ $message }}</p>
                 @enderror
             </div>
 
@@ -329,17 +332,17 @@
             <div class="form-group">
                 <label class="form-label">Supporting Document</label>
                 @if($iou->document)
-                    <div class="current-document">
-                        <a href="{{ Storage::url($iou->document) }}" target="_blank" class="document-link">
-                            📄 Current Document
-                        </a>
-                    </div>
+                <div class="current-document">
+                    <a href="{{ Storage::url($iou->document) }}" target="_blank" class="document-link">
+                        📄 Current Document
+                    </a>
+                </div>
                 @endif
                 <input type="file" name="document" accept=".pdf,.jpg,.jpeg,.png"
-                       class="form-control @error('document') error @enderror">
+                    class="form-control @error('document') error @enderror">
                 <p class="help-text">PDF, JPG, PNG (Max 2MB). Leave empty to keep current document.</p>
                 @error('document')
-                    <p class="error-text">{{ $message }}</p>
+                <p class="error-text">{{ $message }}</p>
                 @enderror
             </div>
 
@@ -359,7 +362,7 @@
             document.querySelectorAll('.radio-option').forEach(option => {
                 option.classList.remove('selected');
             });
-            if(this.checked) {
+            if (this.checked) {
                 this.closest('.radio-option').classList.add('selected');
             }
         });

@@ -1,4 +1,7 @@
 @extends('layouts.app')
+@section('title','Add IOU')
+@section('page-title','Add IOU')
+@section('breadcrumb','IOUs / Add IOU')
 
 @section('content')
 <style>
@@ -429,8 +432,11 @@
                         </td>
                         <td class="text-center">
                             <a href="{{ route('ious.show', $iou) }}" class="text-link">View</a>
-                            @if($iou->status != 'paid')
+                            @if(!$iou->is_released && $iou->status != 'paid')
                             <a href="{{ route('ious.edit', $iou) }}" class="text-link" style="margin-left: 0.5rem;">Edit</a>
+                            <a href="{{ route('ious.release', $iou) }}" class="text-link" style="margin-left: 0.5rem; color: var(--success);">Release</a>
+                            @elseif($iou->is_released)
+                            <span class="badge badge-success" style="margin-left: 0.5rem;">Released</span>
                             @endif
                         </td>
                     </tr>

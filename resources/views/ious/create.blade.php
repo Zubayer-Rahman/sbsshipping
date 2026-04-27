@@ -1,10 +1,13 @@
 @extends('layouts.app')
+@section('title','Add IOU')
+@section('page-title','Add IOU')
+@section('breadcrumb','IOUs / Add IOU')
 
 @section('content')
 <style>
     .iou-create-container {
         padding: 2rem;
-        max-width: 800px;
+        max-width: 1024px;
         margin: 0 auto;
     }
 
@@ -57,7 +60,7 @@
     }
 
     .form-control {
-        width: 100%;
+        width: 440px;
         padding: 0.75rem 1rem;
         border: 1px solid var(--border);
         border-radius: var(--radius-sm);
@@ -201,27 +204,30 @@
         <form action="{{ route('ious.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
-            <!-- Reference Number -->
-            <div class="form-group">
-                <label class="form-label">Reference Number</label>
-                <input type="text" value="{{ $referenceNumber }}" disabled class="form-control">
-                <p class="help-text">Auto-generated</p>
-            </div>
 
-            <!-- Contact -->
-            <div class="form-group">
-                <label class="form-label">Contact <span class="required">*</span></label>
-                <select name="contact_id" required class="form-control @error('contact_id') error @enderror">
-                    <option value="">Select Contact</option>
-                    @foreach($contacts as $contact)
-                    <option value="{{ $contact->id }}" {{ old('contact_id') == $contact->id ? 'selected' : '' }}>
-                        {{ $contact->name }}
-                    </option>
-                    @endforeach
-                </select>
-                @error('contact_id')
-                <p class="error-text">{{ $message }}</p>
-                @enderror
+            <div style="display: flex; justify-content: space-between;">
+                <!-- Reference Number -->
+                <div class="form-group">
+                    <label class="form-label">Reference Number</label>
+                    <input type="text" value="{{ $referenceNumber }}" disabled class="form-control">
+                    <p class="help-text">Auto-generated</p>
+                </div>
+
+                <!-- Contact -->
+                <div class="form-group">
+                    <label class="form-label">Contact <span class="required">*</span></label>
+                    <select name="contact_id" required class="form-control @error('contact_id') error @enderror">
+                        <option value="">Select Contact</option>
+                        @foreach($contacts as $contact)
+                        <option value="{{ $contact->id }}" {{ old('contact_id') == $contact->id ? 'selected' : '' }}>
+                            {{ $contact->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                    @error('contact_id')
+                    <p class="error-text">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
             <!-- Type -->
@@ -248,55 +254,60 @@
                 @enderror
             </div>
 
-            <!-- Amount -->
-            <div class="form-group">
-                <label class="form-label">Amount <span class="required">*</span></label>
-                <input type="number" name="amount" step="0.01" min="0.01" value="{{ old('amount') }}"
-                    required class="form-control @error('amount') error @enderror">
-                @error('amount')
-                <p class="error-text">{{ $message }}</p>
-                @enderror
-            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <!-- Amount -->
+                <div class="form-group">
+                    <label class="form-label">Amount <span class="required">*</span></label>
+                    <input type="number" name="amount" step="0.01" min="0.01" value="{{ old('amount') }}"
+                        required class="form-control @error('amount') error @enderror">
+                    @error('amount')
+                    <p class="error-text">{{ $message }}</p>
+                    @enderror
+                </div>
 
-            <!-- Against -->
-            <div class="form-group">
-                <label class="form-label">Against</label>
-                <input type="text" name="against" value="{{ old('against') }}"
-                    placeholder="e.g., Job #123, Purchase Order, Personal Loan"
-                    class="form-control @error('against') error @enderror">
-                @error('against')
-                <p class="error-text">{{ $message }}</p>
-                @enderror
+                <!-- Against -->
+                <div class="form-group">
+                    <label class="form-label">Against</label>
+                    <input type="text" name="against" value="{{ old('against') }}"
+                        placeholder="e.g., Job #123, Purchase Order, Personal Loan"
+                        class="form-control @error('against') error @enderror">
+                    @error('against')
+                    <p class="error-text">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
+            
 
             <!-- Description -->
             <div class="form-group">
                 <label class="form-label">Description</label>
-                <textarea name="description" class="form-control @error('description') error @enderror">{{ old('description') }}</textarea>
+                <textarea name="description" style="width: 100% !important;" class="form-control @error('description') error @enderror">{{ old('description') }}</textarea>
                 @error('description')
                 <p class="error-text">{{ $message }}</p>
                 @enderror
             </div>
-
-            <!-- Due Date -->
-            <div class="form-group">
-                <label class="form-label">Due Date</label>
-                <input type="date" name="due_date" value="{{ old('due_date') }}"
-                    class="form-control @error('due_date') error @enderror">
-                @error('due_date')
-                <p class="error-text">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <!-- Document -->
-            <div class="form-group">
-                <label class="form-label">Supporting Document</label>
-                <input type="file" name="document" accept=".pdf,.jpg,.jpeg,.png"
-                    class="form-control @error('document') error @enderror">
-                <p class="help-text">PDF, JPG, PNG (Max 2MB)</p>
-                @error('document')
-                <p class="error-text">{{ $message }}</p>
-                @enderror
+            
+            <div style="display: flex; justify-content: space-between;">
+                <!-- Due Date -->
+                <div class="form-group">
+                    <label class="form-label">Due Date</label>
+                    <input type="date" name="due_date" value="{{ old('due_date') }}"
+                        class="form-control @error('due_date') error @enderror">
+                    @error('due_date')
+                    <p class="error-text">{{ $message }}</p>
+                    @enderror
+                </div>
+    
+                <!-- Document -->
+                <div class="form-group">
+                    <label class="form-label">Supporting Document</label>
+                    <input type="file" name="document" accept=".pdf,.jpg,.jpeg,.png"
+                        class="form-control @error('document') error @enderror">
+                    <p class="help-text">PDF, JPG, PNG (Max 2MB)</p>
+                    @error('document')
+                    <p class="error-text">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
             <!-- Submit Buttons -->

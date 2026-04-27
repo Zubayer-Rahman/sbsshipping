@@ -107,10 +107,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [IouController::class, 'index'])->name('index');
         Route::get('/create', [IouController::class, 'create'])->name('create');
         Route::post('/', [IouController::class, 'store'])->name('store');
+        Route::get('/released', [IouController::class, 'releaseList'])->name('release-list'); // ADD THIS
         Route::get('/{iou}', [IouController::class, 'show'])->name('show');
         Route::get('/{iou}/edit', [IouController::class, 'edit'])->name('edit');
         Route::put('/{iou}', [IouController::class, 'update'])->name('update');
         Route::delete('/{iou}', [IouController::class, 'destroy'])->name('destroy');
         Route::post('/{iou}/payment', [IouController::class, 'addPayment'])->name('payment');
+        Route::get('/{iou}/release', [IouController::class, 'release'])->name('release');      // ADD THIS
+        Route::post('/{iou}/release', [IouController::class, 'processRelease'])->name('process-release'); // ADD THIS
     });
 });

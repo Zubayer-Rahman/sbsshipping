@@ -50,6 +50,15 @@ class Expense extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function category()
+    {
+        // Make sure 'expense_category_id' matches the column name in your expenses table
+        return $this->belongsTo(ExpenseCategory::class, 'expense_category_id');
+    }
+    public function contact()
+    {
+        return $this->belongsTo(Contact::class);
+    }
 
     // Auto-generate ref before creating
     protected static function boot()

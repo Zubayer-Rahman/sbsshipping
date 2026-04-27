@@ -6,6 +6,10 @@ use App\Models\Iou;
 use App\Models\IouPayment;
 use App\Models\Contact;
 use Illuminate\Http\Request;
+use App\Models\Expense;
+use App\Models\ExpenseCategory;
+use App\Models\Job;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -177,5 +181,113 @@ class IouController extends Controller
 
         return redirect()->route('ious.index')
             ->with('success', 'IOU deleted successfully!');
+    }
+
+
+    // Show release form
+    public function release(Iou $iou)
+    {
+        if ($iou->is_released) {
+            return redirect()->route('ious.show', $iou)
+                ->with('error', 'This IOU has already been released.');
+        }
+
+        $categories = ExpenseCategory::orderBy('name')->get();
+        $jobs = Job::orderBy('job_id', 'desc')->get();
+
+        return view('ious.release', compact('iou', 'categories', 'jobs'));
+    }
+
+    // Process the release
+    public function processRelease(Request $request, Iou $iou)
+    {
+        if ($iou->is_released) {
+            return redirect()->route('ious.show', $iou)
+                ->with('error', 'This IOU has already been released.');
+        }
+
+        $validated = $request->validate([
+            'expense_category_id' => 'required|exists:expense_categories,id',
+            'sub_category' => 'nullable|string|max:255',
+            'job_id' => 'nullable|exists:sbs_jobs,id',
+            'expense_date' => 'required|date',
+            'expenses_for' => 'required|string|max:255',
+            'client_name' => 'nullable|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Create expense entry
+            $expenseData = [
+                'expense_category_id' => $validated['expense_category_id'],
+                'sub_category' => $validated['sub_category'],
+                'job_id' => $validated['job_id'],
+                'expense_date' => $validated['expense_date'],
+                'contact_id' => $iou->contact_id, // Auto-filled from IOU
+                'expenses_for' => $validated['expenses_for'],
+                'client_name' => $validated['client_name'],
+                'amount' => $validated['amount'],
+                'payment_method' => 'IOU Release',
+                'notes' => "Released from IOU: {$iou->reference_number} ({$iou->type})",
+                'created_by' => Auth::id(),
+            ];
+
+            if ($request->hasFile('document')) {
+                $expenseData['document'] = $request->file('document')->store('expense_docs', 'public');
+            }
+
+            $expense = Expense::create($expenseData);
+
+            // Update IOU - mark as released and update paid amount
+            $iou->update([
+                'is_released' => true,
+                'expense_id' => $expense->id,
+                'released_at' => now(),
+                'released_by' => Auth::id(),
+                'paid_amount' => $iou->paid_amount + $validated['amount'], // Add to paid amount
+                'balance' => $iou->amount - ($iou->paid_amount + $validated['amount']), // Recalculate balance
+            ]);
+
+            // Update status based on balance
+            if ($iou->balance <= 0) {
+                $iou->update(['status' => 'paid', 'paid_date' => now()]);
+            } elseif ($iou->paid_amount > 0) {
+                $iou->update(['status' => 'partial']);
+            }
+
+            DB::commit();
+
+            return redirect()->route('ious.release-list')
+                ->with('success', 'IOU released successfully and added to expenses!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', 'Error releasing IOU: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    // List of released IOUs
+    public function releaseList(Request $request)
+    {
+        $query = Iou::with(['contact', 'expense.category', 'releasedBy'])
+            ->where('is_released', true);
+
+        // Search
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('reference_number', 'like', "%{$search}%")
+                    ->orWhereHas('contact', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $releasedIous = $query->latest('released_at')->paginate(20);
+
+        return view('ious.release-list', compact('releasedIous'));
     }
 }

@@ -1,4 +1,7 @@
 @extends('layouts.app')
+@section('title','IOU Details')
+@section('page-title','IOU Details')
+@section('breadcrumb','IOUs / IOU Details')
 
 @section('content')
 <style>
@@ -418,6 +421,34 @@
             </div>
         </div>
 
+        @if($iou->is_released)
+        <div class="description-section">
+            <h4 style="color: var(--success); font-weight: 600; margin-bottom: 1rem;">✓ This IOU has been released</h4>
+            <div class="info-grid">
+                <div class="info-item">
+                    <p class="info-item-label">Released On</p>
+                    <p class="info-item-value">{{ $iou->released_at ? \Carbon\Carbon::parse($iou->released_at)->format('d M Y') : '-' }}</p>
+                </div>
+                <div class="info-item">
+                    <p class="info-item-label">Released By</p>
+                    <p class="info-item-value">{{ $iou->releasedBy->name ?? '-' }}</p>
+                </div>
+                <div class="info-item">
+                    <p class="info-item-label">Related Expense</p>
+                    <p class="info-item-value">
+                        @if($iou->expense)
+                        <a href="{{ route('expenses.list', $iou->expense_id) }}" class="document-link">
+                            View Expense Record →
+                        </a>
+                        @else
+                        -
+                        @endif
+                    </p>
+                </div>
+            </div>
+        </div>
+        @endif
+
         @if($iou->description)
         <div class="description-section">
             <p class="info-item-label">Description</p>
@@ -434,7 +465,24 @@
         </div>
         @endif
 
-        @if($iou->status != 'paid')
+        @if(!$iou->is_released)
+        <div class="action-buttons">
+            <a href="{{ route('ious.edit', $iou) }}" class="btn btn-primary">Edit IOU</a>
+            @if($iou->balance > 0)
+            <a href="{{ route('ious.release', $iou) }}" class="btn btn-success">Release IOU</a>
+            @endif
+            <button onclick="document.getElementById('payment-modal').classList.remove('hidden')"
+                class="btn btn-success">Add Payment</button>
+            <form action="{{ route('ious.destroy', $iou) }}" method="POST"
+                onsubmit="return confirm('Are you sure you want to delete this IOU?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+        </div>
+        @endif
+
+        <!-- @if($iou->status != 'paid')
         <div class="action-buttons">
             <a href="{{ route('ious.edit', $iou) }}" class="btn btn-primary">Edit IOU</a>
             <button onclick="document.getElementById('payment-modal').classList.remove('hidden')"
@@ -446,7 +494,7 @@
                 <button type="submit" class="btn btn-danger">Delete</button>
             </form>
         </div>
-        @endif
+        @endif -->
     </div>
 
     <!-- Payment History -->

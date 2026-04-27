@@ -23,6 +23,11 @@ class Iou extends Model
         'paid_date',
         'document',
         'created_by',
+        'is_released',
+        'expense_id',
+        'released_at',
+        'released_by',
+
     ];
 
     protected $casts = [
@@ -32,6 +37,16 @@ class Iou extends Model
         'due_date' => 'date',
         'paid_date' => 'date',
     ];
+
+    public function expense()
+    {
+        return $this->belongsTo(Expense::class);
+    }
+
+    public function releasedBy()
+    {
+        return $this->belongsTo(User::class, 'released_by');
+    }
 
     public function contact()
     {

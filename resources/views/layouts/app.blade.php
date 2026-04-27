@@ -847,6 +847,11 @@
                                 Add IOU
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('ious.release-list') }}" class="nav-link {{ request()->routeIs('ious.release-list') ? 'active' : '' }}">
+                                IOU Release List
+                            </a>
+                        </li>
                     </ul>
                 </li>
             </ul>
