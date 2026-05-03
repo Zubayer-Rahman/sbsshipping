@@ -16,6 +16,8 @@ class IouPayment extends Model
         'payment_method',
         'notes',
         'created_by',
+        'job_id',
+        'client_id',
     ];
 
     protected $casts = [
@@ -31,5 +33,15 @@ class IouPayment extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function job()
+    {
+        return $this->belongsTo(Job::class, 'job_id');
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Contact::class, 'client_id');
     }
 }

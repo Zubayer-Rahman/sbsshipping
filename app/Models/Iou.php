@@ -82,7 +82,9 @@ class Iou extends Model
             $this->status = 'paid';
             $this->paid_date = now();
         } elseif ($totalPaid > 0) {
-            $this->status = 'partial';
+            $this->status = 'partial'; // Now correctly sets to partial
+        } else {
+            $this->status = 'pending';
         }
 
         $this->save();

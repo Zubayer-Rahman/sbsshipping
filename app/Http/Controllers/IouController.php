@@ -58,10 +58,11 @@ class IouController extends Controller
     // Show create form
     public function create()
     {
+        $jobs = DB::table('sbs_jobs')->orderByDesc('id')->get(['id', 'job_no', 'job_id']);
         $contacts = Contact::orderBy('name')->get();
         $referenceNumber = Iou::generateReferenceNumber();
 
-        return view('ious.create', compact('contacts', 'referenceNumber'));
+        return view('ious.create', compact('jobs', 'contacts', 'referenceNumber'));
     }
 
     // Store new IOU
@@ -94,8 +95,11 @@ class IouController extends Controller
     // Show single IOU
     public function show(Iou $iou)
     {
-        $iou->load(['contact', 'creator', 'payments.creator']);
-        return view('ious.show', compact('iou'));
+        $iou->load(['contact', 'creator', 'payments.job', 'payments.client']);
+        $jobs = Job::orderBy('id', 'desc')->get();
+        $clients = Contact::orderBy('name')->get(); // Adjust if you have a specific 'client' type
+
+        return view('ious.show', compact('iou', 'jobs', 'clients'));
     }
 
     // Show edit form
@@ -151,7 +155,9 @@ class IouController extends Controller
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0.01|max:' . $iou->balance,
             'payment_date' => 'required|date',
-            'payment_method' => 'nullable|string|max:255',
+            'job_id' => 'nullable|exists:sbs_jobs,id',
+            'client_id' => 'nullable|exists:contacts,id',
+            'payment_method' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
 
@@ -159,10 +165,21 @@ class IouController extends Controller
         $validated['created_by'] = Auth::id();
 
         IouPayment::create($validated);
+
+        // This updates paid_amount, balance, and Status (Partial/Paid)
         $iou->updateBalance();
 
-        return redirect()->route('ious.show', $iou)
-            ->with('success', 'Payment added successfully!');
+        return redirect()->back()->with('success', 'Payment recorded as IOU Expense!');
+    }
+
+    // List of IOU payments for expenses page
+    public function iouExpenseList()
+    {
+        $payments = IouPayment::with(['iou.contact', 'job', 'client', 'creator'])
+            ->latest('payment_date')
+            ->paginate(20);
+
+        return view('ious.expense-list', compact('payments'));
     }
 
     // Delete IOU

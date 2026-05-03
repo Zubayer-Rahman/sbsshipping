@@ -547,6 +547,7 @@
         <form action="{{ route('ious.payment', $iou) }}" method="POST">
             @csrf
 
+            <!-- Payment Amount -->
             <div class="form-group">
                 <label class="form-label">Payment Amount <span class="required">*</span></label>
                 <input type="number" name="amount" step="0.01" min="0.01" max="{{ $iou->balance }}"
@@ -554,27 +555,54 @@
                 <p class="help-text">Maximum: ৳{{ number_format($iou->balance, 2) }}</p>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Payment Date <span class="required">*</span></label>
-                <input type="date" name="payment_date" value="{{ date('Y-m-d') }}"
-                    required class="form-control">
+            <!-- Job Number & Client Name Row -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.25rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Job Number</label>
+                    <select name="job_id" class="form-control">
+                        <option value="">Select Job</option>
+                        @foreach($jobs as $job)
+                        <option value="{{ $job->id }}">{{ $job->id }} - {{ $job->title ?? 'Shipping Job' }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Client Name</label>
+                    <select name="client_id" class="form-control">
+                        <option value="">Select Client</option>
+                        @foreach($clients as $client)
+                        <option value="{{ $client->id }}">{{ $client->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Payment Method</label>
-                <select name="payment_method" class="form-control">
-                    <option value="">Select Method</option>
-                    <option value="cash">Cash</option>
-                    <option value="bank_transfer">Bank Transfer</option>
-                    <option value="check">Check</option>
-                    <option value="mobile_banking">Mobile Banking</option>
-                    <option value="other">Other</option>
-                </select>
+            <!-- Date & Method Row -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.25rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Payment Date <span class="required">*</span></label>
+                    <input type="date" name="payment_date" value="{{ date('Y-m-d') }}"
+                        required class="form-control">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Payment Method</label>
+                    <select name="payment_method" class="form-control">
+                        <option value="">Select Method</option>
+                        <option value="cash">Cash</option>
+                        <option value="bank_transfer">Bank Transfer</option>
+                        <option value="check">Check</option>
+                        <option value="mobile_banking">Mobile Banking</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
             </div>
 
+            <!-- Notes -->
             <div class="form-group">
                 <label class="form-label">Notes</label>
-                <textarea name="notes" rows="2" class="form-control"></textarea>
+                <textarea name="notes" rows="2" class="form-control" placeholder="Add any details about this specific payment..."></textarea>
             </div>
 
             <div class="modal-actions">

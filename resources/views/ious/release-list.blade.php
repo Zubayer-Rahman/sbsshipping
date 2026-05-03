@@ -273,7 +273,7 @@
                         <td class="text-center">
                             <a href="{{ route('ious.show', $iou) }}" class="text-link">View IOU</a>
                             @if($iou->expense)
-                            <a href="{{ route('expenses.list', $iou->expense_id) }}" class="text-link" style="margin-left: 0.5rem;">View Expense</a>
+                            <a href="{{ route('ious.expense-list', $iou->expense_id) }}" class="text-link" style="margin-left: 0.5rem;">View Expense</a>
                             @endif
                         </td>
                     </tr>
