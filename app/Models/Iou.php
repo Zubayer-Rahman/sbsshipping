@@ -11,6 +11,7 @@ class Iou extends Model
 
     protected $fillable = [
         'contact_id',
+        'job_id',
         'reference_number',
         'amount',
         'type',
@@ -37,6 +38,13 @@ class Iou extends Model
         'due_date' => 'date',
         'paid_date' => 'date',
     ];
+
+
+
+    public function jobs()
+    {
+        return $this->belongsToMany(Job::class, 'iou_job', 'iou_id', 'job_id');
+    }
 
     public function expense()
     {

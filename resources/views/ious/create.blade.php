@@ -285,12 +285,12 @@
                     @enderror
                 </div>
 
-                <!-- JOB Number -->
-                <div class="form-group" style="width: 100%;">
+                {{-- JOB Number --}}
+                <div class="form-group">
                     <label class="form-label" style="font-weight:700">
                         JOB Number
                         <span style="font-weight:400;color:var(--text-muted);font-size:12px">
-                            (Optional - For Office Expenses)
+                            (No Need To Select Job No. If Office Expenses)
                         </span>
                     </label>
 
@@ -302,7 +302,7 @@
                         onclick="toggleJobDropdown(event)">
                         <i class="bi bi-search" style="color:var(--text-muted);font-size:13px;flex-shrink:0"></i>
                         <input type="text" id="jobSearch"
-                            placeholder="Search job numbers..."
+                            placeholder="Search or select job numbers..."
                             autocomplete="off"
                             style="border:none;outline:none;flex:1;font-size:13px;
                                   font-family:'Inter',sans-serif;background:transparent;
@@ -315,11 +315,12 @@
 
                     <div id="jobTags" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px"></div>
 
-                    <!-- Hidden inputs for form submission -->
-                    <input type="hidden" name="job_id" id="jobIdInput">
+                    <input type="hidden" name="job_id" id="jobIdSingle">
+                    <input type="hidden" name="job_ref_no" id="jobRefNo">
 
                     <div style="font-size:12px;color:var(--text-muted);margin-top:5px;
                             display:flex;align-items:center;gap:10px">
+                        <span>Leave empty to autogenerate · Multiple jobs can be selected</span>
                         <span id="jobSelectedCount"
                             style="display:none;background:var(--primary);color:#fff;
                                  font-size:11px;font-weight:700;padding:2px 10px;
@@ -339,14 +340,11 @@
             </div>
 
             <div style="display: flex; justify-content: space-between;">
-                <!-- Due Date -->
-                <div class="form-group">
-                    <label class="form-label">Due Date</label>
-                    <input type="date" name="due_date" value="{{ old('due_date') }}"
-                        class="form-control @error('due_date') error @enderror">
-                    @error('due_date')
-                    <p class="error-text">{{ $message }}</p>
-                    @enderror
+                <!-- Payment Date -->
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Payment Date <span class="required">*</span></label>
+                    <input type="date" name="payment_date" value="{{ date('Y-m-d') }}"
+                        required class="form-control">
                 </div>
 
                 <!-- Document -->
@@ -361,6 +359,17 @@
                 </div>
             </div>
 
+            {{-- Hidden job checkboxes — inside form so they submit --}}
+            <div id="jobCheckboxPool" style="display:none">
+                @foreach($jobs as $job)
+                @php $ref = $job->job_no ?? $job->job_id; @endphp
+                <input type="checkbox"
+                    value="{{ $job->id }}"
+                    data-ref="{{ $ref }}"
+                    class="job-check"> <!-- REMOVED name="job_ids[]" -->
+                @endforeach
+            </div>
+
             <!-- Submit Buttons -->
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Create IOU</button>
@@ -370,24 +379,32 @@
     </div>
 </div>
 
-<!-- Floating Dropdown (Outside form, at body level) -->
+{{-- Floating job dropdown — body level, never clipped --}}
 <div id="jobFloatingDropdown"
     style="display:none;position:fixed;background:#fff;
-           border:1.5px solid var(--primary);border-radius:var(--radius-sm);
-           box-shadow:0 8px 28px rgba(15,31,75,.14);
-           max-height:300px;z-index:9999;flex-direction:column;overflow:hidden">
+            border:1.5px solid var(--primary);border-radius:var(--radius-sm);
+            box-shadow:0 8px 28px rgba(15,31,75,.14);
+            max-height:280px;z-index:9999;flex-direction:column;overflow:hidden">
 
     <div style="display:flex;justify-content:space-between;align-items:center;
-                padding:10px 14px;border-bottom:1px solid var(--border);
+                padding:8px 14px;border-bottom:1px solid var(--border);
                 background:var(--body-bg);flex-shrink:0">
-        <span style="font-size:12px;font-weight:700;color:var(--text-primary);
-                     font-family:'Inter',sans-serif">Select Job Number</span>
-        <button type="button" onclick="clearAllJobs()"
-            style="font-size:11px;color:var(--danger);background:none;
-                   border:none;cursor:pointer;font-weight:600;padding:0;
-                   font-family:'Inter',sans-serif">
-            Clear
-        </button>
+        <span style="font-size:11px;font-weight:700;color:var(--text-muted);
+                     text-transform:uppercase;letter-spacing:.06em">Select Jobs</span>
+        <div style="display:flex;gap:12px">
+            <button type="button" onclick="selectAllJobs()"
+                style="font-size:12px;color:var(--primary);background:none;
+                           border:none;cursor:pointer;font-weight:700;padding:0;
+                           font-family:'Inter',sans-serif">
+                Select All
+            </button>
+            <button type="button" onclick="clearAllJobs()"
+                style="font-size:12px;color:var(--danger);background:none;
+                           border:none;cursor:pointer;font-weight:700;padding:0;
+                           font-family:'Inter',sans-serif">
+                Clear
+            </button>
+        </div>
     </div>
 
     <div id="jobVisualList" style="overflow-y:auto;flex:1">
@@ -416,8 +433,8 @@
     </div>
 
     <div id="jobNoResults"
-        style="display:none;padding:30px;text-align:center;font-size:13px;
-               color:var(--text-muted);font-family:'Inter',sans-serif">
+        style="display:none;padding:20px;text-align:center;font-size:13px;
+                color:var(--text-muted);font-family:'Inter',sans-serif">
         No jobs found
     </div>
 </div>
@@ -425,33 +442,30 @@
 
 @push('scripts')
 <script>
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // Job Dropdown System
-    // ═══════════════════════════════════════════════════════════════════════════════
-
+    // ── Job dropdown ──────────────────────────────────────────────────────────────
     const floatDD = document.getElementById('jobFloatingDropdown');
     const trigger = document.getElementById('jobTrigger');
     const jobChevron = document.getElementById('jobChevron');
     const jobTags = document.getElementById('jobTags');
     const badge = document.getElementById('jobSelectedCount');
-    const jobInput = document.getElementById('jobIdInput');
     let ddOpen = false;
-    let selectedJobs = new Set(); // Track selected job IDs
 
-    // ─── Position Dropdown ─────────────────────────────────────────────────────────
+    function isChecked(id) {
+        const cb = document.querySelector(`#jobCheckboxPool .job-check[value="${id}"]`);
+        return cb ? cb.checked : false;
+    }
+
     function positionDD() {
         const r = trigger.getBoundingClientRect();
         const w = Math.max(trigger.offsetWidth, 420);
         floatDD.style.width = w + 'px';
         floatDD.style.left = r.left + 'px';
-
         const below = window.innerHeight - r.bottom;
-        floatDD.style.top = below < 320 ?
-            (r.top - 304) + 'px' :
+        floatDD.style.top = below < 290 ?
+            (r.top - 284) + 'px' :
             (r.bottom + 4) + 'px';
     }
 
-    // ─── Open/Close Functions ──────────────────────────────────────────────────────
     function openJobDropdown() {
         floatDD.style.display = 'flex';
         ddOpen = true;
@@ -470,114 +484,114 @@
         ddOpen ? closeJobDropdown() : openJobDropdown();
     }
 
-    // ─── Click Outside to Close ────────────────────────────────────────────────────
     document.addEventListener('click', e => {
-        if (!trigger.contains(e.target) && !floatDD.contains(e.target)) {
-            closeJobDropdown();
-        }
+        if (!trigger.contains(e.target) && !floatDD.contains(e.target)) closeJobDropdown();
     });
-
-    // ─── Reposition on Scroll/Resize ───────────────────────────────────────────────
     ['scroll', 'resize'].forEach(ev =>
         window.addEventListener(ev, () => {
             if (ddOpen) positionDD();
         }, true)
     );
 
-    // ─── Click Handler for Job Options ─────────────────────────────────────────────
+    // Click on visual row
     document.querySelectorAll('.job-visual-option').forEach(opt => {
         opt.addEventListener('click', function() {
             const id = this.dataset.id;
-            const ref = this.dataset.ref;
-
-            // Toggle selection
-            if (selectedJobs.has(id)) {
-                selectedJobs.delete(id);
-                this.classList.remove('selected');
-            } else {
-                selectedJobs.clear(); // Only allow one job
-                document.querySelectorAll('.job-visual-option').forEach(o =>
-                    o.classList.remove('selected')
-                );
-                selectedJobs.add(id);
-                this.classList.add('selected');
-            }
-
+            const cb = document.querySelector(`#jobCheckboxPool .job-check[value="${id}"]`);
+            if (!cb) return;
+            cb.checked = !cb.checked;
+            this.classList.toggle('selected', cb.checked);
             syncTags();
-            closeJobDropdown(); // Auto-close after selection
         });
     });
 
-    // ─── Filter Jobs ───────────────────────────────────────────────────────────────
+    // Filter
     function filterJobs(val) {
         openJobDropdown();
         const v = val.toLowerCase().trim();
-        let anyMatch = false;
-
+        let any = false;
         document.querySelectorAll('.job-visual-option').forEach(opt => {
-            const ref = opt.dataset.ref.toLowerCase();
-            const match = !v || ref.includes(v);
+            const match = !v || opt.dataset.ref.toLowerCase().includes(v);
             opt.style.display = match ? 'flex' : 'none';
-            if (match) anyMatch = true;
+            if (match) any = true;
         });
-
-        document.getElementById('jobNoResults').style.display = anyMatch ? 'none' : 'block';
-        document.getElementById('jobVisualList').style.display = anyMatch ? 'block' : 'none';
+        document.getElementById('jobNoResults').style.display = any ? 'none' : 'block';
     }
 
-    // ─── Sync Tags and Hidden Input ────────────────────────────────────────────────
+    // Sync tags, hidden inputs, and count badge
     function syncTags() {
+        const checked = [...document.querySelectorAll('#jobCheckboxPool .job-check:checked')];
         jobTags.innerHTML = '';
+        const refs = [],
+            ids = [];
 
-        selectedJobs.forEach(id => {
-            const opt = document.querySelector(`.job-visual-option[data-id="${id}"]`);
-            if (!opt) return;
+        checked.forEach(cb => {
+            refs.push(cb.dataset.ref);
+            ids.push(cb.value);
 
-            const ref = opt.dataset.ref;
+            const opt = document.querySelector(`.job-visual-option[data-id="${cb.value}"]`);
+            if (opt) opt.classList.add('selected');
 
-            // Create tag
             const tag = document.createElement('span');
-            tag.style.cssText = 'display:inline-flex;align-items:center;gap:6px;' +
+            tag.style.cssText = 'display:inline-flex;align-items:center;gap:5px;' +
                 'background:var(--primary-light);color:var(--primary);' +
                 'border:1px solid var(--primary);border-radius:20px;' +
-                'padding:4px 12px;font-size:12px;font-weight:600;' +
+                'padding:3px 10px;font-size:12px;font-weight:600;' +
                 "font-family:'Inter',sans-serif";
-            tag.innerHTML = ref +
-                `<button type="button" onclick="removeJob('${id}')"
+            tag.innerHTML = cb.dataset.ref +
+                `<button type="button" onclick="removeJob('${cb.value}')"
                 style="background:none;border:none;cursor:pointer;
-                       color:var(--primary);font-size:16px;line-height:1;
-                       padding:0;margin-left:2px">
+                       color:var(--primary);font-size:15px;line-height:1;padding:0">
                 &times;
             </button>`;
             jobTags.appendChild(tag);
         });
 
-        // Update hidden input (single job ID)
-        jobInput.value = selectedJobs.size > 0 ? Array.from(selectedJobs)[0] : '';
+        // Deselect visual rows no longer checked
+        document.querySelectorAll('.job-visual-option').forEach(opt => {
+            if (!ids.includes(opt.dataset.id)) opt.classList.remove('selected');
+        });
 
-        // Update count badge
-        const count = selectedJobs.size;
+        document.getElementById('jobIdSingle').value = ids.join(',');
+        document.getElementById('jobRefNo').value = refs.join(', ');
+
+        // ── Update count badge ──
+        const count = ids.length;
         badge.style.display = count > 0 ? 'inline-flex' : 'none';
-        badge.textContent = count === 1 ? '1 job selected' : count + ' jobs selected';
+        badge.textContent = count + (count === 1 ? ' job selected' : ' jobs selected');
     }
 
-    // ─── Remove Job ────────────────────────────────────────────────────────────────
     function removeJob(id) {
-        selectedJobs.delete(id);
-        const opt = document.querySelector(`.job-visual-option[data-id="${id}"]`);
-        if (opt) opt.classList.remove('selected');
+        const cb = document.querySelector(`#jobCheckboxPool .job-check[value="${id}"]`);
+        if (cb) {
+            cb.checked = false;
+            syncTags();
+        }
+    }
+
+    function selectAllJobs() {
+        document.querySelectorAll('.job-visual-option:not([style*="display: none"])').forEach(opt => {
+            const cb = document.querySelector(`#jobCheckboxPool .job-check[value="${opt.dataset.id}"]`);
+            if (cb) {
+                cb.checked = true;
+                opt.classList.add('selected');
+            }
+        });
         syncTags();
     }
 
-    // ─── Clear All Jobs ────────────────────────────────────────────────────────────
     function clearAllJobs() {
-        selectedJobs.clear();
-        document.querySelectorAll('.job-visual-option').forEach(opt =>
-            opt.classList.remove('selected')
-        );
+        document.querySelectorAll('#jobCheckboxPool .job-check').forEach(cb => cb.checked = false);
+        document.querySelectorAll('.job-visual-option').forEach(opt => opt.classList.remove('selected'));
         syncTags();
         document.getElementById('jobSearch').value = '';
         filterJobs('');
     }
+
+    // ── Total amount display ──────────────────────────────────────────────────────
+    document.getElementById('totalAmount').addEventListener('input', function() {
+        const v = parseFloat(this.value) || 0;
+        document.getElementById('totalAmountDisplay').textContent = v.toFixed(2);
+    });
 </script>
 @endpush

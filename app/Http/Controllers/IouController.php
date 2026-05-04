@@ -70,6 +70,7 @@ class IouController extends Controller
     {
         $validated = $request->validate([
             'contact_id' => 'required|exists:contacts,id',
+            'job_id' => 'nullable|string',
             'amount' => 'required|numeric|min:0.01',
             'type' => 'required|in:receivable,payable',
             'against' => 'nullable|string|max:255',
@@ -86,7 +87,17 @@ class IouController extends Controller
             $validated['document'] = $request->file('document')->store('iou_docs', 'public');
         }
 
+        $jobIdsString = $request->job_id;
+        unset($validated['job_id']);
+
         $iou = Iou::create($validated);
+
+        if (!empty($jobIdsString)) {
+            // Convert "1,2,13" into array [1, 2, 13]
+            $jobIdsArray = explode(',', $jobIdsString);
+            // Use sync() to save them to the iou_job table
+            $iou->jobs()->sync($jobIdsArray);
+        }
 
         return redirect()->route('ious.show', $iou)
             ->with('success', 'IOU created successfully!');
@@ -95,7 +106,7 @@ class IouController extends Controller
     // Show single IOU
     public function show(Iou $iou)
     {
-        $iou->load(['contact', 'creator', 'payments.job', 'payments.client']);
+        $iou->load(['contact', 'jobs', 'creator', 'payments.job', 'payments.client']);
         $jobs = Job::orderBy('id', 'desc')->get();
         $clients = Contact::orderBy('name')->get(); // Adjust if you have a specific 'client' type
 

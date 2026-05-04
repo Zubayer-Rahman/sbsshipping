@@ -355,6 +355,26 @@
     .modal-actions .btn {
         flex: 1;
     }
+
+    .job-visual-option:hover {
+        background: var(--primary-light) !important;
+    }
+
+    .job-visual-option.selected {
+        background: var(--primary-light) !important;
+    }
+
+    .job-visual-option.selected .job-visual-check {
+        background: var(--primary) !important;
+        border-color: var(--primary) !important;
+    }
+
+    .job-visual-option.selected .job-visual-check::after {
+        content: '✓';
+        font-size: 11px;
+        color: #fff;
+        font-weight: 700;
+    }
 </style>
 
 <div class="iou-show-container">
@@ -399,7 +419,27 @@
             </div>
             <div class="info-item">
                 <p class="info-item-label">Against</p>
-                <p class="info-item-value">{{ $iou->against ?? '-' }}</p>
+                <div class="info-item-value" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    @if($iou->jobs && $iou->jobs->count() > 0)
+                    @foreach($iou->jobs as $job)
+                    <span style="background: var(--primary-light); 
+                             color: var(--primary); 
+                             padding: 4px 12px; 
+                             border-radius: 20px; 
+                             font-size: 12px; 
+                             font-weight: 700;
+                             border: 1px solid var(--primary);
+                             display: inline-flex;
+                             align-items: center;">
+                        {{ $job->job_id ?? $job->job_no }}
+                    </span>
+                    @endforeach
+                    @elseif($iou->against)
+                    {{ $iou->against }}
+                    @else
+                    -
+                    @endif
+                </div>
             </div>
             <div class="info-item">
                 <p class="info-item-label">Total Amount</p>
@@ -413,10 +453,19 @@
                 <p class="info-item-label">Balance</p>
                 <p class="info-item-amount amount-balance">৳{{ number_format($iou->balance, 2) }}</p>
             </div>
-            <div class="info-item">
-                <p class="info-item-label">Due Date</p>
-                <p class="info-item-value {{ $iou->due_date && $iou->due_date->isPast() && $iou->status != 'paid' ? 'text-overdue' : '' }}">
-                    {{ $iou->due_date ? $iou->due_date->format('d M Y') : '-' }}
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Payment Date <span class="required">*</span></label>
+                {{-- We use $iou->created_at and format it for the date input (Y-m-d) --}}
+                <p class="info-item-value">
+                    <span style="background: var(--primary-light); 
+                     color: var(--primary); 
+                     padding: 6px 12px; 
+                     border-radius: var(--radius-sm); 
+                     font-weight: 700; 
+                     display: inline-block;
+                     border: 1px solid var(--primary-glow);">
+                        {{ $iou->created_at->format('d M Y') }}
+                    </span>
                 </p>
             </div>
         </div>
@@ -468,11 +517,11 @@
         @if(!$iou->is_released)
         <div class="action-buttons">
             <a href="{{ route('ious.edit', $iou) }}" class="btn btn-primary">Edit IOU</a>
-            @if($iou->balance > 0)
+            <!-- @if($iou->balance > 0)
             <a href="{{ route('ious.release', $iou) }}" class="btn btn-success">Release IOU</a>
-            @endif
+            @endif -->
             <button onclick="document.getElementById('payment-modal').classList.remove('hidden')"
-                class="btn btn-success">Add Payment</button>
+                class="btn btn-success">Release Payment</button>
             <form action="{{ route('ious.destroy', $iou) }}" method="POST"
                 onsubmit="return confirm('Are you sure you want to delete this IOU?')">
                 @csrf
@@ -557,14 +606,48 @@
 
             <!-- Job Number & Client Name Row -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.25rem;">
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label class="form-label">Job Number</label>
-                    <select name="job_id" class="form-control">
-                        <option value="">Select Job</option>
-                        @foreach($jobs as $job)
-                        <option value="{{ $job->id }}">{{ $job->id }} - {{ $job->title ?? 'Shipping Job' }}</option>
-                        @endforeach
-                    </select>
+                {{-- JOB Number --}}
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:700">
+                        JOB Number
+                        <span style="font-weight:400;color:var(--text-muted);font-size:12px">
+                            (No Need To Select Job No. If Office Expenses)
+                        </span>
+                    </label>
+
+                    <div id="jobTrigger"
+                        style="display:flex;align-items:center;gap:8px;
+                            border:1.5px solid var(--border);border-radius:var(--radius-sm);
+                            background:#fff;padding:0 12px;height:40px;cursor:pointer;
+                            max-width:560px;transition:border-color .2s"
+                        onclick="toggleJobDropdown(event)">
+                        <i class="bi bi-search" style="color:var(--text-muted);font-size:13px;flex-shrink:0"></i>
+                        <input type="text" id="jobSearch"
+                            placeholder="Search or select job numbers..."
+                            autocomplete="off"
+                            style="border:none;outline:none;flex:1;font-size:13px;
+                                  font-family:'Inter',sans-serif;background:transparent;
+                                  cursor:text;color:var(--text-primary)"
+                            onclick="event.stopPropagation();openJobDropdown()"
+                            oninput="filterJobs(this.value)">
+                        <i class="bi bi-chevron-down" id="jobChevron"
+                            style="color:var(--text-muted);font-size:11px;flex-shrink:0;transition:transform .2s"></i>
+                    </div>
+
+                    <div id="jobTags" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px"></div>
+
+                    <input type="hidden" name="job_id" id="jobIdSingle">
+                    <input type="hidden" name="job_ref_no" id="jobRefNo">
+
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:5px;
+                            display:flex;align-items:center;gap:10px">
+                        <span>Leave empty to autogenerate · Multiple jobs can be selected</span>
+                        <span id="jobSelectedCount"
+                            style="display:none;background:var(--primary);color:#fff;
+                                 font-size:11px;font-weight:700;padding:2px 10px;
+                                 border-radius:20px;white-space:nowrap">
+                        </span>
+                    </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 0;">
@@ -605,12 +688,240 @@
                 <textarea name="notes" rows="2" class="form-control" placeholder="Add any details about this specific payment..."></textarea>
             </div>
 
+            {{-- Hidden job checkboxes — inside form so they submit --}}
+            <div id="jobCheckboxPool" style="display:none">
+                @foreach($jobs as $job)
+                @php $ref = $job->job_no ?? $job->job_id; @endphp
+                <input type="checkbox" name="job_ids[]"
+                    value="{{ $job->id }}"
+                    data-ref="{{ $ref }}"
+                    class="job-check">
+                @endforeach
+            </div>
+
             <div class="modal-actions">
                 <button type="submit" class="btn btn-success">Add Payment</button>
                 <button type="button" onclick="document.getElementById('payment-modal').classList.add('hidden')"
                     class="btn btn-danger">Cancel</button>
             </div>
+
+            {{-- Floating job dropdown — body level, never clipped --}}
+            <div id="jobFloatingDropdown"
+                style="display:none;position:fixed;background:#fff;
+            border:1.5px solid var(--primary);border-radius:var(--radius-sm);
+            box-shadow:0 8px 28px rgba(15,31,75,.14);
+            max-height:280px;z-index:9999;flex-direction:column;overflow:hidden">
+
+                <div style="display:flex;justify-content:space-between;align-items:center;
+                padding:8px 14px;border-bottom:1px solid var(--border);
+                background:var(--body-bg);flex-shrink:0">
+                    <span style="font-size:11px;font-weight:700;color:var(--text-muted);
+                     text-transform:uppercase;letter-spacing:.06em">Select Jobs</span>
+                    <div style="display:flex;gap:12px">
+                        <button type="button" onclick="selectAllJobs()"
+                            style="font-size:12px;color:var(--primary);background:none;
+                           border:none;cursor:pointer;font-weight:700;padding:0;
+                           font-family:'Inter',sans-serif">
+                            Select All
+                        </button>
+                        <button type="button" onclick="clearAllJobs()"
+                            style="font-size:12px;color:var(--danger);background:none;
+                           border:none;cursor:pointer;font-weight:700;padding:0;
+                           font-family:'Inter',sans-serif">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <div id="jobVisualList" style="overflow-y:auto;flex:1">
+                    @foreach($jobs as $job)
+                    @php $ref = $job->job_no ?? $job->job_id; @endphp
+                    <div class="job-visual-option" data-ref="{{ $ref }}" data-id="{{ $job->id }}"
+                        style="display:flex;align-items:center;gap:10px;padding:9px 14px;
+                    cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s">
+                        <span class="job-visual-check"
+                            style="width:16px;height:16px;border:2px solid var(--border);
+                         border-radius:3px;flex-shrink:0;display:flex;
+                         align-items:center;justify-content:center;
+                         transition:all .15s;background:#fff">
+                        </span>
+                        <span style="font-size:13px;font-weight:600;color:var(--primary);
+                         font-family:'Inter',sans-serif">{{ $ref }}</span>
+                        @if(!empty($job->client_name))
+                        <span style="font-size:12px;color:var(--text-muted);margin-left:auto;
+                             max-width:180px;overflow:hidden;text-overflow:ellipsis;
+                             white-space:nowrap;font-family:'Inter',sans-serif">
+                            {{ $job->client_name }}
+                        </span>
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
+
+                <div id="jobNoResults"
+                    style="display:none;padding:20px;text-align:center;font-size:13px;
+                color:var(--text-muted);font-family:'Inter',sans-serif">
+                    No jobs found
+                </div>
+            </div>
         </form>
     </div>
 </div>
 @endsection
+
+
+@push('scripts')
+<script>
+    // ── Job dropdown ──────────────────────────────────────────────────────────────
+    const floatDD = document.getElementById('jobFloatingDropdown');
+    const trigger = document.getElementById('jobTrigger');
+    const jobChevron = document.getElementById('jobChevron');
+    const jobTags = document.getElementById('jobTags');
+    const badge = document.getElementById('jobSelectedCount');
+    let ddOpen = false;
+
+    function isChecked(id) {
+        const cb = document.querySelector(`#jobCheckboxPool .job-check[value="${id}"]`);
+        return cb ? cb.checked : false;
+    }
+
+    function positionDD() {
+        const r = trigger.getBoundingClientRect();
+        const w = Math.max(trigger.offsetWidth, 420);
+        floatDD.style.width = w + 'px';
+        floatDD.style.left = r.left + 'px';
+        const below = window.innerHeight - r.bottom;
+        floatDD.style.top = below < 290 ?
+            (r.top - 284) + 'px' :
+            (r.bottom + 4) + 'px';
+    }
+
+    function openJobDropdown() {
+        floatDD.style.display = 'flex';
+        ddOpen = true;
+        jobChevron.style.transform = 'rotate(180deg)';
+        positionDD();
+    }
+
+    function closeJobDropdown() {
+        floatDD.style.display = 'none';
+        ddOpen = false;
+        jobChevron.style.transform = 'rotate(0deg)';
+    }
+
+    function toggleJobDropdown(e) {
+        if (e.target === document.getElementById('jobSearch')) return;
+        ddOpen ? closeJobDropdown() : openJobDropdown();
+    }
+
+    document.addEventListener('click', e => {
+        if (!trigger.contains(e.target) && !floatDD.contains(e.target)) closeJobDropdown();
+    });
+    ['scroll', 'resize'].forEach(ev =>
+        window.addEventListener(ev, () => {
+            if (ddOpen) positionDD();
+        }, true)
+    );
+
+    // Click on visual row
+    document.querySelectorAll('.job-visual-option').forEach(opt => {
+        opt.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const cb = document.querySelector(`#jobCheckboxPool .job-check[value="${id}"]`);
+            if (!cb) return;
+            cb.checked = !cb.checked;
+            this.classList.toggle('selected', cb.checked);
+            syncTags();
+        });
+    });
+
+    // Filter
+    function filterJobs(val) {
+        openJobDropdown();
+        const v = val.toLowerCase().trim();
+        let any = false;
+        document.querySelectorAll('.job-visual-option').forEach(opt => {
+            const match = !v || opt.dataset.ref.toLowerCase().includes(v);
+            opt.style.display = match ? 'flex' : 'none';
+            if (match) any = true;
+        });
+        document.getElementById('jobNoResults').style.display = any ? 'none' : 'block';
+    }
+
+    // Sync tags, hidden inputs, and count badge
+    function syncTags() {
+        const checked = [...document.querySelectorAll('#jobCheckboxPool .job-check:checked')];
+        jobTags.innerHTML = '';
+        const refs = [],
+            ids = [];
+
+        checked.forEach(cb => {
+            refs.push(cb.dataset.ref);
+            ids.push(cb.value);
+
+            const opt = document.querySelector(`.job-visual-option[data-id="${cb.value}"]`);
+            if (opt) opt.classList.add('selected');
+
+            const tag = document.createElement('span');
+            tag.style.cssText = 'display:inline-flex;align-items:center;gap:5px;' +
+                'background:var(--primary-light);color:var(--primary);' +
+                'border:1px solid var(--primary);border-radius:20px;' +
+                'padding:3px 10px;font-size:12px;font-weight:600;' +
+                "font-family:'Inter',sans-serif";
+            tag.innerHTML = cb.dataset.ref +
+                `<button type="button" onclick="removeJob('${cb.value}')"
+                style="background:none;border:none;cursor:pointer;
+                       color:var(--primary);font-size:15px;line-height:1;padding:0">
+                &times;
+            </button>`;
+            jobTags.appendChild(tag);
+        });
+
+        // Deselect visual rows no longer checked
+        document.querySelectorAll('.job-visual-option').forEach(opt => {
+            if (!ids.includes(opt.dataset.id)) opt.classList.remove('selected');
+        });
+
+        document.getElementById('jobIdSingle').value = ids[0] || '';
+        document.getElementById('jobRefNo').value = refs.join(', ');
+
+        // ── Update count badge ──
+        const count = ids.length;
+        badge.style.display = count > 0 ? 'inline-flex' : 'none';
+        badge.textContent = count + (count === 1 ? ' job selected' : ' jobs selected');
+    }
+
+    function removeJob(id) {
+        const cb = document.querySelector(`#jobCheckboxPool .job-check[value="${id}"]`);
+        if (cb) {
+            cb.checked = false;
+            syncTags();
+        }
+    }
+
+    function selectAllJobs() {
+        document.querySelectorAll('.job-visual-option:not([style*="display: none"])').forEach(opt => {
+            const cb = document.querySelector(`#jobCheckboxPool .job-check[value="${opt.dataset.id}"]`);
+            if (cb) {
+                cb.checked = true;
+                opt.classList.add('selected');
+            }
+        });
+        syncTags();
+    }
+
+    function clearAllJobs() {
+        document.querySelectorAll('#jobCheckboxPool .job-check').forEach(cb => cb.checked = false);
+        document.querySelectorAll('.job-visual-option').forEach(opt => opt.classList.remove('selected'));
+        syncTags();
+        document.getElementById('jobSearch').value = '';
+        filterJobs('');
+    }
+
+    // ── Total amount display ──────────────────────────────────────────────────────
+    document.getElementById('totalAmount').addEventListener('input', function() {
+        const v = parseFloat(this.value) || 0;
+        document.getElementById('totalAmountDisplay').textContent = v.toFixed(2);
+    });
+</script>
+@endpush
