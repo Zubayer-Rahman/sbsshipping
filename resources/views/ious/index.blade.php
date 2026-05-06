@@ -396,11 +396,12 @@
                 </thead>
                 <tbody>
                     @forelse($ious as $iou)
-                    <tr>
+                    <tr onclick="window.location='{{ route('ious.show', $iou) }}'"
+                        style="cursor: pointer;"
+                        class="hover:bg-gray-50">
+
                         <td>
-                            <a href="{{ route('ious.show', $iou) }}" class="text-link">
-                                {{ $iou->reference_number }}
-                            </a>
+                            <span class="text-link font-semibold">{{ $iou->reference_number }}</span>
                         </td>
                         <td>{{ $iou->contact->name }}</td>
                         <td>
@@ -408,10 +409,25 @@
                                 {{ ucfirst($iou->type) }}
                             </span>
                         </td>
-                        <td>{{ $iou->against ?? '-' }}</td>
+
+                        <td>
+                            @if($iou->jobs && $iou->jobs->count() > 0)
+                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                @foreach($iou->jobs as $job)
+                                <span style="font-size: 11px; background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-weight: 600; border: 1px solid var(--primary-glow);">
+                                    {{ $job->job_no ?? $job->job_id }}
+                                </span>
+                                @endforeach
+                            </div>
+                            @else
+                            <span style="color: var(--text-muted);">{{ $iou->against ?? '-' }}</span>
+                            @endif
+                        </td>
+
                         <td class="text-right">৳{{ number_format($iou->amount, 2) }}</td>
                         <td class="text-right">৳{{ number_format($iou->paid_amount, 2) }}</td>
                         <td class="text-right font-semibold">৳{{ number_format($iou->balance, 2) }}</td>
+
                         <td class="text-center">
                             @if($iou->status == 'paid')
                             <span class="badge badge-success">Paid</span>
@@ -421,6 +437,7 @@
                             <span class="badge badge-secondary">Pending</span>
                             @endif
                         </td>
+
                         <td class="text-center">
                             @if($iou->due_date)
                             <span class="{{ $iou->due_date->isPast() && $iou->status != 'paid' ? 'text-overdue' : '' }}">
@@ -430,24 +447,29 @@
                             -
                             @endif
                         </td>
+
                         <td class="text-center">
-                            <div style="display: flex; justify-content: center; gap: 10px; align-items: center;">
-                                {{-- View Button --}}
-                                <a href="{{ route('ious.show', $iou) }}" class="text-link">View</a>
+                            <div style="display: flex; justify-content: center; gap: 12px; align-items: center;">
+                                {{--
+                CRITICAL: We add onclick="event.stopPropagation()" to all buttons.
+                This prevents the "Row Click" from triggering when you click a button.
+            --}}
+                                <a href="{{ route('ious.show', $iou) }}" class="text-link" onclick="event.stopPropagation();">View</a>
 
                                 @if(!$iou->is_released)
-                                {{-- Edit Button (Only if not released) --}}
-                                <a href="{{ route('ious.edit', $iou) }}" class="text-link">Edit</a>
+                                <a href="{{ route('ious.edit', $iou) }}" class="text-link" onclick="event.stopPropagation();">Edit</a>
 
-                                {{-- Instant Release Button --}}
-                                <form action="{{ route('ious.release-instant', $iou) }}" method="POST" onsubmit="return confirm('Are you sure you want to release this IOU? This will finalize the record.')">
+                                <form action="{{ route('ious.release-instant', $iou) }}" method="POST"
+                                    onsubmit="return confirm('Are you sure?')"
+                                    onclick="event.stopPropagation();" {{-- Prevents row click --}}
+                                    style="display: inline;">
                                     @csrf
-                                    <button type="submit" style="background: none; border: none; color: var(--success); cursor: pointer; font-weight: 500; font-family: 'Inter', sans-serif; padding: 0;">
+                                    <button type="submit" style="background: none; border: none; color: var(--success); cursor: pointer; font-weight: 600; padding: 0;">
                                         Release
                                     </button>
                                 </form>
                                 @else
-                                <span class="badge badge-success">Released</span>
+                                <span class="badge badge-success" style="opacity: 0.8;">Released</span>
                                 @endif
                             </div>
                         </td>
