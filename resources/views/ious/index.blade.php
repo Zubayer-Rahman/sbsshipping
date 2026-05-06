@@ -306,6 +306,105 @@
         display: flex;
         gap: 0.5rem;
     }
+
+    /* confirmation modal styles */
+    /* Modal Backdrop */
+    .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 31, 75, 0.5);
+        /* Semi-transparent version of your sidebar-bg */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        backdrop-filter: blur(4px);
+    }
+
+    .modal-backdrop.hidden {
+        display: none;
+    }
+
+    /* Modal Box */
+    .modal-box {
+        background: white;
+        padding: 2rem;
+        border-radius: var(--radius);
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        box-shadow: var(--shadow-md);
+        animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .modal-text {
+        color: var(--text-muted);
+        font-size: 0.938rem;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-footer {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-modal-cancel {
+        flex: 1;
+        padding: 10px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--text-muted);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-modal-cancel:hover {
+        background: var(--body-bg);
+    }
+
+    .btn-modal-confirm {
+        flex: 1;
+        padding: 10px;
+        border-radius: var(--radius-sm);
+        border: none;
+        background: var(--success);
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-modal-confirm:hover {
+        filter: brightness(0.9);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
 </style>
 
 <div class="iou-container">
@@ -450,25 +549,21 @@
 
                         <td class="text-center">
                             <div style="display: flex; justify-content: center; gap: 12px; align-items: center;">
-                                {{--
-                CRITICAL: We add onclick="event.stopPropagation()" to all buttons.
-                This prevents the "Row Click" from triggering when you click a button.
-            --}}
+                                {{-- View Action --}}
                                 <a href="{{ route('ious.show', $iou) }}" class="text-link" onclick="event.stopPropagation();">View</a>
 
                                 @if(!$iou->is_released)
+                                {{-- Edit Action --}}
                                 <a href="{{ route('ious.edit', $iou) }}" class="text-link" onclick="event.stopPropagation();">Edit</a>
 
-                                <form action="{{ route('ious.release-instant', $iou) }}" method="POST"
-                                    onsubmit="return confirm('Are you sure?')"
-                                    onclick="event.stopPropagation();" {{-- Prevents row click --}}
-                                    style="display: inline;">
-                                    @csrf
-                                    <button type="submit" style="background: none; border: none; color: var(--success); cursor: pointer; font-weight: 600; padding: 0;">
-                                        Release
-                                    </button>
-                                </form>
+                                {{-- Release Action - Triggers the custom Modal --}}
+                                <button type="button"
+                                    onclick="event.stopPropagation(); openReleaseModal('{{ $iou->id }}', '{{ $iou->reference_number }}')"
+                                    style="background: none; border: none; color: var(--success); cursor: pointer; font-weight: 600; padding: 0; font-family: 'Inter', sans-serif; font-size: 14px;">
+                                    Release
+                                </button>
                                 @else
+                                {{-- Status Badge --}}
                                 <span class="badge badge-success" style="opacity: 0.8;">Released</span>
                                 @endif
                             </div>
@@ -483,6 +578,26 @@
                     @endforelse
                 </tbody>
             </table>
+
+            <!-- Custom Release Confirmation Modal -->
+            <div id="releaseConfirmModal" class="modal-backdrop hidden">
+                <div class="modal-box">
+                    <div class="modal-icon">⚠️</div>
+                    <h3 class="modal-title">Confirm Release</h3>
+                    <p class="modal-text">
+                        Are you sure you want to release <strong id="displayIouRef"></strong>?<br>
+                        This will finalize the record and move it to the release list.
+                    </p>
+
+                    <form id="confirmReleaseForm" method="POST">
+                        @csrf
+                        <div class="modal-footer">
+                            <button type="button" onclick="closeReleaseModal()" class="btn-modal-cancel">Cancel</button>
+                            <button type="submit" class="btn-modal-confirm">Confirm & Release</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -492,3 +607,35 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    function openReleaseModal(iouId, iouRef) {
+        const modal = document.getElementById('releaseConfirmModal');
+        const form = document.getElementById('confirmReleaseForm');
+        const refDisplay = document.getElementById('displayIouRef');
+
+        // 1. Set the display text
+        refDisplay.innerText = iouRef;
+
+        // 2. Set the form action URL dynamically
+        // Using the same URL pattern we defined in web.php
+        form.action = `/ious/${iouId}/release-instant`;
+
+        // 3. Show the modal
+        modal.classList.remove('hidden');
+    }
+
+    function closeReleaseModal() {
+        document.getElementById('releaseConfirmModal').classList.add('hidden');
+    }
+
+    // Close modal if user clicks on the backdrop
+    window.onclick = function(event) {
+        const modal = document.getElementById('releaseConfirmModal');
+        if (event.target == modal) {
+            closeReleaseModal();
+        }
+    }
+</script>
+@endpush
