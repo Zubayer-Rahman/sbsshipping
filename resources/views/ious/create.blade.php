@@ -286,12 +286,12 @@
                 </div>
 
                 {{-- JOB Number --}}
-                <div class="form-group">
+                <div class="form-group" style="width: 100%;">
                     <label class="form-label" style="font-weight:700">
                         JOB Number
-                        <span style="font-weight:400;color:var(--text-muted);font-size:12px">
+                        <!-- <span style="font-weight:400;color:var(--text-muted);font-size:12px">
                             (No Need To Select Job No. If Office Expenses)
-                        </span>
+                        </span> -->
                     </label>
 
                     <div id="jobTrigger"
@@ -320,7 +320,7 @@
 
                     <div style="font-size:12px;color:var(--text-muted);margin-top:5px;
                             display:flex;align-items:center;gap:10px">
-                        <span>Leave empty to autogenerate · Multiple jobs can be selected</span>
+                        <!-- <span>Leave empty to autogenerate · Multiple jobs can be selected</span> -->
                         <span id="jobSelectedCount"
                             style="display:none;background:var(--primary);color:#fff;
                                  font-size:11px;font-weight:700;padding:2px 10px;

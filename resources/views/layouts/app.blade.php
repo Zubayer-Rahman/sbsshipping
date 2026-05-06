@@ -914,6 +914,12 @@
                                 <span class="nav-link-label">Clients</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('contacts.user') }}"
+                                class="nav-link {{ request()->routeIs('contacts.user') ? 'active' : '' }}">
+                                <span class="nav-link-label">User List</span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 
@@ -976,8 +982,8 @@
                         <i class="bi bi-chevron-right nav-arrow"></i>
                     </a>
                     <ul class="nav-submenu {{ request()->routeIs('ious.*') ? 'open' : '' }}">
-                        <li class="nav-item"><a href="{{ route('ious.index') }}" class="nav-link {{ request()->routeIs('ious.index','ious.show') ?'active':'' }}"><span class="nav-link-label">List IOUs</span></a></li>
                         <li class="nav-item"><a href="{{ route('ious.create') }}" class="nav-link {{ request()->routeIs('ious.create')           ?'active':'' }}"><span class="nav-link-label">Add IOU</span></a></li>
+                        <li class="nav-item"><a href="{{ route('ious.index') }}" class="nav-link {{ request()->routeIs('ious.index','ious.show') ?'active':'' }}"><span class="nav-link-label">List IOUs</span></a></li>
                         <li class="nav-item"><a href="{{ route('ious.release-list') }}" class="nav-link {{ request()->routeIs('ious.release-list')     ?'active':'' }}"><span class="nav-link-label">IOU Release List</span></a></li>
                         <li class="nav-item"><a href="{{ route('ious.expense-list') }}" class="nav-link {{ request()->routeIs('ious.expense-list') ? 'active' : '' }}"><span class="nav-link-label">IOU Expense List</span></a></li>
                     </ul>

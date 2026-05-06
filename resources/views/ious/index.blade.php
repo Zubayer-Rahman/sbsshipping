@@ -431,13 +431,25 @@
                             @endif
                         </td>
                         <td class="text-center">
-                            <a href="{{ route('ious.show', $iou) }}" class="text-link">View</a>
-                            @if(!$iou->is_released && $iou->status != 'paid')
-                            <a href="{{ route('ious.edit', $iou) }}" class="text-link" style="margin-left: 0.5rem;">Edit</a>
-                            <a href="{{ route('ious.release', $iou) }}" class="text-link" style="margin-left: 0.5rem; color: var(--success);">Release</a>
-                            @elseif($iou->is_released)
-                            <span class="badge badge-success" style="margin-left: 0.5rem;">Released</span>
-                            @endif
+                            <div style="display: flex; justify-content: center; gap: 10px; align-items: center;">
+                                {{-- View Button --}}
+                                <a href="{{ route('ious.show', $iou) }}" class="text-link">View</a>
+
+                                @if(!$iou->is_released)
+                                {{-- Edit Button (Only if not released) --}}
+                                <a href="{{ route('ious.edit', $iou) }}" class="text-link">Edit</a>
+
+                                {{-- Instant Release Button --}}
+                                <form action="{{ route('ious.release-instant', $iou) }}" method="POST" onsubmit="return confirm('Are you sure you want to release this IOU? This will finalize the record.')">
+                                    @csrf
+                                    <button type="submit" style="background: none; border: none; color: var(--success); cursor: pointer; font-weight: 500; font-family: 'Inter', sans-serif; padding: 0;">
+                                        Release
+                                    </button>
+                                </form>
+                                @else
+                                <span class="badge badge-success">Released</span>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                     @empty

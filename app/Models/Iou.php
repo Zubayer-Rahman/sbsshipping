@@ -37,6 +37,7 @@ class Iou extends Model
         'balance' => 'decimal:2',
         'due_date' => 'date',
         'paid_date' => 'date',
+        'released_at' => 'datetime',
     ];
 
 

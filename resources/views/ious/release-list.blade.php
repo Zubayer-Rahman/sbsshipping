@@ -197,6 +197,11 @@
         color: #065f46;
     }
 
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
     .empty-state {
         padding: 4rem 2rem;
         text-align: center;
@@ -245,7 +250,8 @@
                         <th>Contact</th>
                         <th>Against</th>
                         <th class="text-right">Amount</th>
-                        <th>Expense Category</th>
+                        <th class="text-right">Total Expensed</th> {{-- New Column --}}
+                        <th class="text-right">Balance/Extra</th> {{-- New Column --}}
                         <th>Released Date</th>
                         <th>Released By</th>
                         <th class="text-center">Actions</th>
@@ -253,6 +259,12 @@
                 </thead>
                 <tbody>
                     @forelse($releasedIous as $iou)
+                    {{-- 1. Calculate the values for this specific IOU --}}
+                    @php
+                    $totalExpensed = $iou->payments->sum('amount');
+                    $diff = $iou->amount - $totalExpensed;
+                    @endphp
+
                     <tr>
                         <td>
                             <a href="{{ route('ious.show', $iou) }}" class="text-link">
@@ -265,21 +277,54 @@
                             </span>
                         </td>
                         <td>{{ $iou->contact->name }}</td>
-                        <td>{{ $iou->against ?? '-' }}</td>
+
+                        {{-- Updated Against column to show multiple jobs --}}
+                        <td>
+                            @if($iou->jobs && $iou->jobs->count() > 0)
+                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                @foreach($iou->jobs as $job)
+                                <span style="font-size: 11px; background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+                                    {{ $job->job_no ?? $job->job_id }}
+                                </span>
+                                @endforeach
+                            </div>
+                            @else
+                            {{ $iou->against ?? '-' }}
+                            @endif
+                        </td>
+
                         <td class="text-right">৳{{ number_format($iou->amount, 2) }}</td>
-                        <td>{{ $iou->expense->category->name ?? '-' }}</td>
-                        <td>{{ $iou->released_at ? \Carbon\Carbon::parse($iou->released_at)->format('d M Y') : '-' }}</td>
+
+                        {{-- Total Expensed --}}
+                        <td class="text-right" style="font-weight: 700; color: var(--primary);">
+                            ৳{{ number_format($totalExpensed, 2) }}
+                        </td>
+
+                        {{-- Balance or Extra Logic --}}
+                        <td class="text-right">
+                            @if($diff < 0)
+                                <span style="color: var(--danger); font-weight: 700;">
+                                Extra: ৳{{ number_format(abs($diff), 2) }}
+                                </span>
+                                @else
+                                <span style="color: var(--text-muted); font-weight: 700;">
+                                    Bal: ৳{{ number_format($diff, 2) }}
+                                </span>
+                                @endif
+                        </td>
+
+                        <td>{{ $iou->released_at ? $iou->released_at->format('d M Y') : '-' }}</td>
                         <td>{{ $iou->releasedBy->name ?? '-' }}</td>
+
                         <td class="text-center">
                             <a href="{{ route('ious.show', $iou) }}" class="text-link">View IOU</a>
-                            @if($iou->expense)
-                            <a href="{{ route('ious.expense-list', $iou->expense_id) }}" class="text-link" style="margin-left: 0.5rem;">View Expense</a>
-                            @endif
+                            {{-- Link to the general expense list filtered by this IOU if needed --}}
+                            <a href="{{ route('ious.expense-list', ['search' => $iou->reference_number]) }}" class="text-link" style="margin-left: 0.5rem;">View Payments</a>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="empty-state">
+                        <td colspan="10" class="empty-state">
                             No released IOUs found.
                         </td>
                     </tr>

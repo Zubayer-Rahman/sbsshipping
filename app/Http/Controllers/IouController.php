@@ -164,7 +164,7 @@ class IouController extends Controller
     public function addPayment(Request $request, Iou $iou)
     {
         $validated = $request->validate([
-            'amount' => 'required|numeric|min:0.01|max:' . $iou->balance,
+            'amount' => 'required|numeric|min:0.01',
             'payment_date' => 'required|date',
             'job_id' => 'nullable|exists:sbs_jobs,id',
             'client_id' => 'nullable|exists:contacts,id',
@@ -300,10 +300,9 @@ class IouController extends Controller
     // List of released IOUs
     public function releaseList(Request $request)
     {
-        $query = Iou::with(['contact', 'expense.category', 'releasedBy'])
+        $query = Iou::with(['contact', 'jobs', 'payments', 'releasedBy']) // Eager load everything
             ->where('is_released', true);
 
-        // Search
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -314,8 +313,29 @@ class IouController extends Controller
             });
         }
 
+        $ious = $query->latest()->paginate(20);
+
         $releasedIous = $query->latest('released_at')->paginate(20);
 
         return view('ious.release-list', compact('releasedIous'));
+    }
+
+    public function releaseInstant(Iou $iou)
+    {
+        if ($iou->is_released) {
+            return redirect()->back()->with('error', 'This IOU is already released.');
+        }
+
+        // Update the IOU status
+        $iou->update([
+            'is_released' => true,
+            'released_at' => now(),
+            'released_by' => Auth::id(),
+            // We set status to paid because 'Releasing' is the final act
+            'status' => 'paid',
+            'paid_date' => $iou->paid_date ?? now(),
+        ]);
+
+        return redirect()->route('ious.release-list')->with('success', "IOU {$iou->reference_number} has been released successfully!");
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contact;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
@@ -87,6 +88,11 @@ class ContactController extends Controller
         return view('contacts.show', compact('contact'));
     }
 
+    public function showUser(User $user)
+    {
+        return view('contacts.user', compact('user'));
+    }
+
     /**
      * Edit form
      */
@@ -115,9 +121,17 @@ class ContactController extends Controller
         ]);
 
         $contact->update($request->only([
-            'type', 'business_name', 'name', 'email', 'tax_number',
-            'pay_term_number', 'pay_term_type', 'opening_balance',
-            'advance_balance', 'address', 'mobile',
+            'type',
+            'business_name',
+            'name',
+            'email',
+            'tax_number',
+            'pay_term_number',
+            'pay_term_type',
+            'opening_balance',
+            'advance_balance',
+            'address',
+            'mobile',
         ]));
 
         $label = $contact->type === 'client' ? 'Client' : 'Supplier';

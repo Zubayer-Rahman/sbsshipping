@@ -12,11 +12,22 @@ class Contact extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'contact_id', 'type', 'business_name', 'name', 'email',
-        'tax_number', 'pay_term_number', 'pay_term_type',
-        'opening_balance', 'advance_balance', 'address', 'mobile',
-        'total_purchase_due', 'total_purchase_return_due',
-        'is_active', 'user_id',
+        'contact_id',
+        'type',
+        'business_name',
+        'name',
+        'email',
+        'tax_number',
+        'pay_term_number',
+        'pay_term_type',
+        'opening_balance',
+        'advance_balance',
+        'address',
+        'mobile',
+        'total_purchase_due',
+        'total_purchase_return_due',
+        'is_active',
+        'user_id',
     ];
 
     protected $casts = [
@@ -33,6 +44,11 @@ class Contact extends Model
             return $this->pay_term_number . ' ' . ucfirst($this->pay_term_type);
         }
         return '';
+    }
+
+    public function scopeUser($query)
+    {
+        return $query->whereIn('type', ['user']);
     }
 
     public function scopeSuppliers($query)

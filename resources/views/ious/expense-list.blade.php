@@ -15,6 +15,7 @@
                 <tr>
                     <th style="padding: 12px; text-align: left;">Date</th>
                     <th style="padding: 12px; text-align: left;">Type</th>
+                    <th style="padding: 12px; text-align: left;">Status</th>
                     <th style="padding: 12px; text-align: left;">IOU Ref</th>
                     <th style="padding: 12px; text-align: left;">Contact</th>
                     <th style="padding: 12px; text-align: left;">Job ID</th>
@@ -32,6 +33,15 @@
                         <span class="badge {{ $payment->iou->type == 'receivable' ? 'badge-success' : 'badge-danger' }}">
                             {{ $payment->iou->type == 'receivable' ? 'Received' : 'Paid' }}
                         </span>
+                    </td>
+                    <td style="padding: 12px;">
+                        @if($payment->iou->status == 'paid')
+                        <span class="badge badge-success">Paid</span>
+                        @elseif($payment->iou->status == 'partial')
+                        <span class="badge badge-warning">Partial</span>
+                        @else
+                        <span class="badge badge-secondary">Pending</span>
+                        @endif
                     </td>
                     <td style="padding: 12px;"><a href="{{ route('ious.show', $payment->iou_id) }}" class="text-link">{{ $payment->iou->reference_number }}</a></td>
                     <td style="padding: 12px;">{{ $payment->iou->contact->name }}</td>
@@ -65,13 +75,25 @@
         font-weight: 500;
         font-family: 'Inter', sans-serif;
     }
+
     .badge-success {
         background: #d1fae5;
         color: #065f46;
     }
+
     .badge-danger {
         background: #fee2e2;
         color: #991b1b;
+    }
+
+    .badge-secondary {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
     }
 </Style>
 

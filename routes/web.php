@@ -10,6 +10,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\IouController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // ── Auth Routes ─────────────────────────────────────────────────────────────
@@ -26,6 +27,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/', fn() => redirect('/dashboard'));
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
 
     // ── Jobs Manager ─────────────────────────────────────────────────────────
     Route::prefix('jobs')->name('jobs.')->group(function () {
@@ -62,6 +64,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('contacts')->name('contacts.')->group(function () {
         Route::get('/create/new',        [ContactController::class, 'create'])->name('create');
         Route::post('/store',            [ContactController::class, 'store'])->name('store');
+        Route::get('/user-list',         [UserController::class, 'index'])->name('user');
         Route::get('/show/{contact}',    [ContactController::class, 'show'])->name('show');
         Route::get('/{contact}/edit',    [ContactController::class, 'edit'])->name('edit');
         Route::put('/{contact}',         [ContactController::class, 'update'])->name('update');
@@ -109,6 +112,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [IouController::class, 'store'])->name('store');
         Route::get('/released', [IouController::class, 'releaseList'])->name('release-list'); // ADD THIS
         Route::get('/iou-expenses', [IouController::class, 'iouExpenseList'])->name('expense-list'); // ADD THIS
+        Route::post('/{iou}/release-instant', [IouController::class, 'releaseInstant'])->name('release-instant');
         Route::get('/{iou}', [IouController::class, 'show'])->name('show');
         Route::get('/{iou}/edit', [IouController::class, 'edit'])->name('edit');
         Route::put('/{iou}', [IouController::class, 'update'])->name('update');
@@ -116,5 +120,5 @@ Route::middleware('auth')->group(function () {
         Route::post('/{iou}/payment', [IouController::class, 'addPayment'])->name('payment');
         Route::get('/{iou}/release', [IouController::class, 'release'])->name('release');      // ADD THIS
         Route::post('/{iou}/release', [IouController::class, 'processRelease'])->name('process-release'); // ADD THIS
-        });
+    });
 });

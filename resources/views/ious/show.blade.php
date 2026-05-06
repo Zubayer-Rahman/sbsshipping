@@ -599,9 +599,26 @@
             <!-- Payment Amount -->
             <div class="form-group">
                 <label class="form-label">Payment Amount <span class="required">*</span></label>
-                <input type="number" name="amount" step="0.01" min="0.01" max="{{ $iou->balance }}"
-                    required class="form-control">
-                <p class="help-text">Maximum: ৳{{ number_format($iou->balance, 2) }}</p>
+                <input type="number" name="amount" step="0.01" min="0.01" value="{{ $iou->balance > 0 ? $iou->balance : '' }}" required class="form-control">
+
+                <div style="margin-top: 8px; display: flex; justify-content: space-between; font-size: 12px;">
+                    <span style="color: var(--text-muted);">
+                        {{ $iou->type == 'receivable' ? 'Receivable Balance:' : 'Payable Balance:' }}
+                        <strong style="color: var(--primary);">৳{{ number_format(max(0, $iou->balance), 2) }}</strong>
+                    </span>
+
+                    {{-- Show Extra Amount if balance is negative or payments exceed amount --}}
+                    @php
+                    $totalPayments = $iou->payments->sum('amount');
+                    $extra = $totalPayments > $iou->amount ? $totalPayments - $iou->amount : 0;
+                    @endphp
+
+                    @if($extra > 0)
+                    <span style="color: var(--danger); font-weight: 700;">
+                        Extra Expensed: ৳{{ number_format($extra, 2) }}
+                    </span>
+                    @endif
+                </div>
             </div>
 
             <!-- Job Number & Client Name Row -->
