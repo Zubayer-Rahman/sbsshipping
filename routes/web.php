@@ -9,6 +9,7 @@ use App\Http\Controllers\ForwardingController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\PaymentAccountController;
 use App\Http\Controllers\IouController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -120,5 +121,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/{iou}/payment', [IouController::class, 'addPayment'])->name('payment');
         Route::get('/{iou}/release', [IouController::class, 'release'])->name('release');      // ADD THIS
         Route::post('/{iou}/release', [IouController::class, 'processRelease'])->name('process-release'); // ADD THIS
+    });
+
+    // Payment Accounts
+    Route::prefix('accounts')->name('accounts.')->group(function () {
+        Route::get('/', [PaymentAccountController::class, 'index'])->name('index');
+        Route::get('/create', [PaymentAccountController::class, 'create'])->name('create');
+        Route::get('/cashflow/view', [PaymentAccountController::class, 'cashFlow'])->name('cashflow');
+        Route::post('/', [PaymentAccountController::class, 'store'])->name('store');
+        Route::get('/{account}', [PaymentAccountController::class, 'show'])->name('show');
+        Route::post('/{account}/toggle', [PaymentAccountController::class, 'toggleActive'])->name('toggle');
     });
 });

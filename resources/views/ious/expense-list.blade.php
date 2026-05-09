@@ -31,7 +31,7 @@
                     <td style="padding: 12px;">{{ $payment->payment_date->format('d M Y') }}</td>
                     <td style="padding: 12px;">
                         <span class="badge {{ $payment->iou->type == 'receivable' ? 'badge-success' : 'badge-danger' }}">
-                            {{ $payment->iou->type == 'receivable' ? 'Received' : 'Paid' }}
+                            {{ $payment->iou->type == 'receivable' ? 'Receivable' : 'Payable' }}
                         </span>
                     </td>
                     <td style="padding: 12px;">

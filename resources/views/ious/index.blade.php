@@ -334,7 +334,7 @@
         width: 90%;
         text-align: center;
         box-shadow: var(--shadow-md);
-        animation: modalSlideIn 0.3s ease-out;
+        animation: modalSlideIn 0.3s ease-in-out;
     }
 
     @keyframes modalSlideIn {
@@ -378,15 +378,11 @@
         padding: 10px;
         border-radius: var(--radius-sm);
         border: 1px solid var(--border);
-        background: white;
-        color: var(--text-muted);
+        background: var(--danger);
+        color: white;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-modal-cancel:hover {
-        background: var(--body-bg);
+        transition: all 0.2s ease-in-out;
     }
 
     .btn-modal-confirm {
@@ -398,7 +394,7 @@
         color: white;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.2s ease-in-out;
     }
 
     .btn-modal-confirm:hover {

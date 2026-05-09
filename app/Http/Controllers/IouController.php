@@ -110,7 +110,11 @@ class IouController extends Controller
         $jobs = Job::orderBy('id', 'desc')->get();
         $clients = Contact::orderBy('name')->get(); // Adjust if you have a specific 'client' type
 
-        return view('ious.show', compact('iou', 'jobs', 'clients'));
+
+        // fetch active payment accounts for the payment form dropdown
+        $accounts = \App\Models\PaymentAccount::where('is_active', true)->get();
+
+        return view('ious.show', compact('iou', 'jobs', 'clients', 'accounts'));
     }
 
     // Show edit form
@@ -166,21 +170,44 @@ class IouController extends Controller
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0.01',
             'payment_date' => 'required|date',
+            'payment_account_id' => 'required|exists:payment_accounts,id', // Added this
             'job_id' => 'nullable|exists:sbs_jobs,id',
             'client_id' => 'nullable|exists:contacts,id',
             'payment_method' => 'nullable|string',
-            'notes' => 'nullable|string',
         ]);
 
-        $validated['iou_id'] = $iou->id;
-        $validated['created_by'] = Auth::id();
+        DB::transaction(function () use ($validated, $iou) {
+            // 1. Create IOU Payment
+            $payment = $iou->payments()->create([
+                'amount' => $validated['amount'],
+                'payment_date' => $validated['payment_date'],
+                'job_id' => $validated['job_id'],
+                'client_id' => $validated['client_id'],
+                'payment_method' => $validated['payment_method'],
+                'created_by' => Auth::id(),
+            ]);
 
-        IouPayment::create($validated);
+            // 2. Update IOU Balance/Status
+            $iou->updateBalance();
 
-        // This updates paid_amount, balance, and Status (Partial/Paid)
-        $iou->updateBalance();
+            // 3. Update Bank/Cash Account Real-Time
+            $account = \App\Models\PaymentAccount::find($validated['payment_account_id']);
 
-        return redirect()->back()->with('success', 'Payment recorded as IOU Expense!');
+            // Logic: Receivable (Money IN = Credit), Payable (Money OUT = Debit)
+            $type = ($iou->type == 'receivable') ? 'credit' : 'debit';
+
+            $account->recordTransaction(
+                $type,
+                $validated['amount'],
+                'iou_payment',
+                $payment->id,
+                "IOU Payment: {$iou->reference_number}",
+                $validated['payment_date'],
+                Auth::id()
+            );
+        });
+
+        return redirect()->back()->with('success', 'Payment processed and Account updated!');
     }
 
     // List of IOU payments for expenses page

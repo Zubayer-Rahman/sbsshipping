@@ -990,6 +990,32 @@
                 </li>
                 @endif
 
+                <li class="nav-item has-submenu {{ request()->routeIs('accounts.*') ? 'open' : '' }}">
+                    <a href="#" class="nav-link {{ request()->routeIs('accounts.*') ? 'active' : '' }}"
+                        onclick="toggleSubmenu(this);return false;">
+                        <i class="bi bi-wallet2"></i>
+                        <span class="nav-link-label">Accounts</span>
+                        <i class="bi bi-chevron-right nav-arrow"></i>
+                    </a>
+                    <ul class="nav-submenu {{ request()->routeIs('accounts.*') ? 'open' : '' }}">
+                        <li class="nav-item">
+                            <a href="{{ route('accounts.index') }}" class="nav-link {{ request()->routeIs('accounts.index') ? 'active' : '' }}">
+                                <span class="nav-link-label">All Accounts</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('accounts.create') }}" class="nav-link {{ request()->routeIs('accounts.create') ? 'active' : '' }}">
+                                <span class="nav-link-label">Add Account</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('accounts.cashflow') }}" class="nav-link {{ request()->routeIs('accounts.cashflow') ? 'active' : '' }}">
+                                <span class="nav-link-label">Cash Flow</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
             </ul>
         </nav>
 

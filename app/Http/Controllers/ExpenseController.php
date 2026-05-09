@@ -9,6 +9,7 @@ use App\Models\Contact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\PaymentAccount;
 
 class ExpenseController extends Controller
 {
@@ -52,9 +53,17 @@ class ExpenseController extends Controller
     // ── Store ─────────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
-        $data = $request->except('_token', 'job_ids');
+        // Validate including the payment account
+        $request->validate([
+            'payment_account_id' => 'required|exists:payment_accounts,id',
+            'amount' => 'required|numeric|min:0.01',
+            'expense_date' => 'required|date',
+            // ... add other validation rules as needed
+        ]);
 
-        // Handle multiple job selections — before redirect
+        $data = $request->except('_token', 'job_ids', 'payment_account_id'); // Exclude payment_account_id from mass assignment
+
+        // Handle multiple job selections
         $jobIds = array_filter((array) $request->input('job_ids', []));
         $data['job_id']     = !empty($jobIds) ? $jobIds[0] : null;
         $data['job_ref_no'] = $request->input('job_ref_no');
@@ -64,19 +73,34 @@ class ExpenseController extends Controller
                 ->store('expense_docs', 'public');
         }
 
-        $data['user_id']  = Auth::id();
-        $data['added_by'] = Auth::user()->name;
+        $data['user_id']      = Auth::id();
+        $data['added_by']     = Auth::user()->name;
         $data['is_refund']    = $request->boolean('is_refund');
         $data['is_recurring'] = $request->boolean('is_recurring');
 
+        // Clean empty values
         foreach ($data as $k => $v) {
             if ($v === '') $data[$k] = null;
         }
 
-        Expense::create($data);
+        // Use DB Transaction to ensure both expense and account update together
+        DB::transaction(function () use ($data, $request) {
+            $expense = Expense::create($data);
+
+            $account = \App\Models\PaymentAccount::find($request->payment_account_id);
+            $account->recordTransaction(
+                'debit', // Expenses are always money out
+                $data['amount'],
+                'expense',
+                $expense->id,
+                "Expense: " . ($data['expenses_for'] ?? 'General'),
+                $data['expense_date'],
+                Auth::id()
+            );
+        });
 
         return redirect()->route('expenses.list')
-            ->with('success', 'Expense added successfully!');
+            ->with('success', 'Expense added successfully and account updated!');
     }
 
     // ── Edit ──────────────────────────────────────────────────────────────────

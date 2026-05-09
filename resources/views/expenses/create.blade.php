@@ -209,9 +209,13 @@
                             <span style="padding:0 10px;border-right:1px solid var(--border);height:40px;display:flex;align-items:center">
                                 <i class="bi bi-cash-stack" style="color:var(--text-muted)"></i>
                             </span>
-                            <select name="payment_account" class="form-select" style="border:none;border-radius:0;flex:1">
-                                <option value="Cash in Hand">Cash in Hand</option>
-                                <option value="Bank Account">Bank Account</option>
+                            <select name="payment_account_id" required class="form-control">
+                                <option value="">Select Account</option>
+                                @foreach(\App\Models\PaymentAccount::where('is_active', true)->get() as $account)
+                                <option value="{{ $account->id }}">
+                                    {{ $account->account_name }} (৳{{ number_format($account->current_balance, 2) }})
+                                </option>
+                                @endforeach
                             </select>
                         </div>
                     </div>

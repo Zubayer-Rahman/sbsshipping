@@ -486,7 +486,7 @@
                     <p class="info-item-label">Related Expense</p>
                     <p class="info-item-value">
                         @if($iou->expense)
-                        <a href="{{ route('expenses.list', $iou->expense_id) }}" class="document-link">
+                        <a href="{{ route('ious.expense-list', $iou->expense_id) }}" class="document-link">
                             View Expense Record →
                         </a>
                         @else
@@ -688,13 +688,10 @@
 
                 <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label">Payment Method</label>
-                    <select name="payment_method" class="form-control">
-                        <option value="">Select Method</option>
-                        <option value="cash">Cash</option>
-                        <option value="bank_transfer">Bank Transfer</option>
-                        <option value="check">Check</option>
-                        <option value="mobile_banking">Mobile Banking</option>
-                        <option value="other">Other</option>
+                    <select name="payment_account_id" required class="form-control">
+                        @foreach($accounts as $account)
+                        <option value="{{ $account->id }}">{{ $account->account_name }} (৳{{ number_format($account->current_balance, 2) }})</option>
+                        @endforeach
                     </select>
                 </div>
             </div>
