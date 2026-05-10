@@ -32,7 +32,7 @@ class PaymentAccountController extends Controller
     {
         $validated = $request->validate([
             'account_name' => 'required|string|max:255',
-            'account_type' => 'required|in:bank,cash,mobile_banking,other',
+            // 'account_type' => 'required|in:bank,cash,mobile_banking,other',
             'account_number' => 'nullable|string|max:255',
             'bank_name' => 'nullable|string|max:255',
             'branch' => 'nullable|string|max:255',
@@ -40,7 +40,8 @@ class PaymentAccountController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $validated['current_balance'] = $validated['opening_balance'];
+        $validated['account_type'] = 'other'; // Default to 'other' for now since we're hiding the option
+        $validated['current_balance'] = 0;
         $validated['created_by'] = Auth::id();
 
         $account = PaymentAccount::create($validated);
@@ -67,6 +68,18 @@ class PaymentAccountController extends Controller
         $account->load(['transactions.creator']);
 
         return view('accounts.show', compact('account'));
+    }
+
+    public function destroy(PaymentAccount $account)
+    {
+        // // Safety Check: Prevent deletion if account has transaction history
+        // if ($account->transactions()->count() > 0) {
+        //     return redirect()->back()->with('error', 'Cannot delete account because it has transaction history. Try deactivating it instead.');
+        // }
+
+        $account->delete();
+
+        return redirect()->route('accounts.index')->with('success', 'Account deleted successfully!');
     }
 
     // Cash flow page - shows transactions across all accounts

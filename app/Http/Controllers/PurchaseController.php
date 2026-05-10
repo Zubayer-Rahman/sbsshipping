@@ -52,11 +52,21 @@ class PurchaseController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'supplier_id'   => 'required',
-            'purchase_date' => 'required',
+            'total_amount' => 'required|numeric|min:0.01',
+            'purchase_date' => 'required|date',
+            'payment_account_id' => 'required|exists:payment_accounts,id',
+            'supplier_id' => 'required|exists:contacts,id',
         ]);
 
-        DB::transaction(function () use ($request) {
+        $account = \App\Models\PaymentAccount::find($request->payment_account_id);
+
+        if ($request->total_amount > $account->current_balance) {
+            return redirect()->back()
+                ->with('error', "Insufficient funds in {$account->account_name} to complete this purchase.")
+                ->withInput();
+        }
+
+        DB::transaction(function () use ($request, $account) {
             // Build purchase
             $supplier = Contact::find($request->supplier_id);
 
@@ -73,6 +83,7 @@ class PurchaseController extends Controller
             $discounts  = $request->input('discount_percent', []);
             $margins    = $request->input('profit_margin', []);
             $sellPrices = $request->input('unit_selling_price', []);
+
 
             $netTotal   = 0;
             $totalItems = 0;
@@ -129,6 +140,9 @@ class PurchaseController extends Controller
                 'payment_note'     => $request->payment_note,
                 'user_id'          => Auth::id(),
                 'added_by'         => Auth::user()->name,
+                'created_by' => Auth::id(),
+                'total_amount' => $request->total_amount,
+                'payment_account_id' => $request->payment_account_id,
             ]);
 
             foreach ($lineItems as $line) {

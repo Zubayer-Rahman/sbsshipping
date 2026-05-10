@@ -112,11 +112,11 @@
         display: none;
     }
 
-    .account-type-option input[type="radio"]:checked + .type-content {
+    .account-type-option input[type="radio"]:checked+.type-content {
         color: var(--primary);
     }
 
-    .account-type-option input[type="radio"]:checked ~ .account-type-option {
+    .account-type-option input[type="radio"]:checked~.account-type-option {
         border-color: var(--primary);
         background: var(--primary-light);
     }
@@ -187,16 +187,16 @@
             <!-- Account Name -->
             <div class="form-group">
                 <label class="form-label">Account Name <span class="required">*</span></label>
-                <input type="text" name="account_name" value="{{ old('account_name') }}" 
-                       required class="form-control @error('account_name') error @enderror"
-                       placeholder="e.g., Cash In Hand, DBBL Main Account">
+                <input type="text" name="account_name" value="{{ old('account_name') }}"
+                    required class="form-control @error('account_name') error @enderror"
+                    placeholder="e.g., Cash In Hand, DBBL Main Account">
                 @error('account_name')
-                    <p class="error-text">{{ $message }}</p>
+                <p class="error-text">{{ $message }}</p>
                 @enderror
             </div>
 
             <!-- Account Type -->
-            <div class="form-group">
+            <!-- <div class="form-group">
                 <label class="form-label">Account Type <span class="required">*</span></label>
                 <div class="account-type-grid">
                     <label class="account-type-option">
@@ -231,27 +231,27 @@
                 @error('account_type')
                     <p class="error-text">{{ $message }}</p>
                 @enderror
-            </div>
+            </div> -->
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <!-- Account Number -->
                 <div class="form-group">
                     <label class="form-label">Account Number</label>
-                    <input type="text" name="account_number" value="{{ old('account_number') }}" 
-                           class="form-control @error('account_number') error @enderror"
-                           placeholder="e.g., 1234567890">
+                    <input type="text" name="account_number" value="{{ old('account_number') }}"
+                        class="form-control @error('account_number') error @enderror"
+                        placeholder="e.g., 1234567890">
                     @error('account_number')
-                        <p class="error-text">{{ $message }}</p>
+                    <p class="error-text">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <!-- Opening Balance -->
                 <div class="form-group">
                     <label class="form-label">Opening Balance <span class="required">*</span></label>
-                    <input type="number" name="opening_balance" step="0.01" min="0" value="{{ old('opening_balance', 0) }}" 
-                           required class="form-control @error('opening_balance') error @enderror">
+                    <input type="number" name="opening_balance" step="0.01" min="0" value="{{ old('opening_balance', 0) }}"
+                        required class="form-control @error('opening_balance') error @enderror">
                     @error('opening_balance')
-                        <p class="error-text">{{ $message }}</p>
+                    <p class="error-text">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
@@ -260,23 +260,23 @@
                 <!-- Bank Name -->
                 <div class="form-group">
                     <label class="form-label">Bank Name</label>
-                    <input type="text" name="bank_name" value="{{ old('bank_name') }}" 
-                           class="form-control @error('bank_name') error @enderror"
-                           placeholder="e.g., Dutch Bangla Bank">
+                    <input type="text" name="bank_name" value="{{ old('bank_name') }}"
+                        class="form-control @error('bank_name') error @enderror"
+                        placeholder="e.g., Dutch Bangla Bank">
                     <p class="help-text">For bank accounts only</p>
                     @error('bank_name')
-                        <p class="error-text">{{ $message }}</p>
+                    <p class="error-text">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <!-- Branch -->
                 <div class="form-group">
                     <label class="form-label">Branch</label>
-                    <input type="text" name="branch" value="{{ old('branch') }}" 
-                           class="form-control @error('branch') error @enderror"
-                           placeholder="e.g., Gulshan Branch">
+                    <input type="text" name="branch" value="{{ old('branch') }}"
+                        class="form-control @error('branch') error @enderror"
+                        placeholder="e.g., Gulshan Branch">
                     @error('branch')
-                        <p class="error-text">{{ $message }}</p>
+                    <p class="error-text">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
@@ -284,10 +284,10 @@
             <!-- Description -->
             <div class="form-group">
                 <label class="form-label">Description</label>
-                <textarea name="description" class="form-control @error('description') error @enderror" 
-                          placeholder="Optional notes about this account">{{ old('description') }}</textarea>
+                <textarea name="description" class="form-control @error('description') error @enderror"
+                    placeholder="Optional notes about this account">{{ old('description') }}</textarea>
                 @error('description')
-                    <p class="error-text">{{ $message }}</p>
+                <p class="error-text">{{ $message }}</p>
                 @enderror
             </div>
 
@@ -299,20 +299,4 @@
         </form>
     </div>
 </div>
-
-@push('scripts')
-<script>
-    // Visual feedback for radio buttons
-    document.querySelectorAll('.account-type-option').forEach(option => {
-        option.addEventListener('click', function() {
-            document.querySelectorAll('.account-type-option').forEach(opt => {
-                opt.style.borderColor = 'var(--border)';
-                opt.style.background = 'transparent';
-            });
-            this.style.borderColor = 'var(--primary)';
-            this.style.background = 'var(--primary-light)';
-        });
-    });
-</script>
-@endpush
 @endsection

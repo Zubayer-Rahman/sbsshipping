@@ -129,6 +129,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', [PaymentAccountController::class, 'create'])->name('create');
         Route::get('/cashflow/view', [PaymentAccountController::class, 'cashFlow'])->name('cashflow');
         Route::post('/', [PaymentAccountController::class, 'store'])->name('store');
+        Route::delete('/{account}', [PaymentAccountController::class, 'destroy'])->name('destroy');
         Route::get('/{account}', [PaymentAccountController::class, 'show'])->name('show');
         Route::post('/{account}/toggle', [PaymentAccountController::class, 'toggleActive'])->name('toggle');
     });

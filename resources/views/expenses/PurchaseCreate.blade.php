@@ -230,10 +230,11 @@
                         <span style="padding:0 10px;border-right:1px solid var(--border);height:40px;display:flex;align-items:center">
                             <i class="bi bi-cash-stack" style="color:var(--text-muted)"></i>
                         </span>
-                        <select name="payment_account" class="form-select" style="border:none;border-radius:0;flex:1">
-                            <option value="Cash in Hand">Cash in Hand</option>
-                            <option value="Bank Account">Bank Account</option>
-                        </select>
+                        @foreach(\App\Models\PaymentAccount::where('is_active', true)->orderBy('account_name')->get() as $acc)
+                        <option value="{{ $acc->id }}" {{ old('payment_account_id') == $acc->id ? 'selected' : '' }}>
+                            {{ $acc->account_name }} (Balance: ৳{{ number_format($acc->current_balance, 2) }})
+                        </option>
+                        @endforeach
                     </div>
                 </div>
                 <div class="form-group" style="margin-bottom:16px">

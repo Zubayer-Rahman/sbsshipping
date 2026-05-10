@@ -190,7 +190,7 @@
                 <thead>
                     <tr>
                         <th>Account Details</th>
-                        <th>Account Type</th>
+                        <!-- <th>Account Type</th> -->
                         <th class="text-right">Opening Balance</th>
                         <th class="text-right">Current Balance</th>
                         <th>Status</th>
@@ -218,13 +218,13 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
+                        <!-- <td>
                             <span style="text-transform: capitalize;">{{ str_replace('_', ' ', $account->account_type) }}</span>
-                        </td>
-                        <td class="text-right" style="color: var(--text-muted);">
+                        </td> -->
+                        <td class="" style="color: var(--text-muted);">
                             ৳{{ number_format($account->opening_balance, 2) }}
                         </td>
-                        <td class="text-right">
+                        <td class="">
                             <span class="balance-neutral">৳{{ number_format($account->current_balance, 2) }}</span>
                         </td>
                         <td>
@@ -238,10 +238,18 @@
                                 <span style="font-size: 0.7rem; color: var(--text-muted);">{{ $account->created_at->format('d M Y') }}</span>
                             </div>
                         </td>
-                        <td class="text-right">
+                        <td class="text-right" style="display: flex; gap: 0.5rem;">
                             <a href="{{ route('accounts.show', $account) }}" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;" onclick="event.stopPropagation();">
                                 View Details
                             </a>
+                            {{-- Delete Button --}}
+                            <form action="{{ route('accounts.destroy', $account) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this account?')" onclick="event.stopPropagation();">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn" style="background: var(--danger); color: white; padding: 0.4rem 0.8rem; font-size: 0.75rem;">
+                                    Delete
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     @empty

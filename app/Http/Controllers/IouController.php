@@ -170,30 +170,43 @@ class IouController extends Controller
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0.01',
             'payment_date' => 'required|date',
-            'payment_account_id' => 'required|exists:payment_accounts,id', // Added this
+            'payment_account_id' => 'required|exists:payment_accounts,id',
             'job_id' => 'nullable|exists:sbs_jobs,id',
             'client_id' => 'nullable|exists:contacts,id',
-            'payment_method' => 'nullable|string',
+            'payment_method' => 'nullable|string', // This is optional
+            'notes' => 'nullable|string',
         ]);
+        $account = \App\Models\PaymentAccount::find($validated['payment_account_id']);
+        $validated['iou_id'] = $iou->id;
+        $validated['created_by'] = Auth::id();
 
-        DB::transaction(function () use ($validated, $iou) {
-            // 1. Create IOU Payment
-            $payment = $iou->payments()->create([
-                'amount' => $validated['amount'],
-                'payment_date' => $validated['payment_date'],
-                'job_id' => $validated['job_id'],
-                'client_id' => $validated['client_id'],
-                'payment_method' => $validated['payment_method'],
-                'created_by' => Auth::id(),
+
+        if ($iou->type == 'payable' && $validated['amount'] > $account->current_balance) {
+        return redirect()->back()
+            ->with('error', "Insufficient funds! {$account->account_name} only has ৳" . number_format($account->current_balance, 2))
+            ->withInput();
+    }
+
+        DB::transaction(function () use ($validated, $iou, $account) {
+            // 1. Create the payment record 
+            // We use ?? null to prevent "Undefined array key" errors
+            $payment = IouPayment::create([
+                'iou_id'         => $iou->id,
+                'amount'         => $validated['amount'],
+                'payment_date'   => $validated['payment_date'],
+                'job_id'         => $validated['job_id'] ?? null,
+                'client_id'      => $validated['client_id'] ?? null,
+                'payment_method' => $validated['payment_method'] ?? null, // FIXED HERE
+                'notes'          => $validated['notes'] ?? null,          // FIXED HERE
+                'created_by'     => Auth::id(),
             ]);
 
-            // 2. Update IOU Balance/Status
+            // 2. Update IOU balance and status
             $iou->updateBalance();
 
-            // 3. Update Bank/Cash Account Real-Time
+            // 3. Update the Payment Account Real-time
             $account = \App\Models\PaymentAccount::find($validated['payment_account_id']);
 
-            // Logic: Receivable (Money IN = Credit), Payable (Money OUT = Debit)
             $type = ($iou->type == 'receivable') ? 'credit' : 'debit';
 
             $account->recordTransaction(
@@ -207,7 +220,7 @@ class IouController extends Controller
             );
         });
 
-        return redirect()->back()->with('success', 'Payment processed and Account updated!');
+        return redirect()->back()->with('success', 'Payment recorded Successfully!');
     }
 
     // List of IOU payments for expenses page

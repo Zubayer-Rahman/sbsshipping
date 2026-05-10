@@ -286,8 +286,8 @@
                         <th>Reference</th>
                         <th>Type</th>
                         <th>Description</th>
-                        <th class="text-right">Amount</th>
-                        <th class="text-right">Balance After</th>
+                        <th>Amount</th>
+                        <th>Balance After</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -312,10 +312,10 @@
                             @endif
                         </td>
                         <td>{{ $transaction->description }}</td>
-                        <td class="text-right {{ $transaction->transaction_type == 'credit' ? 'transaction-credit' : 'transaction-debit' }}">
+                        <td class=" {{ $transaction->transaction_type == 'credit' ? 'transaction-credit' : 'transaction-debit' }}">
                             {{ $transaction->transaction_type == 'credit' ? '+' : '-' }}৳{{ number_format($transaction->amount, 2) }}
                         </td>
-                        <td class="text-right" style="font-weight: 600;">
+                        <td style="font-weight: 600;">
                             ৳{{ number_format($transaction->balance_after, 2) }}
                         </td>
                     </tr>

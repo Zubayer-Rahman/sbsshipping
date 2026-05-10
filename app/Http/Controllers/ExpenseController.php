@@ -54,16 +54,30 @@ class ExpenseController extends Controller
     public function store(Request $request)
     {
         // Validate including the payment account
-        $request->validate([
+        $validated = $request->validate([
             'payment_account_id' => 'required|exists:payment_accounts,id',
             'amount' => 'required|numeric|min:0.01',
             'expense_date' => 'required|date',
-            // ... add other validation rules as needed
+            'expense_category' => 'required|string|max:255',
+            'sub_category' => 'nullable|string|max:255',
+            'expenses_for' => 'nullable|string|max:255',
+            'contact_id' => 'nullable|exists:contacts,id',
+            'job_id' => 'nullable|exists:sbs_jobs,id',
+            'document' => 'nullable|file|max:2048', // Max 2MB
         ]);
 
         $data = $request->except('_token', 'job_ids', 'payment_account_id'); // Exclude payment_account_id from mass assignment
 
         // Handle multiple job selections
+        $account = PaymentAccount::find($validated['payment_account_id']);
+
+        if ($validated['amount'] > $account->current_balance) {
+            return redirect()->back()
+                ->with('error', "Cannot create expense. {$account->account_name} balance is too low (৳" . number_format($account->current_balance, 2) . ")")
+                ->withInput();
+        }
+
+
         $jobIds = array_filter((array) $request->input('job_ids', []));
         $data['job_id']     = !empty($jobIds) ? $jobIds[0] : null;
         $data['job_ref_no'] = $request->input('job_ref_no');
@@ -84,7 +98,7 @@ class ExpenseController extends Controller
         }
 
         // Use DB Transaction to ensure both expense and account update together
-        DB::transaction(function () use ($data, $request) {
+        DB::transaction(function () use ($data, $request, $account) {
             $expense = Expense::create($data);
 
             $account = \App\Models\PaymentAccount::find($request->payment_account_id);
@@ -95,6 +109,30 @@ class ExpenseController extends Controller
                 $expense->id,
                 "Expense: " . ($data['expenses_for'] ?? 'General'),
                 $data['expense_date'],
+                Auth::id()
+            );
+        });
+
+        // 4. Atomic Database Transaction
+        DB::transaction(function () use ($request, $account) {
+            // Create the Expense
+            $expense = \App\Models\Expense::create([
+                'amount' => $request->amount,
+                'expense_date' => $request->expense_date,
+                'expenses_for' => $request->expenses_for,
+                'payment_account_id' => $request->payment_account_id, // Store for audit
+                'user_id' => Auth::id(),
+                // ... other fields
+            ]);
+
+            // Real-time Deduction from selected account
+            $account->recordTransaction(
+                'debit', // Money OUT
+                $request->amount,
+                'expense',
+                $expense->id,
+                "Expense: " . $request->expenses_for,
+                $request->expense_date,
                 Auth::id()
             );
         });
