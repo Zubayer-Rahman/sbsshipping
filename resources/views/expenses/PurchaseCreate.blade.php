@@ -223,18 +223,20 @@
                             </select>
                         </div>
                     </div>
-                </div>
-                <div class="form-group" style="max-width:380px;margin-bottom:20px">
-                    <label class="form-label">Payment Account:</label>
-                    <div style="display:flex;align-items:center;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
-                        <span style="padding:0 10px;border-right:1px solid var(--border);height:40px;display:flex;align-items:center">
-                            <i class="bi bi-cash-stack" style="color:var(--text-muted)"></i>
-                        </span>
-                        @foreach(\App\Models\PaymentAccount::where('is_active', true)->orderBy('account_name')->get() as $acc)
-                        <option value="{{ $acc->id }}" {{ old('payment_account_id') == $acc->id ? 'selected' : '' }}>
-                            {{ $acc->account_name }} (Balance: ৳{{ number_format($acc->current_balance, 2) }})
-                        </option>
-                        @endforeach
+                    <div class="form-group">
+                        <label class="form-label">Payment Account:</label>
+                        <div style="display:flex;align-items:center;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
+                            <span style="padding:0 10px;border-right:1px solid var(--border);height:40px;display:flex;align-items:center">
+                                <i class="bi bi-cash-stack" style="color:var(--text-muted)"></i>
+                            </span>
+                            <select name="payment_account_id" required class="form-control">
+                                @foreach(\App\Models\PaymentAccount::where('is_active', true)->orderBy('account_name')->get() as $acc)
+                                <option value="{{ $acc->id }}" {{ old('payment_account_id') == $acc->id ? 'selected' : '' }}>
+                                    {{ $acc->account_name }} (Balance: ৳{{ number_format($acc->current_balance, 2) }})
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="form-group" style="margin-bottom:16px">

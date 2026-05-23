@@ -77,30 +77,59 @@ class IouController extends Controller
             'description' => 'nullable|string',
             'due_date' => 'nullable|date',
             'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'payment_account_id' => 'required|exists:payment_accounts,id',
         ]);
 
-        $validated['reference_number'] = Iou::generateReferenceNumber();
-        $validated['balance'] = $validated['amount'];
-        $validated['created_by'] = Auth::id();
+        $account = \App\Models\PaymentAccount::find($request->payment_account_id);
 
-        if ($request->hasFile('document')) {
-            $validated['document'] = $request->file('document')->store('iou_docs', 'public');
+        if ($validated['type'] == 'receivable' && $validated['amount'] > $account->current_balance) {
+            return redirect()->back()
+                ->with('error', "Insufficient funds in {$account->account_name} to issue this IOU.")
+                ->withInput();
         }
 
-        $jobIdsString = $request->job_id;
-        unset($validated['job_id']);
+        return DB::transaction(function () use ($request, $validated, $account) {
 
-        $iou = Iou::create($validated);
+            $validated['reference_number'] = Iou::generateReferenceNumber();
+            $validated['balance'] = $validated['amount'];
+            $validated['created_by'] = Auth::id();
 
-        if (!empty($jobIdsString)) {
-            // Convert "1,2,13" into array [1, 2, 13]
-            $jobIdsArray = explode(',', $jobIdsString);
-            // Use sync() to save them to the iou_job table
-            $iou->jobs()->sync($jobIdsArray);
-        }
+            if ($request->hasFile('document')) {
+                $validated['document'] = $request->file('document')->store('iou_docs', 'public');
+            }
 
-        return redirect()->route('ious.show', $iou)
-            ->with('success', 'IOU created successfully!');
+            $jobIdsString = $request->job_id;
+            unset($validated['job_id']);
+
+            // Create the IOU
+            $iou = Iou::create($validated);
+
+            // Link Jobs
+            if (!empty($jobIdsString)) {
+                $iou->jobs()->sync(explode(',', $jobIdsString));
+            }
+
+            // 4. REAL-TIME ACCOUNT UPDATE
+            // If Receivable: Business GIVES money out (Debit)
+            // If Payable: Business TAKES money in (Credit - e.g. a loan from someone)
+            $transType = ($validated['type'] == 'receivable') ? 'debit' : 'credit';
+            $desc = ($validated['type'] == 'receivable')
+                ? "Issued IOU to {$iou->contact->name}"
+                : "Received funds via IOU from {$iou->contact->name}";
+
+            $account->recordTransaction(
+                $transType,
+                $validated['amount'],
+                'iou_creation',
+                $iou->id,
+                $desc . " ({$iou->reference_number})",
+                now(),
+                Auth::id()
+            );
+
+            return redirect()->route('ious.show', $iou)
+                ->with('success', 'IOU created and Account balance updated!');
+        });
     }
 
     // Show single IOU
@@ -182,10 +211,10 @@ class IouController extends Controller
 
 
         if ($iou->type == 'payable' && $validated['amount'] > $account->current_balance) {
-        return redirect()->back()
-            ->with('error', "Insufficient funds! {$account->account_name} only has ৳" . number_format($account->current_balance, 2))
-            ->withInput();
-    }
+            return redirect()->back()
+                ->with('error', "Insufficient funds! {$account->account_name} only has ৳" . number_format($account->current_balance, 2))
+                ->withInput();
+        }
 
         DB::transaction(function () use ($validated, $iou, $account) {
             // 1. Create the payment record 

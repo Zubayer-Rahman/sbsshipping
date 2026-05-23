@@ -101,7 +101,7 @@ class ExpenseController extends Controller
         DB::transaction(function () use ($data, $request, $account) {
             $expense = Expense::create($data);
 
-            $account = \App\Models\PaymentAccount::find($request->payment_account_id);
+            $account = PaymentAccount::find($request->payment_account_id);
             $account->recordTransaction(
                 'debit', // Expenses are always money out
                 $data['amount'],
@@ -116,7 +116,7 @@ class ExpenseController extends Controller
         // 4. Atomic Database Transaction
         DB::transaction(function () use ($request, $account) {
             // Create the Expense
-            $expense = \App\Models\Expense::create([
+            $expense = Expense::create([
                 'amount' => $request->amount,
                 'expense_date' => $request->expense_date,
                 'expenses_for' => $request->expenses_for,

@@ -993,7 +993,7 @@
                 <li class="nav-item has-submenu {{ request()->routeIs('accounts.*') ? 'open' : '' }}">
                     <a href="#" class="nav-link {{ request()->routeIs('accounts.*') ? 'active' : '' }}"
                         onclick="toggleSubmenu(this);return false;">
-                        <i class="bi bi-wallet2"></i>
+                        <i class="bi bi-person-vcard"></i>
                         <span class="nav-link-label">Accounts</span>
                         <i class="bi bi-chevron-right nav-arrow"></i>
                     </a>

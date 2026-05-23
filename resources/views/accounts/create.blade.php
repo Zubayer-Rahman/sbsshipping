@@ -183,7 +183,6 @@
     <div class="form-card">
         <form action="{{ route('accounts.store') }}" method="POST">
             @csrf
-
             <!-- Account Name -->
             <div class="form-group">
                 <label class="form-label">Account Name <span class="required">*</span></label>

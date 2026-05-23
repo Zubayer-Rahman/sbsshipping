@@ -330,6 +330,21 @@
                 </div>
             </div>
 
+
+            <!-- payment account -->
+            <div class="form-group" style="width: auto !important;"
+                <label class="form-label">Payment Account:</label>
+                <div style="display:flex;align-items:center;border-radius:var(--radius-sm);overflow:hidden">
+                    <select name="payment_account_id" required class="form-control">
+                        @foreach(\App\Models\PaymentAccount::where('is_active', true)->orderBy('account_name')->get() as $acc)
+                        <option value="{{ $acc->id }}" {{ old('payment_account_id') == $acc->id ? 'selected' : '' }}>
+                            {{ $acc->account_name }} (Balance: ৳{{ number_format($acc->current_balance, 2) }})
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
             <!-- Description -->
             <div class="form-group">
                 <label class="form-label">Description</label>

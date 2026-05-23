@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class PurchaseController extends Controller
 {
-    // ── List ─────────────────────────────────────────────────────────────────
+    // ── List ──────────────────────────────────────────────────────────────────
     public function index(Request $request)
     {
         $query = Purchase::with('items')->latest();
@@ -24,17 +24,18 @@ class PurchaseController extends Controller
                     ->orWhere('supplier_name', 'like', "%$s%");
             });
         }
-        if ($request->filled('status'))        $query->where('purchase_status', $request->status);
         if ($request->filled('payment_status')) $query->where('payment_status', $request->payment_status);
-        if ($request->filled('date_from'))     $query->whereDate('purchase_date', '>=', $request->date_from);
-        if ($request->filled('date_to'))       $query->whereDate('purchase_date', '<=', $request->date_to);
+        if ($request->filled('date_from'))      $query->whereDate('purchase_date', '>=', $request->date_from);
+        if ($request->filled('date_to'))        $query->whereDate('purchase_date', '<=', $request->date_to);
 
         $purchases = $query->paginate($request->input('per_page', 50));
 
-        return view('expenses.PurchaseList', compact('purchases'));
+        // Support both view locations
+        $view = view()->exists('purchases.list') ? 'purchases.list' : 'expenses.PurchaseList';
+        return view($view, compact('purchases'));
     }
 
-    // ── Create form ───────────────────────────────────────────────────────────
+    // ── Create form ────────────────────────────────────────────────────────────
     public function create()
     {
         $suppliers = Contact::where('type', 'supplier')
@@ -43,31 +44,22 @@ class PurchaseController extends Controller
             ->get();
 
         $items = Item::orderBy('item_name')->get();
-        $jobs  = DB::table('sbs_jobs')->orderByDesc('id')->get(['id', 'job_no', 'job_id', 'client_name']);
+        $jobs  = DB::table('sbs_jobs')->orderByDesc('id')
+            ->get(['id', 'job_no', 'job_id', 'client_name']);
 
-        return view('expenses.PurchaseCreate', compact('suppliers', 'items', 'jobs'));
+        $view = view()->exists('purchases.create') ? 'purchases.create' : 'expenses.PurchaseCreate';
+        return view($view, compact('suppliers', 'items', 'jobs'));
     }
 
-    // ── Store ─────────────────────────────────────────────────────────────────
+    // ── Store ──────────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
         $request->validate([
-            'total_amount' => 'required|numeric|min:0.01',
-            'purchase_date' => 'required|date',
-            'payment_account_id' => 'required|exists:payment_accounts,id',
-            'supplier_id' => 'required|exists:contacts,id',
+            'supplier_id'   => 'required',
+            'purchase_date' => 'required',
         ]);
 
-        $account = \App\Models\PaymentAccount::find($request->payment_account_id);
-
-        if ($request->total_amount > $account->current_balance) {
-            return redirect()->back()
-                ->with('error', "Insufficient funds in {$account->account_name} to complete this purchase.")
-                ->withInput();
-        }
-
-        DB::transaction(function () use ($request, $account) {
-            // Build purchase
+        DB::transaction(function () use ($request) {
             $supplier = Contact::find($request->supplier_id);
 
             // File upload
@@ -76,7 +68,7 @@ class PurchaseController extends Controller
                 $docPath = $request->file('document')->store('purchase_docs', 'public');
             }
 
-            // Recalculate totals from items
+            // Calculate totals from line items
             $itemNames  = $request->input('item_name', []);
             $quantities = $request->input('purchase_quantity', []);
             $unitCosts  = $request->input('unit_cost', []);
@@ -84,65 +76,65 @@ class PurchaseController extends Controller
             $margins    = $request->input('profit_margin', []);
             $sellPrices = $request->input('unit_selling_price', []);
 
-
             $netTotal   = 0;
             $totalItems = 0;
+            $lineItems  = [];
 
-            $lineItems = [];
             foreach ($itemNames as $i => $name) {
-                if (empty($name)) continue;
+                if (empty(trim($name))) continue;
 
-                $qty     = floatval($quantities[$i] ?? 1);
-                $cost    = floatval($unitCosts[$i] ?? 0);
-                $disc    = floatval($discounts[$i] ?? 0);
+                $qty           = floatval($quantities[$i] ?? 1);
+                $cost          = floatval($unitCosts[$i] ?? 0);
+                $disc          = floatval($discounts[$i] ?? 0);
                 $costAfterDisc = $cost * (1 - $disc / 100);
-                $lineTotal = $costAfterDisc * $qty;
+                $lineTotal     = $costAfterDisc * $qty;
 
                 $netTotal   += $lineTotal;
                 $totalItems += $qty;
 
                 $lineItems[] = [
-                    'item_name'          => $name,
-                    'item_code'          => $request->input("item_code.$i"),
-                    'purchase_quantity'  => $qty,
-                    'unit'               => $request->input("unit.$i"),
-                    'unit_cost'          => $cost,
-                    'discount_percent'   => $disc,
+                    'item_name'            => $name,
+                    'item_code'            => $request->input("item_code.$i"),
+                    'purchase_quantity'    => $qty,
+                    'unit'                 => $request->input("unit.$i"),
+                    'unit_cost'            => $cost,
+                    'discount_percent'     => $disc,
                     'unit_cost_before_tax' => $costAfterDisc,
-                    'line_total'         => $lineTotal,
-                    'profit_margin'      => floatval($margins[$i] ?? 0),
-                    'unit_selling_price' => floatval($sellPrices[$i] ?? 0),
+                    'line_total'           => $lineTotal,
+                    'profit_margin'        => floatval($margins[$i] ?? 0),
+                    'unit_selling_price'   => floatval($sellPrices[$i] ?? 0),
                 ];
             }
 
             $paymentAmount = floatval($request->input('payment_amount', 0));
-            $paymentStatus = $paymentAmount >= $netTotal ? 'Paid'
+            $paymentStatus = ($paymentAmount >= $netTotal && $netTotal > 0)
+                ? 'Paid'
                 : ($paymentAmount > 0 ? 'Partial' : 'Due');
 
+            // Job selections from multi-select
+            $jobIds   = array_filter((array) $request->input('job_ids', []));
+            $jobRefNo = $request->input('job_ref_no');
+
             $purchase = Purchase::create([
-                'supplier_id'      => $request->supplier_id,
-                'supplier_name'    => $supplier?->business_name,
-                'supplier_address' => $supplier?->address,
+                'supplier_id'       => $request->supplier_id,
+                'supplier_name'     => $supplier?->business_name,
+                'supplier_address'  => $supplier?->address,
                 'business_location' => 'SBS Shipping (BL0001)',
-                'purchase_date'    => $request->purchase_date,
-                'pay_term_number'  => $request->pay_term_number,
-                'pay_term_type'    => $request->pay_term_type,
-                'document_path'    => $docPath,
-                'purchase_status'  => 'Received',
-                'total_items'      => $totalItems,
-                'net_total'        => $netTotal,
-                'grand_total'      => $netTotal,
-                'payment_amount'   => $paymentAmount,
-                'payment_status'   => $paymentStatus,
-                'paid_on'          => $request->paid_on ?: now(),
-                'payment_method'   => $request->payment_method ?? 'Cash',
-                'payment_account'  => $request->payment_account,
-                'payment_note'     => $request->payment_note,
-                'user_id'          => Auth::id(),
-                'added_by'         => Auth::user()->name,
-                'created_by' => Auth::id(),
-                'total_amount' => $request->total_amount,
-                'payment_account_id' => $request->payment_account_id,
+                'purchase_date'     => $request->purchase_date,
+                'document_path'     => $docPath,
+                'purchase_status'   => 'Received',
+                'total_items'       => $totalItems,
+                'net_total'         => $netTotal,
+                'grand_total'       => $netTotal,
+                'payment_amount'    => $paymentAmount,
+                'payment_status'    => $paymentStatus,
+                'paid_on'           => $request->paid_on ?: now(),
+                'payment_method'    => $request->payment_method ?? 'Cash',
+                'payment_account'   => $request->payment_account,
+                'payment_note'      => $request->payment_note,
+                'job_ref_no'        => $jobRefNo,
+                'user_id'           => Auth::id(),
+                'added_by'          => Auth::user()->name,
             ]);
 
             foreach ($lineItems as $line) {
@@ -154,21 +146,22 @@ class PurchaseController extends Controller
             ->with('success', 'Purchase added successfully!');
     }
 
-    // ── Show (modal data) ────────────────────────────────────────────────────
+    // ── Show ───────────────────────────────────────────────────────────────────
     public function show(Purchase $purchase)
     {
         $purchase->load('items');
-        return view('expenses.PurchaseShow', compact('purchase'));
+        $view = view()->exists('purchases.show') ? 'purchases.show' : 'expenses.PurchaseShow';
+        return view($view, compact('purchase'));
     }
 
-    // ── Delete ────────────────────────────────────────────────────────────────
+    // ── Delete ─────────────────────────────────────────────────────────────────
     public function destroy(Purchase $purchase)
     {
         $purchase->delete();
         return back()->with('success', 'Purchase deleted.');
     }
 
-    // ── AJAX: item search ─────────────────────────────────────────────────────
+    // ── AJAX item search ───────────────────────────────────────────────────────
     public function searchItems(Request $request)
     {
         $items = Item::where('item_name', 'like', '%' . $request->q . '%')

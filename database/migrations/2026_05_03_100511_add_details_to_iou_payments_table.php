@@ -9,18 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('iou_payments', function (Blueprint $table) {
-            // We use 'sbs_jobs' because that is your custom table name for jobs
             $table->foreignId('job_id')->nullable()->constrained('sbs_jobs')->after('iou_id');
             $table->foreignId('client_id')->nullable()->constrained('contacts')->after('job_id');
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::table('iou_payments', function (Blueprint $table) {
-            $table->dropForeign(['job_id']);
-            $table->dropForeign(['client_id']);
-            $table->dropColumn(['job_id', 'client_id']);
         });
     }
 };

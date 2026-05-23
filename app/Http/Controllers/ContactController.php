@@ -88,11 +88,6 @@ class ContactController extends Controller
         return view('contacts.show', compact('contact'));
     }
 
-    public function showUser(User $user)
-    {
-        return view('contacts.user', compact('user'));
-    }
-
     /**
      * Edit form
      */
