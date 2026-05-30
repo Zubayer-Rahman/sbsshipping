@@ -118,7 +118,7 @@
                     <th class="exp-th">Action</th>
                     <th class="exp-th">Date</th>
                     <th class="exp-th">Job/Ref. No</th>
-                    <th class="exp-th">Recurring details</th>
+                    <!-- <th class="exp-th">Recurring details</th> -->
                     <th class="exp-th">Expense Category</th>
                     <th class="exp-th">Sub category</th>
                     <th class="exp-th" style="text-align:right">Total amount</th>
@@ -160,9 +160,9 @@
                         <span style="font-size:11px;color:var(--primary);font-weight:600">{{ $exp->expense_ref }}</span>
                     </td>
                     <td class="exp-td" style="font-weight:600;color:var(--primary)">{{ $exp->job_ref_no ?? '—' }}</td>
-                    <td class="exp-td" style="font-size:12px">
+                    <!-- <td class="exp-td" style="font-size:12px">
                         {{ $exp->is_recurring ? 'Recurring' : '—' }}
-                    </td>
+                    </td> -->
                     <td class="exp-td">{{ $exp->expense_category ?? '—' }}</td>
                     <td class="exp-td" style="color:var(--text-muted)">{{ $exp->sub_category ?? '—' }}</td>
                     <td class="exp-td" style="text-align:right;font-weight:600">TK. {{ number_format($exp->total_amount,2) }}</td>

@@ -8,6 +8,7 @@ use App\Models\Contact;
 use Illuminate\Http\Request;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
+use App\Models\PaymentAccount;
 use App\Models\Job;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -80,7 +81,7 @@ class IouController extends Controller
             'payment_account_id' => 'required|exists:payment_accounts,id',
         ]);
 
-        $account = \App\Models\PaymentAccount::find($request->payment_account_id);
+        $account = PaymentAccount::find($request->payment_account_id);
 
         if ($validated['type'] == 'receivable' && $validated['amount'] > $account->current_balance) {
             return redirect()->back()
@@ -141,7 +142,7 @@ class IouController extends Controller
 
 
         // fetch active payment accounts for the payment form dropdown
-        $accounts = \App\Models\PaymentAccount::where('is_active', true)->get();
+        $accounts = PaymentAccount::where('is_active', true)->get();
 
         return view('ious.show', compact('iou', 'jobs', 'clients', 'accounts'));
     }

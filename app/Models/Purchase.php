@@ -20,6 +20,8 @@ class Purchase extends Model
         'net_total',
         'grand_total',
         'payment_amount',
+        'payment_account_id',
+        'grand_total',
         'payment_status',
         'paid_on',
         'payment_method',

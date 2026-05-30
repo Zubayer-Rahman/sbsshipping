@@ -53,92 +53,76 @@ class ExpenseController extends Controller
     // ── Store ─────────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
-        // Validate including the payment account
-        $validated = $request->validate([
+        // Simple validation with no variables - just plain strings
+        $request->validate([
+            'total_amount'       => 'required|numeric|min:0',
+            'expense_date'       => 'required',
             'payment_account_id' => 'required|exists:payment_accounts,id',
-            'amount' => 'required|numeric|min:0.01',
-            'expense_date' => 'required|date',
-            'expense_category' => 'required|string|max:255',
-            'sub_category' => 'nullable|string|max:255',
-            'expenses_for' => 'nullable|string|max:255',
-            'contact_id' => 'nullable|exists:contacts,id',
-            'job_id' => 'nullable|exists:sbs_jobs,id',
-            'document' => 'nullable|file|max:2048', // Max 2MB
         ]);
 
-        $data = $request->except('_token', 'job_ids', 'payment_account_id'); // Exclude payment_account_id from mass assignment
+        // Fetch Account
+        $account = \App\Models\PaymentAccount::find($request->payment_account_id);
 
-        // Handle multiple job selections
-        $account = PaymentAccount::find($validated['payment_account_id']);
-
-        if ($validated['amount'] > $account->current_balance) {
+        // Balance Check
+        if ($request->total_amount > $account->current_balance) {
             return redirect()->back()
-                ->with('error', "Cannot create expense. {$account->account_name} balance is too low (৳" . number_format($account->current_balance, 2) . ")")
+                ->with('error', 'Insufficient funds in ' . $account->account_name)
                 ->withInput();
         }
 
+        try {
+            DB::transaction(function () use ($request, $account) {
 
-        $jobIds = array_filter((array) $request->input('job_ids', []));
-        $data['job_id']     = !empty($jobIds) ? $jobIds[0] : null;
-        $data['job_ref_no'] = $request->input('job_ref_no');
+                // Build data from your EXACT column names
+                $data = $request->except('_token', 'job_ids');
 
-        if ($request->hasFile('document')) {
-            $data['document_path'] = $request->file('document')
-                ->store('expense_docs', 'public');
+                // Handle job selections
+                $jobIds = array_filter((array) $request->input('job_ids', []));
+                $data['job_id']     = !empty($jobIds) ? $jobIds[0] : null;
+                $data['job_ref_no'] = $request->input('job_ref_no');
+
+                // Handle file upload
+                if ($request->hasFile('document')) {
+                    $data['document_path'] = $request->file('document')
+                        ->store('expense_docs', 'public');
+                }
+
+                // Set user info
+                $data['user_id']      = Auth::id();
+                $data['added_by']     = Auth::user()->name;
+                $data['is_refund']    = $request->boolean('is_refund');
+                $data['is_recurring'] = $request->boolean('is_recurring');
+
+                // Link payment account
+                $data['payment_account_id'] = $request->payment_account_id;
+
+                // Clean empty strings to null
+                foreach ($data as $k => $v) {
+                    if ($v === '') $data[$k] = null;
+                }
+
+                // Create the Expense
+                $expense = \App\Models\Expense::create($data);
+
+                // REAL-TIME DEDUCTION
+                $account->recordTransaction(
+                    'debit',
+                    $request->total_amount,
+                    'expense',
+                    $expense->id,
+                    "Expense: " . ($request->expense_for ?? 'Business Expense'),
+                    $request->expense_date ?? now()->toDateString(),
+                    Auth::id()
+                );
+            });
+
+            return redirect()->route('expenses.list')
+                ->with('success', 'Expense added and balance deducted!');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error: ' . $e->getMessage())
+                ->withInput();
         }
-
-        $data['user_id']      = Auth::id();
-        $data['added_by']     = Auth::user()->name;
-        $data['is_refund']    = $request->boolean('is_refund');
-        $data['is_recurring'] = $request->boolean('is_recurring');
-
-        // Clean empty values
-        foreach ($data as $k => $v) {
-            if ($v === '') $data[$k] = null;
-        }
-
-        // Use DB Transaction to ensure both expense and account update together
-        DB::transaction(function () use ($data, $request, $account) {
-            $expense = Expense::create($data);
-
-            $account = PaymentAccount::find($request->payment_account_id);
-            $account->recordTransaction(
-                'debit', // Expenses are always money out
-                $data['amount'],
-                'expense',
-                $expense->id,
-                "Expense: " . ($data['expenses_for'] ?? 'General'),
-                $data['expense_date'],
-                Auth::id()
-            );
-        });
-
-        // 4. Atomic Database Transaction
-        DB::transaction(function () use ($request, $account) {
-            // Create the Expense
-            $expense = Expense::create([
-                'amount' => $request->amount,
-                'expense_date' => $request->expense_date,
-                'expenses_for' => $request->expenses_for,
-                'payment_account_id' => $request->payment_account_id, // Store for audit
-                'user_id' => Auth::id(),
-                // ... other fields
-            ]);
-
-            // Real-time Deduction from selected account
-            $account->recordTransaction(
-                'debit', // Money OUT
-                $request->amount,
-                'expense',
-                $expense->id,
-                "Expense: " . $request->expenses_for,
-                $request->expense_date,
-                Auth::id()
-            );
-        });
-
-        return redirect()->route('expenses.list')
-            ->with('success', 'Expense added successfully and account updated!');
     }
 
     // ── Edit ──────────────────────────────────────────────────────────────────

@@ -166,12 +166,12 @@
                         </span>
                     </td>
                     <td class="pur-td" style="text-align:right;font-weight:700">
-                        TK. {{ number_format($purchase->grand_total, 2) }}
+                        ৳ {{ number_format($purchase->payment_amount, 2) }}
                     </td>
                     <td class="pur-td" style="font-size:12px">
                         @php $due = $purchase->grand_total - $purchase->payment_amount; @endphp
-                        <span style="color:{{ $due > 0 ? 'var(--danger)' : 'var(--success)' }};font-weight:600">
-                            Purchase: TK. {{ number_format(max(0,$due), 2) }}
+                        <span style="color: {{ $due > 0 ? 'var(--danger)' : 'var(--success)' }};font-weight:600">
+                            ৳ {{ number_format(max(0,$due), 2) }}
                         </span>
                     </td>
                     <td class="pur-td" style="font-size:12px">{{ $purchase->added_by ?? '—' }}</td>

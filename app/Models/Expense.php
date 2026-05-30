@@ -34,6 +34,7 @@ class Expense extends Model
         'payment_due',
         'user_id',
         'added_by',
+        'payment_account_id',
     ];
 
     protected $casts = [

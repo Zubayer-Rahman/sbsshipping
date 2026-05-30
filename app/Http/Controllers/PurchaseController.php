@@ -6,9 +6,11 @@ use App\Models\Contact;
 use App\Models\Item;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
+use App\Models\PaymentAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\View;
 
 class PurchaseController extends Controller
 {
@@ -31,7 +33,7 @@ class PurchaseController extends Controller
         $purchases = $query->paginate($request->input('per_page', 50));
 
         // Support both view locations
-        $view = view()->exists('purchases.list') ? 'purchases.list' : 'expenses.PurchaseList';
+        $view = View::exists('purchases.list') ? 'purchases.list' : 'expenses.PurchaseList';
         return view($view, compact('purchases'));
     }
 
@@ -47,7 +49,7 @@ class PurchaseController extends Controller
         $jobs  = DB::table('sbs_jobs')->orderByDesc('id')
             ->get(['id', 'job_no', 'job_id', 'client_name']);
 
-        $view = view()->exists('purchases.create') ? 'purchases.create' : 'expenses.PurchaseCreate';
+        $view = View::exists('purchases.create') ? 'purchases.create' : 'expenses.PurchaseCreate';
         return view($view, compact('suppliers', 'items', 'jobs'));
     }
 
@@ -57,9 +59,18 @@ class PurchaseController extends Controller
         $request->validate([
             'supplier_id'   => 'required',
             'purchase_date' => 'required',
+            'payment_amount' => 'required|numeric|min:0.01',
+            'payment_account_id' => 'required|exists:payment_accounts,id',
         ]);
 
-        DB::transaction(function () use ($request) {
+        $account = PaymentAccount::find($request->payment_account_id);
+
+        // 1. Check Balance
+        if ($request->payment_amount > $account->current_balance) {
+            return redirect()->back()->with('error', 'Insufficient funds in ' . $account->account_name)->withInput();
+        }
+
+        DB::transaction(function () use ($request, $account) {
             $supplier = Contact::find($request->supplier_id);
 
             // File upload
@@ -130,12 +141,23 @@ class PurchaseController extends Controller
                 'payment_status'    => $paymentStatus,
                 'paid_on'           => $request->paid_on ?: now(),
                 'payment_method'    => $request->payment_method ?? 'Cash',
-                'payment_account'   => $request->payment_account,
+                'payment_account_id' => $request->payment_account_id,
                 'payment_note'      => $request->payment_note,
                 'job_ref_no'        => $jobRefNo,
                 'user_id'           => Auth::id(),
                 'added_by'          => Auth::user()->name,
             ]);
+
+            // 3. REAL-TIME DEDUCTION (The line that was missing or failing)
+            $account->recordTransaction(
+                'debit',
+                $request->payment_amount,
+                'purchase',
+                $purchase->id,
+                "Purchase Payment: " . $purchase->reference_no,
+                now(),
+                Auth::id()
+            );
 
             foreach ($lineItems as $line) {
                 $purchase->items()->create($line);
@@ -150,7 +172,7 @@ class PurchaseController extends Controller
     public function show(Purchase $purchase)
     {
         $purchase->load('items');
-        $view = view()->exists('purchases.show') ? 'purchases.show' : 'expenses.PurchaseShow';
+        $view = View::exists('purchases.show') ? 'purchases.show' : 'expenses.PurchaseShow';
         return view($view, compact('purchase'));
     }
 
