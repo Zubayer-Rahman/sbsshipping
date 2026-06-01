@@ -61,7 +61,7 @@ class ExpenseController extends Controller
         ]);
 
         // Fetch Account
-        $account = \App\Models\PaymentAccount::find($request->payment_account_id);
+        $account = PaymentAccount::find($request->payment_account_id);
 
         // Balance Check
         if ($request->total_amount > $account->current_balance) {

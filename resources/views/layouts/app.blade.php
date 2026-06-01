@@ -1016,6 +1016,27 @@
                     </ul>
                 </li>
 
+                <li class="nav-item has-submenu {{ request()->routeIs('bill.*') ? 'open' : '' }}">
+                    <a href="#" class="nav-link {{ request()->routeIs('bill.*') ? 'active' : '' }}"
+                        onclick="toggleSubmenu(this);return false;">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span class="nav-link-label">Bills</span>
+                        <i class="bi bi-chevron-right nav-arrow"></i>
+                    </a>
+                    <ul class="nav-submenu {{ request()->routeIs('bills.*') ? 'open' : '' }}">
+                        <li class="nav-item">
+                            <a href="{{ route('bills.create') }}" class="nav-link {{ request()->routeIs('bills.create') ? 'active' : '' }}">
+                                <span class="nav-link-label">Add Bill</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('bills.list') }}" class="nav-link {{ request()->routeIs('bills.list') ? 'active' : '' }}">
+                                <span class="nav-link-label">List Bills</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
             </ul>
         </nav>
 

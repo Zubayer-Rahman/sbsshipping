@@ -12,6 +12,7 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PaymentAccountController;
 use App\Http\Controllers\IouController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BillController;
 use Illuminate\Support\Facades\Route;
 
 // ── Auth Routes ─────────────────────────────────────────────────────────────
@@ -132,5 +133,18 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{account}', [PaymentAccountController::class, 'destroy'])->name('destroy');
         Route::get('/{account}', [PaymentAccountController::class, 'show'])->name('show');
         Route::post('/{account}/toggle', [PaymentAccountController::class, 'toggleActive'])->name('toggle');
+    });
+
+
+    // Bills
+    Route::prefix('bills')->name('bills.')->group(function () {
+        Route::get('/', [BillController::class, 'index'])->name('list');
+        Route::get('/create', [BillController::class, 'create'])->name('create');
+        Route::post('/store', [BillController::class, 'store'])->name('store');
+        Route::get('/{bill}', [BillController::class, 'show'])->name('show');
+        Route::delete('/{bill}', [BillController::class, 'destroy'])->name('destroy');
+        Route::get('/{bill}/edit', [BillController::class, 'edit'])->name('edit');
+        Route::put('/{bill}', [BillController::class, 'update'])->name('update');
+        Route::get('/items/search', [BillController::class, 'searchItems'])->name('items.search');
     });
 });
