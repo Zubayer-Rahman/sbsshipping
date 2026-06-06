@@ -121,19 +121,19 @@
                     <th class="bill-th">Bill No. <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
                     <th class="bill-th">Client name <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
                     <th class="bill-th">Contact Number <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
-                    <th class="bill-th">Location <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
+                    <!-- <th class="bill-th">Location <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th> -->
                     <th class="bill-th">Payment Status <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
-                    <th class="bill-th">Payment Method <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
+                    <!-- <th class="bill-th">Payment Method <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th> -->
                     <th class="bill-th" style="text-align:right">Total amount <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
                     <th class="bill-th" style="text-align:right">Total paid <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
                     <th class="bill-th" style="text-align:right">Total Due <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
-                    <th class="bill-th">Sell Return Due <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
-                    <th class="bill-th">Shipping Status <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
+                    <!-- <th class="bill-th">Sell Return Due <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th> -->
+                    <!-- <th class="bill-th">Shipping Status <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th> -->
                     <th class="bill-th" style="text-align:right">Total Items <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
                     <th class="bill-th">Job Number <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
                     <th class="bill-th">Added By <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
                     <th class="bill-th">Billing note <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
-                    <th class="bill-th">Staff note <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th>
+                    <!-- <th class="bill-th">Staff note <i class="bi bi-arrow-down-up" style="font-size:10px;opacity:.5"></i></th> -->
                 </tr>
             </thead>
             <tbody id="billBody">
@@ -160,26 +160,26 @@
                     <td class="bill-td" style="font-weight:700;color:var(--primary)">{{ $bill->bill_no }}</td>
                     <td class="bill-td" style="font-weight:600">{{ $bill->client_name ?? '—' }}</td>
                     <td class="bill-td" style="font-size:12px">{{ $bill->client_contact ?? '—' }}</td>
-                    <td class="bill-td">{{ $bill->business_location }}</td>
+                    <!-- <td class="bill-td">{{ $bill->business_location }}</td> -->
                     <td class="bill-td">
                         @php $pc=['Paid'=>'background:#d1fae5;color:#065f46','Due'=>'background:#fef3c7;color:#92400e','Partial'=>'background:#dbeafe;color:#1e40af']; @endphp
                         <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;{{ $pc[$bill->payment_status]??'' }}">
                             {{ $bill->payment_status }}
                         </span>
                     </td>
-                    <td class="bill-td" style="font-size:12px">{{ $bill->payment_method ?? '—' }}</td>
+                    <!-- <td class="bill-td" style="font-size:12px">{{ $bill->payment_method ?? '—' }}</td> -->
                     <td class="bill-td" style="text-align:right;font-weight:600">TK. {{ number_format($bill->total_payable,2) }}</td>
                     <td class="bill-td" style="text-align:right">TK. {{ number_format($bill->total_paid,2) }}</td>
                     <td class="bill-td" style="text-align:right;color:{{ $bill->total_remaining>0?'var(--danger)':'var(--success)' }};font-weight:600">
                         TK. {{ number_format($bill->total_remaining,2) }}
                     </td>
-                    <td class="bill-td" style="font-size:12px">—</td>
-                    <td class="bill-td" style="font-size:12px">{{ $bill->shipping_status ?? '—' }}</td>
+                    <!-- <td class="bill-td" style="font-size:12px">—</td> -->
+                    <!-- <td class="bill-td" style="font-size:12px">{{ $bill->shipping_status ?? '—' }}</td> -->
                     <td class="bill-td" style="text-align:right">{{ number_format($bill->total_items,2) }}</td>
                     <td class="bill-td" style="font-size:12px;color:var(--primary);font-weight:600">{{ $bill->job_number ?? '—' }}</td>
                     <td class="bill-td" style="font-size:12px">{{ $bill->added_by ?? '—' }}</td>
                     <td class="bill-td" style="font-size:12px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $bill->billing_note ?? '—' }}</td>
-                    <td class="bill-td" style="font-size:12px">{{ $bill->staff_note ?? '—' }}</td>
+                    <!-- <td class="bill-td" style="font-size:12px">{{ $bill->staff_note ?? '—' }}</td> -->
                 </tr>
                 @empty
                 <tr>

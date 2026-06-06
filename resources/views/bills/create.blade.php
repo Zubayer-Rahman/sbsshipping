@@ -618,7 +618,9 @@
     const jobTags = document.getElementById('jobTags');
     let ddOpen = false;
     let addedJobsTracker = new Set(); // Track which jobs have service charges
-    let expenseRowCounter = window.expenseRowCounter || 0;
+    // Ensure a single global counter to avoid redeclaration errors
+    window.expenseRowCounter = window.expenseRowCounter ?? 0;
+    let expenseRowCounter = window.expenseRowCounter;
 
     // ─── DROPDOWN OPEN/CLOSE ──────────────────────────────────────────────
     function positionDD() {
@@ -1004,29 +1006,173 @@
     }
 
     function calcBillTotals() {
-        let ti = 0,
-            st = 0;
-        document.querySelectorAll('.brow-qty').forEach(e => ti += parseFloat(e.value) || 0);
-        document.querySelectorAll('.brow-sub').forEach(e => st += parseFloat(e.value) || 0);
-        billSubTotal = st;
+        // 1. Items Subtotal
+        let itemsSubTotal = 0;
+        let totalItems = 0;
 
-        // Discount
-        const discType = document.getElementById('discountType').value;
-        const discAmt = parseFloat(document.getElementById('discountAmount').value) || 0;
-        const discVal = discType === 'Percentage' ? (st * discAmt / 100) : discAmt;
-        document.getElementById('discountDisplay').textContent = discVal.toFixed(2);
+        document.querySelectorAll('#billItemsBody tr').forEach(row => {
+            const qtyInput = row.querySelector('[name^="quantity"]');
+            const priceInput = row.querySelector('[name^="unit_price"]');
+            const discountInput = row.querySelector('[name^="item_discount"]');
 
-        // Tax
-        const taxSel = document.getElementById('orderTax');
-        const taxRate = parseFloat(taxSel.options[taxSel.selectedIndex]?.dataset.rate || 0);
-        const taxVal = (st - discVal) * taxRate / 100;
-        document.getElementById('taxDisplay').textContent = taxVal.toFixed(2);
+            const qty = parseFloat(qtyInput?.value) || 0;
+            const price = parseFloat(priceInput?.value) || 0;
+            const discount = parseFloat(discountInput?.value) || 0;
 
-        // Total
-        const total = st - discVal + taxVal;
-        document.getElementById('totalItemsDisp').textContent = ti.toFixed(2);
-        document.getElementById('totalDisp').textContent = total.toFixed(2);
-        document.getElementById('totalPayableDisp').textContent = total.toFixed(2);
+            const lineTotal = (price - discount) * qty;
+            itemsSubTotal += lineTotal;
+            totalItems += qty;
+
+            // Update line subtotal display in the row if it exists
+            const subtotalCell = row.querySelector('.line-subtotal');
+            if (subtotalCell) subtotalCell.textContent = lineTotal.toFixed(2);
+        });
+
+        // 2. Additional Expenses Total
+        let additionalExpensesTotal = 0;
+        document.querySelectorAll('.expense-amount-input').forEach(input => {
+            additionalExpensesTotal += parseFloat(input.value) || 0;
+        });
+
+        // 3. Grand Total
+        const grandTotal = itemsSubTotal + additionalExpensesTotal;
+
+        // ─── UPDATE DISPLAYS (using YOUR exact IDs) ───
+
+        // Items display
+        const totalItemsDisp = document.getElementById('totalItemsDisp');
+        if (totalItemsDisp) totalItemsDisp.textContent = totalItems.toFixed(2);
+
+        const totalDisp = document.getElementById('totalDisp');
+        if (totalDisp) totalDisp.textContent = itemsSubTotal.toFixed(2);
+
+        // Additional expenses display
+        const totalAdditionalExpenses = document.getElementById('totalAdditionalExpenses');
+        if (totalAdditionalExpenses) totalAdditionalExpenses.textContent = additionalExpensesTotal.toFixed(2);
+
+        const additionalExpensesTotalInput = document.getElementById('additionalExpensesTotal');
+        if (additionalExpensesTotalInput) additionalExpensesTotalInput.value = additionalExpensesTotal.toFixed(2);
+
+        // Grand total (Total Payable)
+        const totalPayableDisp = document.getElementById('totalPayableDisp');
+        if (totalPayableDisp) totalPayableDisp.textContent = grandTotal.toFixed(2);
+
+        console.log('💰 Totals:', {
+            items: itemsSubTotal.toFixed(2),
+            additional: additionalExpensesTotal.toFixed(2),
+            grandTotal: grandTotal.toFixed(2)
+        });
+    }
+
+    function calculateExpenseTotal() {
+        calcBillTotals(); // Just call the master function
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ADDITIONAL EXPENSES (Manual Add Button)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    let expenseRowCounters = 0;
+
+    function addExpenseRow() {
+        expenseRowCounters++;
+        const tbody = document.getElementById('expenseRowsBody');
+
+        if (!tbody) {
+            console.error('expenseRowsBody not found!');
+            return;
+        }
+
+        const row = document.createElement('tr');
+        row.className = 'expense-row manual-expense-row';
+        row.id = `expenseRow_${expenseRowCounters}`;
+
+        row.innerHTML = `
+        <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center;font-weight:600;color:var(--text-muted);font-size:13px">
+            ${tbody.children.length + 1}
+        </td>
+        <td style="padding:10px 14px;border-bottom:1px solid var(--border)">
+            <input type="text" 
+                   name="additional_expenses[${expenseRowCounters}][description]" 
+                   placeholder="e.g., Transportation, Customs Fee, Loading Charge"
+                   style="width:100%;padding:8px 12px;border:1px solid var(--border);
+                          border-radius:var(--radius-sm);font-family:'Inter',sans-serif;font-size:14px"
+                   required>
+        </td>
+        <td style="padding:10px 14px;border-bottom:1px solid var(--border)">
+            <input type="number" 
+                   name="additional_expenses[${expenseRowCounters}][amount]" 
+                   class="expense-amount-input"
+                   placeholder="0.00" 
+                   step="0.01" 
+                   min="0"
+                   oninput="calcBillTotals()"
+                   style="width:100%;padding:8px 12px;border:1px solid var(--border);
+                          border-radius:var(--radius-sm);text-align:right;
+                          font-family:'Inter',sans-serif;font-size:14px;font-weight:600"
+                   required>
+        </td>
+        <td style="text-align:center;padding:10px 14px;border-bottom:1px solid var(--border)">
+            <button type="button" 
+                    onclick="removeExpenseRow('expenseRow_${expenseRowCounters}')"
+                    style="background:none;border:1px solid var(--danger);color:var(--danger);
+                           width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;
+                           display:flex;align-items:center;justify-content:center;margin:0 auto">
+                ×
+            </button>
+        </td>
+    `;
+
+        tbody.appendChild(row);
+
+        // Hide empty message
+        const emptyMsg = document.getElementById('noExpensesMessage');
+        if (emptyMsg) emptyMsg.style.display = 'none';
+
+        // Focus the description input
+        row.querySelector('input[type="text"]').focus();
+
+        calcBillTotals();
+        renumberExpenseRows();
+    }
+
+    function removeExpenseRow(rowId) {
+        const row = document.getElementById(rowId);
+        if (!row) return;
+
+        // If it was an auto job charge, untrack it
+        if (row.classList.contains('job-service-charge-row') && row.dataset.jobId) {
+            addedJobsTracker.delete(row.dataset.jobId);
+
+            // Also uncheck the job in the dropdown
+            const cb = document.querySelector(`#jobCheckboxPool .job-check[value="${row.dataset.jobId}"]`);
+            if (cb) {
+                cb.checked = false;
+                const opt = document.querySelector(`.job-visual-option[data-id="${row.dataset.jobId}"]`);
+                if (opt) opt.classList.remove('selected');
+                // Refresh tags
+                if (typeof syncJobTags === 'function') syncJobTags();
+            }
+        }
+
+        row.remove();
+
+        // Show empty message if no rows left
+        const tbody = document.getElementById('expenseRowsBody');
+        if (tbody && tbody.children.length === 0) {
+            const emptyMsg = document.getElementById('noExpensesMessage');
+            if (emptyMsg) emptyMsg.style.display = 'block';
+        }
+
+        calcBillTotals();
+        renumberExpenseRows();
+    }
+
+    function renumberExpenseRows() {
+        document.querySelectorAll('#expenseRowsBody tr').forEach((row, index) => {
+            const firstCell = row.querySelector('td:first-child');
+            if (firstCell) firstCell.textContent = index + 1;
+        });
     }
 
     // Item search
