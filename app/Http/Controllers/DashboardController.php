@@ -18,10 +18,10 @@ class DashboardController extends Controller
 
         // ── Monthly jobs count (last 12 months) – Line / Bar chart ────────
         $monthlyJobs = Job::select(
-                DB::raw('MONTH(created_at) as month'),
-                DB::raw('YEAR(created_at) as year'),
-                DB::raw('COUNT(*) as count')
-            )
+            DB::raw('MONTH(created_at) as month'),
+            DB::raw('YEAR(created_at) as year'),
+            DB::raw('COUNT(*) as count')
+        )
             ->where('created_at', '>=', now()->subMonths(11)->startOfMonth())
             ->groupBy('year', 'month')
             ->orderBy('year')
@@ -30,10 +30,10 @@ class DashboardController extends Controller
 
         // ── Monthly revenue (last 12 months) – Bar chart ──────────────────
         $monthlyRevenue = Job::select(
-                DB::raw('MONTH(created_at) as month'),
-                DB::raw('YEAR(created_at) as year'),
-                DB::raw('SUM(cost_amount) as total')
-            )
+            DB::raw('MONTH(created_at) as month'),
+            DB::raw('YEAR(created_at) as year'),
+            DB::raw('SUM(cost_amount) as total')
+        )
             ->where('created_at', '>=', now()->subMonths(11)->startOfMonth())
             ->groupBy('year', 'month')
             ->orderBy('year')
@@ -54,10 +54,34 @@ class DashboardController extends Controller
         // ── Recent 5 jobs ─────────────────────────────────────────────────
         $recentJobs = Job::latest()->take(5)->get();
 
+        // Monthly Expenses for cash flow
+        $monthlyExpense = \App\Models\Expense::selectRaw('MONTH(expense_date) as month, YEAR(expense_date) as year, SUM(total_amount) as total')
+            ->groupBy('year', 'month')
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
+            ->limit(12)
+            ->get();
+
+        // Alert count
+        $overdueBills = \App\Models\Bill::where('payment_status', 'Due')->count();
+        $lowAccount = \App\Models\PaymentAccount::where('is_active', true)
+            ->where('current_balance', '<', 5000)
+            ->first();
+
+        $alertCount = ($totalDues > 0 ? 1 : 0) + ($overdueBills > 0 ? 1 : 0) + ($lowAccount ? 1 : 0) + 1;
+
         return view('dashboard.index', compact(
-            'totalBill', 'totalExpense', 'totalDues', 'totalJobs',
-            'monthlyJobs', 'monthlyRevenue', 'statusData', 'cargoData',
-            'recentJobs'
+            'totalBill',
+            'totalExpense',
+            'totalDues',
+            'totalJobs',
+            'monthlyJobs',
+            'monthlyRevenue',
+            'statusData',
+            'cargoData',
+            'recentJobs',
+            'monthlyExpense',
+            'alertCount'
         ));
     }
 }
