@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\JobChargeCalculator;
+
 use App\Models\Bill;
 use App\Models\BillItem;
 use App\Models\BillPayment;
@@ -94,17 +96,17 @@ class BillController extends Controller
                 ];
             }
 
-            // Discount
-            $discType   = $request->discount_type ?? 'Percentage';
-            $discAmt    = floatval($request->discount_amount ?? 0);
-            $discValue  = $discType === 'Percentage' ? ($subTotal * $discAmt / 100) : $discAmt;
+            // Additional Expenses Total (from hidden input)
+            $additionalExpensesTotal = floatval($request->additional_expenses_total ?? 0);
 
-            // Order tax
-            $taxRate   = floatval($request->order_tax_rate ?? 0);
-            $taxValue  = ($subTotal - $discValue) * $taxRate / 100;
+
+            $discType   = 'None';
+            $discAmt    = 0;
+            $discValue  = 0;
+            $taxValue   = 0;
 
             $shipping      = floatval($request->shipping_charges ?? 0);
-            $totalPayable  = $subTotal - $discValue + $taxValue + $shipping;
+            $totalPayable  = $subTotal + $additionalExpensesTotal + $shipping;
             $paymentAmount = floatval($request->payment_amount ?? 0);
             $totalRemaining = $totalPayable - $paymentAmount;
             $payStatus      = $totalRemaining <= 0 ? 'Paid' : ($paymentAmount > 0 ? 'Partial' : 'Due');
@@ -143,6 +145,21 @@ class BillController extends Controller
                 'user_id'           => Auth::id(),
                 'added_by'          => Auth::user()->name,
             ]);
+
+            // ── Save Additional Expenses ──
+            if ($request->has('additional_expenses') && is_array($request->additional_expenses)) {
+                foreach ($request->additional_expenses as $expenseData) {
+                    if (!empty($expenseData['amount']) && floatval($expenseData['amount']) > 0) {
+                        \App\Models\BillAdditionalExpense::create([
+                            'bill_id'     => $bill->id,
+                            'description' => $expenseData['description'] ?? 'Additional Expense',
+                            'amount'      => floatval($expenseData['amount']),
+                            'job_id'      => $expenseData['job_id'] ?? null,
+                            'is_auto'     => !empty($expenseData['is_auto']),
+                        ]);
+                    }
+                }
+            }
 
             foreach ($lineItems as $line) {
                 $bill->items()->create($line);
@@ -230,5 +247,54 @@ class BillController extends Controller
             ->limit(10)
             ->get(['id', 'item_name', 'item_code', 'unit', 'billing_exc_tax']);
         return response()->json($items);
+    }
+
+    /**
+     * AJAX endpoint to fetch job details with calculated service charge
+     */
+    public function getJobDetails($jobId)
+    {
+        $job = \App\Models\Job::find($jobId);
+
+        if (!$job) {
+            return response()->json(['error' => 'Job not found'], 404);
+        }
+
+        // Determine value to use for calculation
+        $value = $job->imp_exp_value ?? $job->invoice_value_usd ?? 0;
+        $category = strtolower($job->category ?? '');
+        $percentage = 0;
+
+        // IMPORT Category
+        if (str_contains($category, 'import')) {
+            if ($value <= 20000) $percentage = 0.13;
+            elseif ($value <= 50000) $percentage = 0.12;
+            elseif ($value <= 100000) $percentage = 0.09;
+            else $percentage = 0.07;
+        }
+        // EXPORT Category
+        elseif (str_contains($category, 'export')) {
+            if ($value <= 50000) $percentage = 0.11;
+            elseif ($value <= 100000) $percentage = 0.08;
+            else $percentage = 0.06;
+        }
+
+        $serviceCharge = round(($value * $percentage) / 100, 2);
+
+        return response()->json([
+            'success' => true,
+            'job' => [
+                'id' => $job->id,
+                'job_id' => $job->job_id,
+                'job_no' => $job->job_no,
+                'client_name' => $job->client_name,
+                'category' => $job->category,
+            ],
+            'calculation' => [
+                'percentage' => $percentage,
+                'service_charge_amount' => $serviceCharge,
+                'imp_exp_value' => $value,
+            ]
+        ]);
     }
 }

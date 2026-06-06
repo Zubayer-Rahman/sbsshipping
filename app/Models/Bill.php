@@ -62,6 +62,10 @@ class Bill extends Model
     {
         return $this->belongsTo(Contact::class, 'client_id');
     }
+    public function additionalExpenses()
+    {
+        return $this->hasMany(BillAdditionalExpense::class);
+    }
 
     protected static function boot()
     {

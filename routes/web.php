@@ -141,10 +141,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [BillController::class, 'index'])->name('list');
         Route::get('/create', [BillController::class, 'create'])->name('create');
         Route::post('/store', [BillController::class, 'store'])->name('store');
+        Route::get('/{bill}/print', [BillController::class, 'print'])->name('print');
+        Route::post('/{bill}/addpayment', [BillController::class, 'addPayment'])->name('add-payment');
         Route::get('/{bill}', [BillController::class, 'show'])->name('show');
         Route::delete('/{bill}', [BillController::class, 'destroy'])->name('destroy');
         Route::get('/{bill}/edit', [BillController::class, 'edit'])->name('edit');
         Route::put('/{bill}', [BillController::class, 'update'])->name('update');
         Route::get('/items/search', [BillController::class, 'searchItems'])->name('items.search');
+        Route::post('/{bill}/payment', [BillController::class, 'addPayment'])->name('addPayment');
+        Route::get('/get-job-details/{jobId}', [BillController::class, 'getJobDetails'])->name('getJobDetails');
     });
 });

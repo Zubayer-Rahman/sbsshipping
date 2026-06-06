@@ -11,11 +11,6 @@
         <span style="font-size:15px;font-weight:500;color:var(--primary);margin-left:8px">(Bill No.: {{ $bill->bill_no }})</span>
     </h2>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a href="{{ route('bills.print', $bill) }}" target="_blank"
-            style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;
-                  background:#10b981;color:#fff;font-size:13px;font-weight:700;text-decoration:none">
-            <i class="bi bi-printer"></i> Print Invoice
-        </a>
         <a href="{{ route('bills.edit', $bill) }}"
             style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;
                   background:var(--primary);color:#fff;font-size:13px;font-weight:700;text-decoration:none">

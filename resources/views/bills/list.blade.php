@@ -138,7 +138,7 @@
             </thead>
             <tbody id="billBody">
                 @forelse($bills as $bill)
-                <tr style="border-bottom:1px solid var(--border);transition:background .12s"
+                <tr onclick="window.location='{{ route('bills.show', $bill) }}'" style="border-bottom:1px solid var(--border);transition:background .12s; cursor: pointer;"
                     onmouseover="this.style.background='#f8faff'" onmouseout="this.style.background=''">
                     <td class="bill-td">
                         <div style="position:relative;display:inline-block">
@@ -150,8 +150,8 @@
                             </button>
                             <div class="bill-dd" style="display:none">
                                 <a href="{{ route('bills.show', $bill) }}" class="bill-dd-item"><i class="bi bi-eye" style="color:var(--primary)"></i> View</a>
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="bill-dd-item bill-dd-btn"><i class="bi bi-trash" style="color:var(--danger)"></i> Delete</button>
+                                @csrf @method('DELETE')
+                                <button type="submit" class="bill-dd-item bill-dd-btn"><i class="bi bi-trash" style="color:var(--danger)"></i> Delete</button>
                                 </form>
                             </div>
                         </div>
