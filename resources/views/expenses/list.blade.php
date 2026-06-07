@@ -130,8 +130,7 @@
             </thead>
             <tbody id="expBody">
                 @forelse($expenses as $exp)
-                <a name="exp-{{ $exp->id }}"></a>
-                <tr onclick="window.location='{{ route('expenses.show', $exp) }}'" style="border-bottom:1px solid var(--border);transition:background .12s"
+                <tr style="border-bottom:1px solid var(--border);transition:background .12s"
                     onmouseover="this.style.background='#f8faff'" onmouseout="this.style.background=''">
                     <td class="exp-td">
                         <div style="position:relative;display:inline-block">

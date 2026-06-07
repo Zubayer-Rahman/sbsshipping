@@ -111,7 +111,18 @@ class BillController extends Controller
             $totalRemaining = $totalPayable - $paymentAmount;
             $payStatus      = $totalRemaining <= 0 ? 'Paid' : ($paymentAmount > 0 ? 'Partial' : 'Due');
 
+
+            // Generate a unique bill_no by finding the highest one and incrementing
+            $lastBill = Bill::orderByDesc('id')->first();
+            $nextBillNo = $lastBill ? (intval($lastBill->bill_no) + 1) : 1;
+
+            // Make sure it doesn't already exist (safety check)
+            while (Bill::where('bill_no', $nextBillNo)->exists()) {
+                $nextBillNo++;
+            }
+
             $bill = Bill::create([
+                'bill_no'           => $nextBillNo,
                 'business_location' => 'SBS Shipping (BL0001)',
                 'client_id'         => $request->client_id,
                 'client_name'       => $client?->business_name,
@@ -188,14 +199,13 @@ class BillController extends Controller
     // ── Show ──────────────────────────────────────────────────────────────────
     public function show(Bill $bill)
     {
-        $bill->load(['items', 'payments']);
+        $bill->load(['items', 'payments', 'additionalExpenses.job']);
         return view('bills.show', compact('bill'));
     }
 
-    // ── Print invoice ─────────────────────────────────────────────────────────
-    public function printInvoice(Bill $bill)
+    public function print(Bill $bill)
     {
-        $bill->load(['items', 'payments']);
+        $bill->load(['items', 'payments', 'additionalExpenses.job']);
         return view('bills.print', compact('bill'));
     }
 

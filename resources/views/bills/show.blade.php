@@ -11,6 +11,9 @@
         <span style="font-size:15px;font-weight:500;color:var(--primary);margin-left:8px">(Bill No.: {{ $bill->bill_no }})</span>
     </h2>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="{{ route('bills.print', $bill) }}" target="_blank" class="btn btn-primary">
+            <i class="bi bi-printer"></i> Print Bill
+        </a>
         <a href="{{ route('bills.edit', $bill) }}"
             style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;
                   background:var(--primary);color:#fff;font-size:13px;font-weight:700;text-decoration:none">
@@ -111,6 +114,129 @@
         </table>
     </div>
 </div>
+
+
+{{-- ── ADDITIONAL EXPENSES SECTION ────────────────────────────── --}}
+@if($bill->additionalExpenses && $bill->additionalExpenses->count() > 0)
+<div class="card" style="margin-bottom:20px">
+    <div class="card-header" style="padding:16px 24px;border-bottom:1px solid var(--border);
+                                    display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;border-radius:8px;background:var(--primary-light);
+                        display:flex;align-items:center;justify-content:center">
+                <i class="bi bi-plus-circle" style="color:var(--primary);font-size:16px"></i>
+            </div>
+            <div>
+                <h3 style="font-size:15px;font-weight:700;color:var(--text-primary);margin:0">
+                    Additional Expenses
+                </h3>
+                <p style="font-size:12px;color:var(--text-muted);margin:0;margin-top:2px">
+                    Extra charges and service fees applied to this bill
+                </p>
+            </div>
+        </div>
+        <div style="text-align:right">
+            <div style="font-size:11px;color:var(--text-muted);font-weight:600;
+                        text-transform:uppercase;letter-spacing:.05em">Total</div>
+            <div style="font-size:20px;font-weight:800;color:var(--primary)">
+                ৳ {{ number_format($bill->additionalExpenses->sum('amount'), 2) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body" style="padding:0">
+        <table style="width:100%;border-collapse:collapse;font-family:'Inter',sans-serif">
+            <thead>
+                <tr style="background:var(--body-bg)">
+                    <th style="padding:12px 18px;text-align:left;font-size:11px;font-weight:700;
+                               text-transform:uppercase;color:var(--text-muted);letter-spacing:.05em;
+                               border-bottom:1px solid var(--border);width:50px">#</th>
+                    <th style="padding:12px 18px;text-align:left;font-size:11px;font-weight:700;
+                               text-transform:uppercase;color:var(--text-muted);letter-spacing:.05em;
+                               border-bottom:1px solid var(--border)">Description</th>
+                    <th style="padding:12px 18px;text-align:center;font-size:11px;font-weight:700;
+                               text-transform:uppercase;color:var(--text-muted);letter-spacing:.05em;
+                               border-bottom:1px solid var(--border);width:120px">Type</th>
+                    <th style="padding:12px 18px;text-align:right;font-size:11px;font-weight:700;
+                               text-transform:uppercase;color:var(--text-muted);letter-spacing:.05em;
+                               border-bottom:1px solid var(--border);width:160px">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($bill->additionalExpenses as $index => $expense)
+                <tr style="transition:background .15s"
+                    onmouseover="this.style.background='var(--body-bg)'"
+                    onmouseout="this.style.background='transparent'">
+                    <td style="padding:14px 18px;border-bottom:1px solid var(--border);
+                               font-weight:600;color:var(--text-muted);font-size:13px">
+                        {{ $index + 1 }}
+                    </td>
+                    <td style="padding:14px 18px;border-bottom:1px solid var(--border)">
+                        @if($expense->is_auto)
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <i class="bi bi-magic" style="color:#f59e0b;font-size:14px" title="Auto-calculated"></i>
+                            <span style="font-size:13px;color:var(--text-primary);font-weight:600">
+                                {{ $expense->description }}
+                            </span>
+                        </div>
+                        @if($expense->job_id && $expense->job)
+                        <div style="margin-top:4px;font-size:11px;color:var(--text-muted);margin-left:22px">
+                            Linked to Job:
+                            <span style="font-weight:600;color:var(--primary)">
+                                {{ $expense->job->job_id ?? $expense->job->job_no ?? 'Job #'.$expense->job_id }}
+                            </span>
+                        </div>
+                        @endif
+                        @else
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <i class="bi bi-pencil-square" style="color:var(--accent);font-size:14px" title="Manual entry"></i>
+                            <span style="font-size:13px;color:var(--text-primary);font-weight:600">
+                                {{ $expense->description }}
+                            </span>
+                        </div>
+                        @endif
+                    </td>
+                    <td style="padding:14px 18px;border-bottom:1px solid var(--border);text-align:center">
+                        @if($expense->is_auto)
+                        <span style="display:inline-block;padding:4px 10px;border-radius:12px;
+                                         background:#fef3c7;color:#92400e;font-size:11px;
+                                         font-weight:700;text-transform:uppercase;letter-spacing:.05em">
+                            <i class="bi bi-lightning-fill" style="font-size:10px"></i> Auto
+                        </span>
+                        @else
+                        <span style="display:inline-block;padding:4px 10px;border-radius:12px;
+                                         background:#e0e7ff;color:#4338ca;font-size:11px;
+                                         font-weight:700;text-transform:uppercase;letter-spacing:.05em">
+                            <i class="bi bi-hand-index" style="font-size:10px"></i> Manual
+                        </span>
+                        @endif
+                    </td>
+                    <td style="padding:14px 18px;border-bottom:1px solid var(--border);text-align:right">
+                        <span style="font-size:15px;font-weight:700;color:var(--text-primary)">
+                            ৳ {{ number_format($expense->amount, 2) }}
+                        </span>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr style="background:linear-gradient(135deg, var(--primary-light), #fff);
+                           border-top:2px solid var(--primary)">
+                    <td colspan="3" style="padding:16px 18px;text-align:right;font-weight:700;
+                                          font-size:14px;color:var(--text-primary)">
+                        Subtotal of Additional Expenses
+                    </td>
+                    <td style="padding:16px 18px;text-align:right">
+                        <span style="font-size:18px;font-weight:800;color:var(--primary)">
+                            ৳ {{ number_format($bill->additionalExpenses->sum('amount'), 2) }}
+                        </span>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+@endif
 
 {{-- ── Payment info + Summary ── --}}
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">

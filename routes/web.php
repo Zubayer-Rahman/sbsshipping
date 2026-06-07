@@ -86,6 +86,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/{expense}',           [ExpenseController::class, 'update'])->name('update');
         Route::delete('/{expense}',        [ExpenseController::class, 'destroy'])->name('destroy');
         Route::get('/subcategories/ajax',  [ExpenseController::class, 'subcategories'])->name('subcategories');
+        Route::get('/show/{expense}',        [ExpenseController::class, 'show'])->name('show');
     });
 
     // ── Expense Categories ────────────────────────────────────────────────────
@@ -150,5 +151,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/items/search', [BillController::class, 'searchItems'])->name('items.search');
         Route::post('/{bill}/payment', [BillController::class, 'addPayment'])->name('addPayment');
         Route::get('/get-job-details/{jobId}', [BillController::class, 'getJobDetails'])->name('getJobDetails');
+        Route::get('/bills/{bill}/print', [BillController::class, 'print'])->name('bills.print');
     });
 });
