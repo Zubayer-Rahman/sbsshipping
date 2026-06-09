@@ -728,14 +728,14 @@
         // Update hidden input
         document.getElementById('jobNumberHidden').value = ids.join(',');
 
-        // ★★★ CRITICAL: Trigger service charge calculation for each NEW job ★★★
+        // ★★★ 1. Trigger service charge calculation (% based) for each NEW job ★★★
         ids.forEach(jobId => {
             if (!addedJobsTracker.has(jobId)) {
                 fetchAndAddJobCharge(jobId);
             }
         });
 
-        // ★★★ Remove service charges for jobs that were UNCHECKED ★★★
+        // ★★★ 2. Remove service charges for jobs that were UNCHECKED ★★★
         document.querySelectorAll('.job-service-charge-row').forEach(row => {
             if (!ids.includes(row.dataset.jobId)) {
                 addedJobsTracker.delete(row.dataset.jobId);
@@ -743,8 +743,101 @@
             }
         });
 
+        // ★★★ 3. NEW: Fetch Additional Expenses for selected jobs ★★★
+        fetchAdditionalExpenses(ids);
+
         if (typeof renumberRows === 'function') renumberRows();
         if (typeof calculateExpenseTotal === 'function') calculateExpenseTotal();
+        if (typeof calcBillTotals === 'function') calcBillTotals();
+    }
+
+    // ─── FETCH AND ADD ADDITIONAL EXPENSES FROM JOBS ──────────────────────
+    function fetchAdditionalExpenses(jobIds) {
+        // Remove all previously added "tracked additional expense" rows first
+        document.querySelectorAll('.tracked-additional-expense').forEach(row => row.remove());
+
+        if (!jobIds || jobIds.length === 0) {
+            if (typeof renumberExpenseRows === 'function') renumberExpenseRows();
+            if (typeof calcBillTotals === 'function') calcBillTotals();
+            return;
+        }
+
+        fetch(`/additional-expenses/get-by-jobs?job_ids=${jobIds.join(',')}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.expenses && data.expenses.length > 0) {
+                    data.expenses.forEach(exp => {
+                        addTrackedAdditionalExpense(exp);
+                    });
+                }
+                if (typeof renumberExpenseRows === 'function') renumberExpenseRows();
+                if (typeof calcBillTotals === 'function') calcBillTotals();
+            })
+            .catch(error => {
+                console.error('Error fetching additional expenses:', error);
+            });
+    }
+
+    // ─── ADD TRACKED ADDITIONAL EXPENSE ROW ───────────────────────────────
+    function addTrackedAdditionalExpense(exp) {
+        expenseRowCounter++;
+        const tbody = document.getElementById('expenseRowsBody');
+        if (!tbody) return;
+
+        const row = document.createElement('tr');
+        row.className = 'expense-row tracked-additional-expense';
+        row.id = `expenseRow_${expenseRowCounter}`;
+        row.dataset.additionalExpenseId = exp.id;
+
+        const desc = `${exp.description} (${exp.reference_no} - ${exp.job_label})`;
+
+        row.innerHTML = `
+        <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center;font-weight:600;color:var(--text-muted);font-size:13px">
+            ${tbody.children.length + 1}
+        </td>
+        <td style="padding:10px 14px;border-bottom:1px solid var(--border)">
+            <input type="text" 
+                   name="additional_expenses[${expenseRowCounter}][description]" 
+                   value="${desc}"
+                   readonly
+                   style="width:100%;padding:8px 12px;border:1px solid var(--border);
+                          border-radius:var(--radius-sm);background:#dbeafe;
+                          font-weight:600;color:#1e40af;font-family:'Inter',sans-serif;font-size:14px"
+                   title="Auto-tracked from Additional Expenses module">
+            <input type="hidden" name="additional_expenses[${expenseRowCounter}][additional_expense_id]" value="${exp.id}">
+            <input type="hidden" name="additional_expenses[${expenseRowCounter}][job_id]" value="${exp.job_id}">
+            <input type="hidden" name="additional_expenses[${expenseRowCounter}][is_auto]" value="1">
+        </td>
+        <td style="padding:10px 14px;border-bottom:1px solid var(--border)">
+            <input type="number" 
+                   name="additional_expenses[${expenseRowCounter}][amount]" 
+                   class="expense-amount-input" 
+                   value="${exp.to_be_billed}"
+                   step="0.01" 
+                   min="0"
+                   oninput="calcBillTotals()"
+                   style="width:100%;padding:8px 12px;border:1px solid var(--border);
+                          border-radius:var(--radius-sm);background:#dbeafe;
+                          font-weight:700;text-align:right;font-family:'Inter',sans-serif;font-size:14px"
+                   required>
+        </td>
+        <td style="text-align:center;padding:10px 14px;border-bottom:1px solid var(--border)">
+            <button type="button" 
+                    onclick="this.closest('tr').remove(); calcBillTotals(); if(typeof renumberExpenseRows === 'function') renumberExpenseRows();"
+                    style="background:none;border:1px solid var(--danger);color:var(--danger);
+                           width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;
+                           display:flex;align-items:center;justify-content:center;margin:0 auto"
+                    title="Remove this expense from bill">
+                ×
+            </button>
+        </td>
+    `;
+
+        tbody.appendChild(row);
+
+        // Hide the "no expenses" message
+        const noExp = document.getElementById('noExpensesMessage');
+        if (noExp) noExp.style.display = 'none';
     }
 
     function removeJob(id) {

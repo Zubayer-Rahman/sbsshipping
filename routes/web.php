@@ -10,6 +10,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PaymentAccountController;
+use App\Http\Controllers\AdditionalExpenseController;
 use App\Http\Controllers\IouController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BillController;
@@ -80,6 +81,7 @@ Route::middleware('auth')->group(function () {
     // ── Expenses ─────────────────────────────────────────────────────────────
     Route::prefix('expenses')->name('expenses.')->group(function () {
         Route::get('/',                    [ExpenseController::class, 'index'])->name('list');
+        Route::get('/additional',          [ExpenseController::class, 'additionalExpenses'])->name('additionalExpenses');
         Route::get('/create',              [ExpenseController::class, 'create'])->name('create');
         Route::post('/store',              [ExpenseController::class, 'store'])->name('store');
         Route::get('/{expense}/edit',      [ExpenseController::class, 'edit'])->name('edit');
@@ -152,5 +154,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/{bill}/payment', [BillController::class, 'addPayment'])->name('addPayment');
         Route::get('/get-job-details/{jobId}', [BillController::class, 'getJobDetails'])->name('getJobDetails');
         Route::get('/bills/{bill}/print', [BillController::class, 'print'])->name('bills.print');
+    });
+
+    // Additional Expenses
+    Route::prefix('additional-expenses')->name('additional-expenses.')->group(function () {
+        Route::get('/', [AdditionalExpenseController::class, 'index'])->name('index');
+        Route::get('/create', [AdditionalExpenseController::class, 'create'])->name('create');
+        Route::post('/', [AdditionalExpenseController::class, 'store'])->name('store');
+        Route::get('/get-by-jobs', [AdditionalExpenseController::class, 'getByJobs'])->name('getByJobs');
+        Route::get('/{additionalExpense}', [AdditionalExpenseController::class, 'show'])->name('show');
+        Route::get('/{additionalExpense}/edit', [AdditionalExpenseController::class, 'edit'])->name('edit');
+        Route::put('/{additionalExpense}', [AdditionalExpenseController::class, 'update'])->name('update');
+        Route::delete('/{additionalExpense}', [AdditionalExpenseController::class, 'destroy'])->name('destroy');
     });
 });

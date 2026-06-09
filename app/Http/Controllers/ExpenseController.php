@@ -39,6 +39,39 @@ class ExpenseController extends Controller
         return view('expenses.list', compact('expenses'));
     }
 
+
+    public function additionalExpenses(Request $request)
+    {
+        $query = \App\Models\BillAdditionalExpense::with(['bill.client', 'job']);
+
+        // Optional filters
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('description', 'like', "%{$search}%")
+                ->orWhereHas('bill', function ($q) use ($search) {
+                    $q->where('bill_no', 'like', "%{$search}%")
+                        ->orWhere('client_name', 'like', "%{$search}%");
+                });
+        }
+
+        if ($request->filled('type')) {
+            if ($request->type === 'auto') {
+                $query->where('is_auto', true);
+            } elseif ($request->type === 'manual') {
+                $query->where('is_auto', false);
+            }
+        }
+
+        $expenses = $query->latest()->paginate(20);
+
+        // Stats
+        $totalAuto = \App\Models\BillAdditionalExpense::where('is_auto', true)->sum('amount');
+        $totalManual = \App\Models\BillAdditionalExpense::where('is_auto', false)->sum('amount');
+        $totalAll = $totalAuto + $totalManual;
+
+        return view('expenses.additionalExpenses', compact('expenses', 'totalAuto', 'totalManual', 'totalAll'));
+    }
+
     // ── Create form ───────────────────────────────────────────────────────────
     public function create()
     {

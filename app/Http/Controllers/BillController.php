@@ -57,7 +57,7 @@ class BillController extends Controller
             'billing_date' => 'required',
         ]);
 
-        DB::transaction(function () use ($request) {
+        $bill = DB::transaction(function () use ($request) {
             $client = Contact::find($request->client_id);
 
             // Line items
@@ -186,11 +186,37 @@ class BillController extends Controller
                     'user_id'        => Auth::id(),
                 ]);
             }
+            return $bill;
         });
 
         if ($request->input('action') === 'save_print') {
             $bill = Bill::latest()->first();
             return redirect()->route('bills.print', $bill->id);
+        }
+
+
+        if ($request->has('additional_expenses') && is_array($request->additional_expenses)) {
+            foreach ($request->additional_expenses as $expenseData) {
+                if (!empty($expenseData['amount']) && floatval($expenseData['amount']) > 0) {
+                    \App\Models\BillAdditionalExpense::create([
+                        'bill_id'     => $bill->id,
+                        'description' => $expenseData['description'] ?? 'Additional Expense',
+                        'amount'      => floatval($expenseData['amount']),
+                        'job_id'      => $expenseData['job_id'] ?? null,
+                        'is_auto'     => !empty($expenseData['is_auto']),
+                    ]);
+
+                    // ★★★ Mark the original AdditionalExpense as "billed" ★★★
+                    if (!empty($expenseData['additional_expense_id'])) {
+                        \App\Models\AdditionalExpense::where('id', $expenseData['additional_expense_id'])
+                            ->update([
+                                'status' => 'billed',
+                                'billed_to_bill_id' => $bill->id,
+                                'billed_at' => now(),
+                            ]);
+                    }
+                }
+            }
         }
 
         return redirect()->route('bills.list')->with('success', 'Bill created successfully!');

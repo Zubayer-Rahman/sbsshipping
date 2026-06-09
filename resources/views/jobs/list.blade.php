@@ -81,6 +81,7 @@
         <table>
             <thead>
                 <tr>
+                    <th>Select</th>
                     <th style="width:50px">SL.</th>
                     <th>Job No</th>
                     <th>B/E Number</th>
@@ -103,6 +104,7 @@
                 $sl = $jobs->total() - (($jobs->currentPage() - 1) * $jobs->perPage()) - $loop->index;
                 @endphp
                 <tr>
+                    <td><input type="checkbox" name="job_ids[]" value="{{ $job->id }}"></td>
                     <td style="color:var(--text-muted);font-size:13px">{{ $sl }}</td>
                     <td>
                         <a href="{{ route('jobs.show', $job) }}"

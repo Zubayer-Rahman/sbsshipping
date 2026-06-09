@@ -964,8 +964,9 @@
                         <i class="bi bi-chevron-right nav-arrow"></i>
                     </a>
                     <ul class="nav-submenu {{ $expActive ? 'open' : '' }}">
-                        <li class="nav-item"><a href="{{ route('expenses.list') }}" class="nav-link {{ request()->routeIs('expenses.list')           ?'active':'' }}"><span class="nav-link-label">List Expenses</span></a></li>
                         <li class="nav-item"><a href="{{ route('expenses.create') }}" class="nav-link {{ request()->routeIs('expenses.create')         ?'active':'' }}"><span class="nav-link-label">Add Expense</span></a></li>
+                        <li class="nav-item"><a href="{{ route('expenses.list') }}" class="nav-link {{ request()->routeIs('expenses.list')           ?'active':'' }}"><span class="nav-link-label">List Expenses</span></a></li>
+                        <li class="nav-item"><a href="{{ route('expenses.additionalExpenses') }}" class="nav-link {{ request()->routeIs('expenses.additionalExpenses')         ?'active':'' }}"><span class="nav-link-label">Additional Expenses</span></a></li>
                         <li class="nav-item"><a href="{{ route('expense-categories.list') }}" class="nav-link {{ request()->routeIs('expense-categories.list') ?'active':'' }}"><span class="nav-link-label">Expense Categories</span></a></li>
                         <li class="nav-item"><a href="{{ route('purchases.list') }}" class="nav-link {{ request()->routeIs('purchases.list')          ?'active':'' }}"><span class="nav-link-label">List Purchases</span></a></li>
                         <li class="nav-item"><a href="{{ route('purchases.create') }}" class="nav-link {{ request()->routeIs('purchases.create')        ?'active':'' }}"><span class="nav-link-label">Add Purchase</span></a></li>
@@ -1035,6 +1036,13 @@
                             </a>
                         </li>
                     </ul>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ route('additional-expenses.index') }}" class="nav-link {{ request()->routeIs('additional-expenses.*') ? 'active' : '' }}">
+                        <i class="bi bi-plus-circle"></i>
+                        <span class="nav-link-label">Additional Expenses</span>
+                    </a>
                 </li>
 
             </ul>
