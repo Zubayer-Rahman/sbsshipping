@@ -935,115 +935,121 @@
                     <ul class="nav-submenu {{ $jobsActive ? 'open' : '' }}">
                         <li class="nav-item"><a href="{{ route('jobs.create') }}" class="nav-link {{ request()->routeIs('jobs.create')     ?'active':'' }}"><span class="nav-link-label">Create Job</span></a></li>
                         <li class="nav-item"><a href="{{ route('jobs.list') }}" class="nav-link {{ request()->routeIs('jobs.list')       ?'active':'' }}"><span class="nav-link-label">Jobs List</span></a></li>
+                        <li class="nav-item">
+                            <a href="{{ route('job-groups.index') }}"
+                                class="nav-link {{ request()->routeIs('job-groups.*') ? 'active' : '' }}">
+                                <span class="nav-link-label">Job Groups</span>
+                            </a>
+                        </li>
                         <li class="nav-item"><a href="{{ route('jobs.forwarding') }}" class="nav-link {{ request()->routeIs('jobs.forwarding') ?'active':'' }}"><span class="nav-link-label">Forwarding</span></a></li>
-                        <li class="nav-item"><a href="{{ route('forwarding.list') }}" class="nav-link {{ request()->routeIs('forwarding.list') ?'active':'' }}"><span class="nav-link-label">Forwarding List</span></a></li>
-                    </ul>
-                </li>
+                <li class="nav-item"><a href="{{ route('forwarding.list') }}" class="nav-link {{ request()->routeIs('forwarding.list') ?'active':'' }}"><span class="nav-link-label">Forwarding List</span></a></li>
+            </ul>
+            </li>
 
-                <li class="nav-item has-submenu {{ request()->routeIs('items.*') ? 'open' : '' }}">
-                    <a href="#" class="nav-link {{ request()->routeIs('items.*') ? 'active' : '' }}"
-                        data-label="Items"
-                        onclick="toggleSubmenu(this);return false;">
-                        <i class="bi bi-box-seam"></i>
-                        <span class="nav-link-label">Items</span>
-                        <i class="bi bi-chevron-right nav-arrow"></i>
-                    </a>
-                    <ul class="nav-submenu {{ request()->routeIs('items.*') ? 'open' : '' }}">
-                        <li class="nav-item"><a href="{{ route('items.list') }}" class="nav-link {{ request()->routeIs('items.list')   ?'active':'' }}"><span class="nav-link-label">List Items</span></a></li>
-                        <li class="nav-item"><a href="{{ route('items.create') }}" class="nav-link {{ request()->routeIs('items.create') ?'active':'' }}"><span class="nav-link-label">Add Item</span></a></li>
-                    </ul>
-                </li>
+            <li class="nav-item has-submenu {{ request()->routeIs('items.*') ? 'open' : '' }}">
+                <a href="#" class="nav-link {{ request()->routeIs('items.*') ? 'active' : '' }}"
+                    data-label="Items"
+                    onclick="toggleSubmenu(this);return false;">
+                    <i class="bi bi-box-seam"></i>
+                    <span class="nav-link-label">Items</span>
+                    <i class="bi bi-chevron-right nav-arrow"></i>
+                </a>
+                <ul class="nav-submenu {{ request()->routeIs('items.*') ? 'open' : '' }}">
+                    <li class="nav-item"><a href="{{ route('items.list') }}" class="nav-link {{ request()->routeIs('items.list')   ?'active':'' }}"><span class="nav-link-label">List Items</span></a></li>
+                    <li class="nav-item"><a href="{{ route('items.create') }}" class="nav-link {{ request()->routeIs('items.create') ?'active':'' }}"><span class="nav-link-label">Add Item</span></a></li>
+                </ul>
+            </li>
 
-                @php $expActive = request()->routeIs('expenses.*') || request()->routeIs('expense-categories.*') || request()->routeIs('purchases.*'); @endphp
-                <li class="nav-item has-submenu {{ $expActive ? 'open' : '' }}">
-                    <a href="#" class="nav-link {{ $expActive ? 'active' : '' }}"
-                        data-label="Expenses"
-                        onclick="toggleSubmenu(this);return false;">
-                        <i class="bi bi-receipt"></i>
-                        <span class="nav-link-label">Expenses</span>
-                        <i class="bi bi-chevron-right nav-arrow"></i>
-                    </a>
-                    <ul class="nav-submenu {{ $expActive ? 'open' : '' }}">
-                        <li class="nav-item"><a href="{{ route('expenses.create') }}" class="nav-link {{ request()->routeIs('expenses.create')         ?'active':'' }}"><span class="nav-link-label">Add Expense</span></a></li>
-                        <li class="nav-item"><a href="{{ route('expenses.list') }}" class="nav-link {{ request()->routeIs('expenses.list')           ?'active':'' }}"><span class="nav-link-label">List Expenses</span></a></li>
-                        <li class="nav-item"><a href="{{ route('expenses.additionalExpenses') }}" class="nav-link {{ request()->routeIs('expenses.additionalExpenses')         ?'active':'' }}"><span class="nav-link-label">Additional Expenses</span></a></li>
-                        <li class="nav-item"><a href="{{ route('expense-categories.list') }}" class="nav-link {{ request()->routeIs('expense-categories.list') ?'active':'' }}"><span class="nav-link-label">Expense Categories</span></a></li>
-                        <li class="nav-item"><a href="{{ route('purchases.list') }}" class="nav-link {{ request()->routeIs('purchases.list')          ?'active':'' }}"><span class="nav-link-label">List Purchases</span></a></li>
-                        <li class="nav-item"><a href="{{ route('purchases.create') }}" class="nav-link {{ request()->routeIs('purchases.create')        ?'active':'' }}"><span class="nav-link-label">Add Purchase</span></a></li>
-                    </ul>
-                </li>
+            @php $expActive = request()->routeIs('expenses.*') || request()->routeIs('expense-categories.*') || request()->routeIs('purchases.*'); @endphp
+            <li class="nav-item has-submenu {{ $expActive ? 'open' : '' }}">
+                <a href="#" class="nav-link {{ $expActive ? 'active' : '' }}"
+                    data-label="Expenses"
+                    onclick="toggleSubmenu(this);return false;">
+                    <i class="bi bi-receipt"></i>
+                    <span class="nav-link-label">Expenses</span>
+                    <i class="bi bi-chevron-right nav-arrow"></i>
+                </a>
+                <ul class="nav-submenu {{ $expActive ? 'open' : '' }}">
+                    <li class="nav-item"><a href="{{ route('expenses.create') }}" class="nav-link {{ request()->routeIs('expenses.create')         ?'active':'' }}"><span class="nav-link-label">Add Expense</span></a></li>
+                    <li class="nav-item"><a href="{{ route('expenses.list') }}" class="nav-link {{ request()->routeIs('expenses.list')           ?'active':'' }}"><span class="nav-link-label">List Expenses</span></a></li>
+                    <li class="nav-item"><a href="{{ route('expenses.additionalExpenses') }}" class="nav-link {{ request()->routeIs('expenses.additionalExpenses')         ?'active':'' }}"><span class="nav-link-label">Additional Expenses</span></a></li>
+                    <li class="nav-item"><a href="{{ route('expense-categories.list') }}" class="nav-link {{ request()->routeIs('expense-categories.list') ?'active':'' }}"><span class="nav-link-label">Expense Categories</span></a></li>
+                    <li class="nav-item"><a href="{{ route('purchases.list') }}" class="nav-link {{ request()->routeIs('purchases.list')          ?'active':'' }}"><span class="nav-link-label">List Purchases</span></a></li>
+                    <li class="nav-item"><a href="{{ route('purchases.create') }}" class="nav-link {{ request()->routeIs('purchases.create')        ?'active':'' }}"><span class="nav-link-label">Add Purchase</span></a></li>
+                </ul>
+            </li>
 
-                @if(Route::has('ious.index'))
-                <li class="nav-item has-submenu {{ request()->routeIs('ious.*') ? 'open' : '' }}">
-                    <a href="#" class="nav-link {{ request()->routeIs('ious.*') ? 'active' : '' }}"
-                        data-label="IOU Management"
-                        onclick="toggleSubmenu(this);return false;">
-                        <i class="bi bi-wallet2"></i>
-                        <span class="nav-link-label">IOU Management</span>
-                        <i class="bi bi-chevron-right nav-arrow"></i>
-                    </a>
-                    <ul class="nav-submenu {{ request()->routeIs('ious.*') ? 'open' : '' }}">
-                        <li class="nav-item"><a href="{{ route('ious.create') }}" class="nav-link {{ request()->routeIs('ious.create')           ?'active':'' }}"><span class="nav-link-label">Add IOU</span></a></li>
-                        <li class="nav-item"><a href="{{ route('ious.index') }}" class="nav-link {{ request()->routeIs('ious.index','ious.show') ?'active':'' }}"><span class="nav-link-label">List IOUs</span></a></li>
-                        <li class="nav-item"><a href="{{ route('ious.release-list') }}" class="nav-link {{ request()->routeIs('ious.release-list')     ?'active':'' }}"><span class="nav-link-label">IOU Release List</span></a></li>
-                        <li class="nav-item"><a href="{{ route('ious.expense-list') }}" class="nav-link {{ request()->routeIs('ious.expense-list') ? 'active' : '' }}"><span class="nav-link-label">IOU Expense List</span></a></li>
-                    </ul>
-                </li>
-                @endif
+            @if(Route::has('ious.index'))
+            <li class="nav-item has-submenu {{ request()->routeIs('ious.*') ? 'open' : '' }}">
+                <a href="#" class="nav-link {{ request()->routeIs('ious.*') ? 'active' : '' }}"
+                    data-label="IOU Management"
+                    onclick="toggleSubmenu(this);return false;">
+                    <i class="bi bi-wallet2"></i>
+                    <span class="nav-link-label">IOU Management</span>
+                    <i class="bi bi-chevron-right nav-arrow"></i>
+                </a>
+                <ul class="nav-submenu {{ request()->routeIs('ious.*') ? 'open' : '' }}">
+                    <li class="nav-item"><a href="{{ route('ious.create') }}" class="nav-link {{ request()->routeIs('ious.create')           ?'active':'' }}"><span class="nav-link-label">Add IOU</span></a></li>
+                    <li class="nav-item"><a href="{{ route('ious.index') }}" class="nav-link {{ request()->routeIs('ious.index','ious.show') ?'active':'' }}"><span class="nav-link-label">List IOUs</span></a></li>
+                    <li class="nav-item"><a href="{{ route('ious.release-list') }}" class="nav-link {{ request()->routeIs('ious.release-list')     ?'active':'' }}"><span class="nav-link-label">IOU Release List</span></a></li>
+                    <li class="nav-item"><a href="{{ route('ious.expense-list') }}" class="nav-link {{ request()->routeIs('ious.expense-list') ? 'active' : '' }}"><span class="nav-link-label">IOU Expense List</span></a></li>
+                </ul>
+            </li>
+            @endif
 
-                <li class="nav-item has-submenu {{ request()->routeIs('accounts.*') ? 'open' : '' }}">
-                    <a href="#" class="nav-link {{ request()->routeIs('accounts.*') ? 'active' : '' }}"
-                        onclick="toggleSubmenu(this);return false;">
-                        <i class="bi bi-person-vcard"></i>
-                        <span class="nav-link-label">Accounts</span>
-                        <i class="bi bi-chevron-right nav-arrow"></i>
-                    </a>
-                    <ul class="nav-submenu {{ request()->routeIs('accounts.*') ? 'open' : '' }}">
-                        <li class="nav-item">
-                            <a href="{{ route('accounts.index') }}" class="nav-link {{ request()->routeIs('accounts.index') ? 'active' : '' }}">
-                                <span class="nav-link-label">All Accounts</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('accounts.create') }}" class="nav-link {{ request()->routeIs('accounts.create') ? 'active' : '' }}">
-                                <span class="nav-link-label">Add Account</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('accounts.cashflow') }}" class="nav-link {{ request()->routeIs('accounts.cashflow') ? 'active' : '' }}">
-                                <span class="nav-link-label">Cash Flow</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+            <li class="nav-item has-submenu {{ request()->routeIs('accounts.*') ? 'open' : '' }}">
+                <a href="#" class="nav-link {{ request()->routeIs('accounts.*') ? 'active' : '' }}"
+                    onclick="toggleSubmenu(this);return false;">
+                    <i class="bi bi-person-vcard"></i>
+                    <span class="nav-link-label">Accounts</span>
+                    <i class="bi bi-chevron-right nav-arrow"></i>
+                </a>
+                <ul class="nav-submenu {{ request()->routeIs('accounts.*') ? 'open' : '' }}">
+                    <li class="nav-item">
+                        <a href="{{ route('accounts.index') }}" class="nav-link {{ request()->routeIs('accounts.index') ? 'active' : '' }}">
+                            <span class="nav-link-label">All Accounts</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('accounts.create') }}" class="nav-link {{ request()->routeIs('accounts.create') ? 'active' : '' }}">
+                            <span class="nav-link-label">Add Account</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('accounts.cashflow') }}" class="nav-link {{ request()->routeIs('accounts.cashflow') ? 'active' : '' }}">
+                            <span class="nav-link-label">Cash Flow</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
 
-                <li class="nav-item has-submenu {{ request()->routeIs('bill.*') ? 'open' : '' }}">
-                    <a href="#" class="nav-link {{ request()->routeIs('bill.*') ? 'active' : '' }}"
-                        onclick="toggleSubmenu(this);return false;">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <span class="nav-link-label">Bills</span>
-                        <i class="bi bi-chevron-right nav-arrow"></i>
-                    </a>
-                    <ul class="nav-submenu {{ request()->routeIs('bills.*') ? 'open' : '' }}">
-                        <li class="nav-item">
-                            <a href="{{ route('bills.create') }}" class="nav-link {{ request()->routeIs('bills.create') ? 'active' : '' }}">
-                                <span class="nav-link-label">Add Bill</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('bills.list') }}" class="nav-link {{ request()->routeIs('bills.list') ? 'active' : '' }}">
-                                <span class="nav-link-label">List Bills</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+            <li class="nav-item has-submenu {{ request()->routeIs('bill.*') ? 'open' : '' }}">
+                <a href="#" class="nav-link {{ request()->routeIs('bill.*') ? 'active' : '' }}"
+                    onclick="toggleSubmenu(this);return false;">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span class="nav-link-label">Bills</span>
+                    <i class="bi bi-chevron-right nav-arrow"></i>
+                </a>
+                <ul class="nav-submenu {{ request()->routeIs('bills.*') ? 'open' : '' }}">
+                    <li class="nav-item">
+                        <a href="{{ route('bills.create') }}" class="nav-link {{ request()->routeIs('bills.create') ? 'active' : '' }}">
+                            <span class="nav-link-label">Add Bill</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('bills.list') }}" class="nav-link {{ request()->routeIs('bills.list') ? 'active' : '' }}">
+                            <span class="nav-link-label">List Bills</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
 
-                <li class="nav-item">
-                    <a href="{{ route('additional-expenses.index') }}" class="nav-link {{ request()->routeIs('additional-expenses.*') ? 'active' : '' }}">
-                        <i class="bi bi-plus-circle"></i>
-                        <span class="nav-link-label">Additional Expenses</span>
-                    </a>
-                </li>
+            <li class="nav-item">
+                <a href="{{ route('additional-expenses.index') }}" class="nav-link {{ request()->routeIs('additional-expenses.*') ? 'active' : '' }}">
+                    <i class="bi bi-plus-circle"></i>
+                    <span class="nav-link-label">Additional Expenses</span>
+                </a>
+            </li>
 
             </ul>
         </nav>

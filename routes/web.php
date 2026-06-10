@@ -8,6 +8,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ForwardingController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\JobController;
+use App\Http\Controllers\JobGroupController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PaymentAccountController;
 use App\Http\Controllers\AdditionalExpenseController;
@@ -44,6 +45,17 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{job}',        [JobController::class, 'destroy'])->name('destroy');
     });
 
+    //job groups
+    Route::prefix('job-groups')->name('job-groups.')->group(function () {
+        Route::get('/', [JobGroupController::class, 'index'])->name('index');
+        Route::get('/create', [JobGroupController::class, 'create'])->name('create');
+        Route::post('/', [JobGroupController::class, 'store'])->name('store');
+        Route::post('/quick-store', [JobGroupController::class, 'quickStore'])->name('quickStore');
+        Route::get('/{jobGroup}', [JobGroupController::class, 'show'])->name('show');
+        Route::get('/{jobGroup}/edit', [JobGroupController::class, 'edit'])->name('edit');
+        Route::put('/{jobGroup}', [JobGroupController::class, 'update'])->name('update');
+        Route::delete('/{jobGroup}', [JobGroupController::class, 'destroy'])->name('destroy');
+    });
     // ── Forwarding Letters ───────────────────────────────────────────────────
     Route::prefix('forwarding')->name('forwarding.')->group(function () {
         Route::get('/list',             [ForwardingController::class, 'index'])->name('list');

@@ -49,11 +49,6 @@
                 {{-- ROW 2: Client Name | User | Assign To | Category + Items + Qty --}}
                 <div class="cj-grid4" style="margin-bottom:20px">
                     <div class="form-group">
-                        <!-- <select name="client_name" class="form-select">
-                            <option value="">Select Client</option>
-                            <option value="walk-in" {{ old('client_name')=='walk-in'?'selected':'' }}>Walk-in Client</option>
-                        </select>  -->
-                        
                         <label class="form-label">Client Name</label>
                         <select name="client_name" class="form-select">
                             <option value="">Select Client</option>
@@ -95,6 +90,65 @@
                         <input type="text" name="items" class="form-control" value="{{ old('items') }}" style="margin-bottom:8px">
                         <label class="form-label">Quantity</label>
                         <input type="number" name="quantity" class="form-control" value="{{ old('quantity') }}" min="0">
+                    </div>
+                </div>
+
+
+                {{-- Job Group Selection --}}
+                <div class="form-group">
+                    <label class="form-label">Job Group <span style="color:var(--text-muted);font-size:12px;font-weight:400">(Optional)</span></label>
+
+                    <div style="display:flex;gap:8px;align-items:flex-start">
+                        <select name="job_group_id" id="jobGroupSelect"
+                            style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:6px;font-size:14px">
+                            <option value="">— No Group —</option>
+                            @foreach(\App\Models\JobGroup::where('status', 'active')->orderBy('name')->get() as $group)
+                            <option value="{{ $group->id }}">
+                                {{ $group->group_code }} • {{ $group->name }} ({{ $group->jobs()->count() }} jobs)
+                            </option>
+                            @endforeach
+                        </select>
+
+                        <button type="button" onclick="openNewGroupModal()"
+                            style="padding:10px 16px;background:var(--success);color:#fff;border:none;
+                       border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;white-space:nowrap">
+                            + New Group
+                        </button>
+                    </div>
+                    <p style="font-size:12px;color:var(--text-muted);margin-top:4px">
+                        Add this job to a group to organize related shipments
+                    </p>
+                </div>
+
+                {{-- Quick New Group Modal --}}
+                <div id="newGroupModal"
+                    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;
+            align-items:center;justify-content:center">
+                    <div style="background:#fff;padding:24px;border-radius:12px;max-width:450px;width:90%">
+                        <h3 style="margin:0 0 16px;font-size:18px;font-weight:700">Create New Job Group</h3>
+
+                        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">
+                            Group Name <span style="color:var(--danger)">*</span>
+                        </label>
+                        <input type="text" id="newGroupName"
+                            placeholder="e.g., Q1 2026 Imports"
+                            style="width:100%;padding:10px 14px;border:1px solid var(--border);
+                      border-radius:6px;font-size:14px;margin-bottom:16px">
+
+                        <div id="newGroupError" style="display:none;color:var(--danger);font-size:13px;margin-bottom:12px"></div>
+
+                        <div style="display:flex;gap:10px">
+                            <button type="button" onclick="createNewGroup()"
+                                style="flex:1;padding:10px;background:var(--primary);color:#fff;border:none;
+                           border-radius:6px;font-weight:600;cursor:pointer">
+                                Create Group
+                            </button>
+                            <button type="button" onclick="closeNewGroupModal()"
+                                style="padding:10px 20px;background:#64748b;color:#fff;border:none;
+                           border-radius:6px;font-weight:600;cursor:pointer">
+                                Cancel
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -268,5 +322,67 @@
     }
     invoiceUsd.addEventListener('input', calcImpExp);
     exchangeRate.addEventListener('input', calcImpExp);
+
+
+    // New job Group Modal Logic
+    function openNewGroupModal() {
+        document.getElementById('newGroupModal').style.display = 'flex';
+        document.getElementById('newGroupName').focus();
+        document.getElementById('newGroupError').style.display = 'none';
+    }
+
+    function closeNewGroupModal() {
+        document.getElementById('newGroupModal').style.display = 'none';
+        document.getElementById('newGroupName').value = '';
+    }
+
+    function createNewGroup() {
+        const name = document.getElementById('newGroupName').value.trim();
+        const errorDiv = document.getElementById('newGroupError');
+
+        if (!name) {
+            errorDiv.textContent = 'Please enter a group name';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        fetch('/job-groups/quick-store', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    name: name
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Add new option to dropdown and select it
+                    const select = document.getElementById('jobGroupSelect');
+                    const option = new Option(
+                        `${data.group.group_code} • ${data.group.name} (0 jobs)`,
+                        data.group.id,
+                        true,
+                        true
+                    );
+                    select.add(option);
+                    closeNewGroupModal();
+                } else {
+                    errorDiv.textContent = data.message || 'Failed to create group';
+                    errorDiv.style.display = 'block';
+                }
+            })
+            .catch(err => {
+                errorDiv.textContent = 'Error: ' + err.message;
+                errorDiv.style.display = 'block';
+            });
+    }
+
+    // Close modal on background click
+    document.getElementById('newGroupModal').addEventListener('click', function(e) {
+        if (e.target === this) closeNewGroupModal();
+    });
 </script>
 @endpush

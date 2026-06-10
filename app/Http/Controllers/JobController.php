@@ -56,7 +56,12 @@ class JobController extends Controller
             if ($value === '') $data[$key] = null;
         }
 
-        Job::create($data);
+        $job = Job::create($data);
+
+        // Attach to job group if selected
+        if ($request->job_group_id) {
+            $job->groups()->attach($request->job_group_id);
+        }
 
         return redirect()->route('jobs.list')
             ->with('success', 'Job created successfully!');
@@ -84,6 +89,12 @@ class JobController extends Controller
             if ($value === '') $data[$key] = null;
         }
         $job->update($data);
+
+        if ($request->job_group_id) {
+            $job->groups()->sync([$request->job_group_id]);
+        } else {
+            $job->groups()->detach();
+        }
 
         return redirect()->route('jobs.list')
             ->with('success', 'Job updated successfully!');
