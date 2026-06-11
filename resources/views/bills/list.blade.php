@@ -138,7 +138,7 @@
             </thead>
             <tbody id="billBody">
                 @forelse($bills as $bill)
-                <tr onclick="window.location='{{ route('bills.show', $bill) }}'" style="border-bottom:1px solid var(--border);transition:background .12s; cursor: pointer;"
+                <tr style="border-bottom:1px solid var(--border);transition:background .12s; cursor: pointer;"
                     onmouseover="this.style.background='#f8faff'" onmouseout="this.style.background=''">
                     <td class="bill-td">
                         <div style="position:relative;display:inline-block">

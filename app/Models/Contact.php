@@ -81,4 +81,19 @@ class Contact extends Model
 
         return 'CO' . str_pad($next, 4, '0', STR_PAD_LEFT);
     }
+
+    public function bills()
+    {
+        return $this->hasMany(Bill::class, 'client_id');
+    }
+
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class, 'supplier_id');
+    }
+
+    public function ious()
+    {
+        return $this->hasMany(Iou::class, 'contact_id');
+    }
 }

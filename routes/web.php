@@ -12,6 +12,7 @@ use App\Http\Controllers\JobGroupController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PaymentAccountController;
 use App\Http\Controllers\AdditionalExpenseController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\IouController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BillController;
@@ -178,5 +179,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/{additionalExpense}/edit', [AdditionalExpenseController::class, 'edit'])->name('edit');
         Route::put('/{additionalExpense}', [AdditionalExpenseController::class, 'update'])->name('update');
         Route::delete('/{additionalExpense}', [AdditionalExpenseController::class, 'destroy'])->name('destroy');
+    });
+
+    //reports
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/clients', [ReportController::class, 'clientReport'])->name('clients');
+        Route::get('/suppliers', [ReportController::class, 'supplierReport'])->name('suppliers');
+        Route::get('/contact/{contact}', [ReportController::class, 'contactLedger'])->name('contact.ledger');
+        Route::get('/expenses', [ReportController::class, 'expenseReport'])->name('expense');
+        Route::get('/income', [ReportController::class, 'incomeReport'])->name('income');
     });
 });
