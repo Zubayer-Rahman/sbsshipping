@@ -299,6 +299,8 @@ class BillController extends Controller
         // Determine value to use for calculation
         $value = $job->imp_exp_value ?? $job->invoice_value_usd ?? 0;
         $category = strtolower($job->category ?? '');
+        $type = strtolower($job->type ?? '');
+        $qty = $job->quantity ?? 0;
         $percentage = 0;
 
         // IMPORT Category
@@ -325,6 +327,8 @@ class BillController extends Controller
                 'job_no' => $job->job_no,
                 'client_name' => $job->client_name,
                 'category' => $job->category,
+                'type' => $type,
+                'quantity' => $qty,
             ],
             'calculation' => [
                 'percentage' => $percentage,

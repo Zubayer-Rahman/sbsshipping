@@ -81,13 +81,13 @@
         <table>
             <thead>
                 <tr>
-                    <th>Select</th>
                     <th style="width:50px">SL.</th>
                     <th>Job No</th>
                     <th>B/E Number</th>
                     <th>Received Date</th>
                     <th style="text-align:center">Client Name</th>
                     <th>AWB NO</th>
+                    <th>Type</th>
                     <th style="text-align:right">Total Expenses</th>
                     <th style="text-align:right">Billed Amount</th>
                     <th style="text-align:right">Profit / Loss</th>
@@ -104,7 +104,6 @@
                 $sl = $jobs->total() - (($jobs->currentPage() - 1) * $jobs->perPage()) - $loop->index;
                 @endphp
                 <tr>
-                    <td><input type="checkbox" name="job_ids[]" value="{{ $job->id }}"></td>
                     <td style="color:var(--text-muted);font-size:13px">{{ $sl }}</td>
                     <td>
                         <a href="{{ route('jobs.show', $job) }}"
@@ -120,6 +119,7 @@
                         {{ $job->client_name ?? '—' }}
                     </td>
                     <td style="font-size:13px">{{ $job->awb_no ?? '—' }}</td>
+                    <td style="font-size:13px">{{ $job->type ?? '—' }}</td>
                     <td style="text-align:right;font-size:13px;font-weight:500">
                         {{ number_format($expense, 2) }}
                     </td>
@@ -158,6 +158,19 @@
                                 onmouseover="this.style.background='#059669'"
                                 onmouseout="this.style.background='#10b981'">
                                 View PDF
+                            </a>
+
+                            <a>
+                                <form method="POST" action="{{ route('jobs.destroy', $job) }}" onsubmit="return confirm('Are you sure you want to delete this job?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                        style="display:inline-flex;align-items:center;gap:4px; padding:5px 12px;border-radius:5px; background:#ef4444;color:#fff; font-size:12px;font-weight:600;text-decoration:none; transition:background .15s; border:none; cursor:pointer"
+                                        onmouseover="this.style.background='#dc2626'"
+                                        onmouseout="this.style.background='#ef4444'">
+                                        Delete
+                                    </button>
+                                </form>
                             </a>
                         </div>
                     </td>

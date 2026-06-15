@@ -34,7 +34,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">AWB No</label>
-                        <input type="text" name="awb_no" class="form-control" value="{{ old('awb_no') }}">
+                        <input type="number" name="awb_no" class="form-control" value="{{ old('awb_no') }}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Start Date</label>
@@ -59,13 +59,13 @@
                             </option>
                             @endforeach
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">User</label>
-                        <select name="assigned_user" class="form-select">
-                            <option value="">Select User</option>
-                            <option value="{{ auth()->id() }}" selected>{{ auth()->user()->name }}</option>
-                        </select>
+                        <div class="form-group">
+                            <label class="form-label">User</label>
+                            <select name="assigned_user" class="form-select">
+                                <option value="">Select User</option>
+                                <option value="{{ auth()->id() }}" selected>{{ auth()->user()->name }}</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Assign To</label>
@@ -75,6 +75,40 @@
                             <option value="Md. AL-Amin" {{ old('assigned_agent')=='Md. AL-Amin'    ?'selected':'' }}>Md. AL-Amin</option>
                         </select>
                     </div>
+
+                    {{-- Job Group Selection --}}
+                    <div class="form-group">
+                        <label class="form-label">Job Group <span style="color:var(--text-muted);font-size:12px;font-weight:400">(Optional)</span></label>
+    
+                        <div style="display:flex;gap:8px;align-items:flex-start">
+                            <select name="job_group_id" id="jobGroupSelect"
+                                style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:6px;font-size:14px">
+                                <option value="">— No Group —</option>
+                                @foreach(\App\Models\JobGroup::where('status', 'active')->orderBy('name')->get() as $group)
+                                <option value="{{ $group->id }}">
+                                    {{ $group->group_code }} • {{ $group->name }} ({{ $group->jobs()->count() }} jobs)
+                                </option>
+                                @endforeach
+                            </select>
+    
+                            <button type="button" onclick="openNewGroupModal()"
+                                style="padding:10px 16px;background:var(--success);color:#fff;border:none;
+                           border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;white-space:nowrap">
+                                + New Group
+                            </button>
+                        </div>
+                        <p style="font-size:12px;color:var(--text-muted);margin-top:4px">
+                            Add this job to a group to organize related shipments
+                        </p>
+
+                        <label class="form-label">Type</label>
+                        <select name="type" class="form-select" style="margin-bottom:10px">
+                            <option value="">Select Type</option>
+                            <option value="FCL" {{ old('type')== 'FCL'  ?'selected':'' }}>FCL</option>
+                            <option value="LCL" {{ old('type')== 'LCL'  ?'selected':'' }}>LCL</option>
+                        </select>
+                    </div>
+
                     <div class="form-group">
                         <label class="form-label">Category</label>
                         <select name="category" class="form-select" style="margin-bottom:10px">
@@ -94,31 +128,6 @@
                 </div>
 
 
-                {{-- Job Group Selection --}}
-                <div class="form-group">
-                    <label class="form-label">Job Group <span style="color:var(--text-muted);font-size:12px;font-weight:400">(Optional)</span></label>
-
-                    <div style="display:flex;gap:8px;align-items:flex-start">
-                        <select name="job_group_id" id="jobGroupSelect"
-                            style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:6px;font-size:14px">
-                            <option value="">— No Group —</option>
-                            @foreach(\App\Models\JobGroup::where('status', 'active')->orderBy('name')->get() as $group)
-                            <option value="{{ $group->id }}">
-                                {{ $group->group_code }} • {{ $group->name }} ({{ $group->jobs()->count() }} jobs)
-                            </option>
-                            @endforeach
-                        </select>
-
-                        <button type="button" onclick="openNewGroupModal()"
-                            style="padding:10px 16px;background:var(--success);color:#fff;border:none;
-                       border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;white-space:nowrap">
-                            + New Group
-                        </button>
-                    </div>
-                    <p style="font-size:12px;color:var(--text-muted);margin-top:4px">
-                        Add this job to a group to organize related shipments
-                    </p>
-                </div>
 
                 {{-- Quick New Group Modal --}}
                 <div id="newGroupModal"
@@ -207,7 +216,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">B/E No</label>
-                        <input type="text" name="be_no" class="form-control" value="{{ old('be_no') }}">
+                        <input type="number" name="be_no" class="form-control" value="{{ old('be_no') }}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">B/E Date</label>
@@ -219,7 +228,7 @@
                 <div class="cj-grid4" style="margin-bottom:20px">
                     <div class="form-group">
                         <label class="form-label">IP/EP No</label>
-                        <input type="text" name="ip_ep_no" class="form-control" value="{{ old('ip_ep_no') }}">
+                        <input type="number" name="ip_ep_no" class="form-control" value="{{ old('ip_ep_no') }}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">IP/EP Date</label>
@@ -227,7 +236,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Container No</label>
-                        <input type="text" name="container_no" class="form-control" value="{{ old('container_no') }}">
+                        <input type="number" name="container_no" class="form-control" value="{{ old('container_no') }}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Shipping Agent</label>

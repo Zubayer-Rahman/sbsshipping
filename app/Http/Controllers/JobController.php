@@ -28,12 +28,16 @@ class JobController extends Controller
         if ($request->filled('date_to')) {
             $query->whereDate('receive_date', '<=', $request->date_to);
         }
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
 
         $jobs    = $query->paginate(20);
         $clients = Job::whereNotNull('client_name')->distinct()->pluck('client_name')->sort()->values();
         $jobNos  = Job::whereNotNull('job_no')->distinct()->pluck('job_no')->sortDesc()->values();
+        $types   = Job::whereNotNull('type')->distinct()->pluck('type')->sort()->values();
 
-        return view('jobs.list', compact('jobs', 'clients', 'jobNos'));
+        return view('jobs.list', compact('jobs', 'clients', 'jobNos', 'types'));
     }
 
     public function create()
@@ -44,7 +48,9 @@ class JobController extends Controller
             ->orderBy('business_name')
             ->get();
 
-        return view('jobs.create', compact('clients'));
+        $types = Job::whereNotNull('type')->distinct()->pluck('type')->sort()->values();
+
+        return view('jobs.create', compact('clients', 'types'));
     }
 
     public function store(Request $request)
@@ -79,7 +85,9 @@ class JobController extends Controller
             ->orderBy('business_name')
             ->get();
 
-        return view('jobs.edit', compact('job', 'clients'));
+        $types = Job::whereNotNull('type')->distinct()->pluck('type')->sort()->values();
+
+        return view('jobs.edit', compact('job', 'clients', 'types' ));
     }
 
     public function update(Request $request, Job $job)

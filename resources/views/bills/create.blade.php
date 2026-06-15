@@ -608,6 +608,113 @@
 
 @push('scripts')
 <script>
+    function generateBillItems(job, serviceCharge, percentage) {
+        const category = (job.category || '').toLowerCase();
+        const type = (job.type || '').toUpperCase();
+        const qty = parseFloat(job.quantity) || 0;
+        const items = [];
+
+        // 1. RULE: Import By Sea - FCL
+        if (category.includes('import') && category.includes('sea') && type === 'FCL') {
+            items.push({
+                name: 'Documentation',
+                price: 1225
+            });
+            items.push({
+                name: 'Copy B/L Noting Permission',
+                price: 150
+            });
+            items.push({
+                name: 'Court fee',
+                price: 110
+            });
+        }
+
+        // 2. RULE: Import By Sea - LCL
+        else if (category.includes('import') && category.includes('sea') && type === 'LCL') {
+            items.push({
+                name: 'Documentation',
+                price: 900
+            });
+            items.push({
+                name: 'Copy B/L Noting Permission',
+                price: 150
+            });
+            // Labor charges: 4.17 x Quantity
+            const laborAmt = (4.17 * qty).toFixed(2);
+            items.push({
+                name: 'Labor sorting charge',
+                price: laborAmt,
+                desc: `4.17 x ${qty} qty`
+            });
+            items.push({
+                name: 'Labour loading charge',
+                price: laborAmt,
+                desc: `4.17 x ${qty} qty`
+            });
+            items.push({
+                name: 'Labour unloading charge',
+                price: laborAmt,
+                desc: `4.17 x ${qty} qty`
+            });
+        }
+
+        // 3. RULE: Export by Air
+        else if (category.includes('export') && category.includes('air')) {
+            items.push({
+                name: 'Documentation',
+                price: 1000
+            });
+            items.push({
+                name: 'Court Fee',
+                price: 66
+            });
+        }
+
+        // 4. RULE: Export by Sea
+        else if (category.includes('export') && category.includes('sea')) {
+            items.push({
+                name: 'Documentation',
+                price: 700
+            });
+            items.push({
+                name: 'Off Dock Expenses',
+                price: 150
+            });
+            items.push({
+                name: 'Court Fee',
+                price: 66
+            });
+        }
+
+        // 5. RULE: Import by Air
+        else if (category.includes('import') && category.includes('air')) {
+            items.push({
+                name: 'Documentation Processing & Handling Charge',
+                price: 1575
+            });
+        }
+
+        // 6. ALWAYS ADD: Agency Commission (Calculated Service Charge)
+        if (serviceCharge > 0) {
+            items.push({
+                name: 'Agency Commission',
+                price: serviceCharge,
+                desc: `${percentage}% Service Charge for Job ${job.job_id}`
+            });
+        }
+
+        // Now insert all these items into the main Bill table
+        items.forEach(item => {
+            addBillRow({
+                name: item.name,
+                description: item.desc || `Job: ${job.job_id}`,
+                quantity: 1,
+                price: item.price
+            });
+        });
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // Job Dropdown with Search by Job ID or Client Name
     // ═══════════════════════════════════════════════════════════════════════════
@@ -872,7 +979,9 @@
 
                 if (data.success && data.calculation.service_charge_amount > 0) {
                     addServiceChargeRow(data.job, data.calculation);
+                    generateBillItems(data.job, data.service_charge, data.percentage);
                     addedJobsTracker.add(jobId);
+                    showNotification(`✓ Applied structure for Job ${data.job.job_id}`);
                 } else {
                     console.warn('No service charge to add. Calculation:', data.calculation);
                     showNotification('⚠ No service charge for Job ' + (data.job.job_id || data.job.job_no) + ' (Invoice value or category missing)', 'warning');
@@ -1029,50 +1138,54 @@
     }
 
     // Add empty bill row
-    function addBillRow(item = {}) {
-        billRowIdx++;
-        const i = billRowIdx;
-        const tr = document.createElement('tr');
-        tr.id = 'brow-' + i;
-        tr.innerHTML = `
-        <td style="text-align:center;color:var(--text-muted)">${i}</td>
-        <td>
-            <input type="text" name="item_name[]" value="${item.item_name||''}"
-                   class="form-control" style="min-width:160px" placeholder="Item name">
-            <input type="hidden" name="item_code[]" value="${item.item_code||''}">
-            <input type="hidden" name="unit[]" value="${item.unit||'Nos'}">
+
+    let billRowCounter = 0; 
+
+    function addBillRow(itemData = {}) {
+        billRowCounter++;
+        const tbody = document.getElementById('billItemsBody');
+        if (!tbody) return;
+
+        const row = document.createElement('tr');
+        row.className = 'item-row';
+        row.id = `billRow_${billRowCounter}`;
+
+        // Set defaults from itemData or empty values
+        const name = itemData.name || '';
+        const desc = itemData.description || '';
+        const qty = itemData.quantity || 1;
+        const price = itemData.price || 0;
+
+        row.innerHTML = `
+        <td style="padding:10px 12px;text-align:center;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-muted)">
+            ${tbody.children.length + 1}
         </td>
-        <td>
-            <input type="text" name="description[]" class="form-control"
-                   placeholder="Description..." style="min-width:160px">
+        <td style="padding:10px 12px;border-bottom:1px solid var(--border)">
+            <input type="text" name="item_name[]" value="${name}" class="form-control" required>
         </td>
-        <td>
-            <input type="number" name="quantity[]" value="${item.qty||1}"
-                   class="form-control brow-qty" data-row="${i}"
-                   style="width:80px;text-align:center" min="0.01" step="0.01">
+        <td style="padding:10px 12px;border-bottom:1px solid var(--border)">
+            <input type="text" name="description[]" value="${desc}" class="form-control">
         </td>
-        <td>
-            <input type="number" name="unit_price[]" value="${item.price||0}"
-                   class="form-control brow-price" data-row="${i}"
-                   style="width:110px;text-align:right" min="0" step="0.01">
+        <td style="padding:10px 12px;text-align:center;border-bottom:1px solid var(--border)">
+            <input type="number" name="quantity[]" value="${qty}" step="0.01" class="form-control text-center" oninput="calcBillTotals()">
+        </td>
+        <td style="padding:10px 12px;text-align:right;border-bottom:1px solid var(--border)">
+            <input type="number" name="unit_price[]" value="${price}" step="0.01" class="form-control text-right" oninput="calcBillTotals()">
             <input type="hidden" name="item_discount[]" value="0">
             <input type="hidden" name="item_tax[]" value="0">
         </td>
-        <td>
-            <input type="number" name="subtotal_display[]"
-                   class="form-control brow-sub" data-row="${i}"
-                   value="${item.price||0}" style="width:110px;text-align:right" readonly>
+        <td style="padding:10px 12px;text-align:right;border-bottom:1px solid var(--border);font-weight:600">
+            <span class="line-subtotal">0.00</span>
         </td>
-        <td style="text-align:center">
-            <button type="button" onclick="removeBillRow(${i})"
-                    style="background:var(--danger);color:#fff;border:none;border-radius:4px;
-                           padding:5px 10px;cursor:pointer;font-size:13px">
-                <i class="bi bi-trash"></i>
+        <td style="padding:10px 12px;text-align:center;border-bottom:1px solid var(--border)">
+            <button type="button" onclick="this.closest('tr').remove(); calcBillTotals();" 
+                style="background:none;border:1px solid var(--danger);color:var(--danger);width:28px;height:28px;border-radius:50%;cursor:pointer">
+                ×
             </button>
         </td>
     `;
-        document.getElementById('billItemsBody').appendChild(tr);
-        attachBillRowListeners(i);
+
+        tbody.appendChild(row);
         calcBillTotals();
     }
 

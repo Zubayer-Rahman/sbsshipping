@@ -40,6 +40,7 @@ class Job extends Model
         'receive_date',
         'assigned_user',
         'category',
+        'type',
         'items',
         'quantity',
         'cleared_on',
@@ -72,11 +73,18 @@ class Job extends Model
         'is_paid'        => 'boolean',
         'cost_amount'    => 'decimal:2',
         'expense_amount' => 'decimal:2',
+        'type'           => 'string',
+        'awb_no'         => 'float:20',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function groups()
+    {
+        return $this->belongsToMany(JobGroup::class, 'job_group_job', 'job_id', 'job_group_id');
     }
 
     // Auto-generate Job ID before creating
