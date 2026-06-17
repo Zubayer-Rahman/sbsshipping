@@ -627,21 +627,58 @@
         if (category.includes('import') && category.includes('sea') && type === 'FCL') {
             items.push({
                 name: 'Documentation',
+                desc:"Documentation Processing & Handling Charge",
                 price: 1225
             });
             items.push({
                 name: 'Copy B/L Noting Permission',
+                desc: "Copy of Bill of Lading Noting Permission",
                 price: 150
             });
             items.push({
-                name: 'Port charge'
+                name: 'Port charge',
+                desc: "Port Handling Charge",
             });
             items.push({
-                name: 'Depot Charge Empty Container Payment'
+                name: 'Depot Charge Empty Container Payment',
+                desc: "Depot Charge for Empty Container Payment"
+            });
+            items.push({
+                name: 'Agent & NOC:',
+                desc: "Agent & NOC Charges"
+            });
+            items.push({
+                name: 'Labor sorting charge',
+                desc: "Labor Sorting Charge",
+            });
+            items.push({
+                name: 'Labor loading charge',
+                desc: "Labor Loading Charge",
+            });
+            items.push({
+                name: 'Labor unloading charge',
+                desc: "Labor Unloading Charge",
+            });
+            items.push({
+                name: 'Transportation',
+                desc: "Transportation Charge",
+            });
+            items.push({
+                name: 'Survey fee',
+                desc: "Survey Fee",
+                price: 110
             });
             items.push({
                 name: 'Court fee',
-                price: 110
+                desc: "Court Fee"
+            });
+            items.push({
+                name: 'Scanning & Vat charge',
+                desc: "Scanning and VAT Charge"
+            });
+            items.push({
+                name: 'Stamp',
+                desc: "Stamp Duty"
             });
         }
 
@@ -1117,7 +1154,7 @@
         row.style.background = '#fef3c7';
 
         const jobLabel = job.job_id || job.job_no || ('Job #' + job.id);
-        const description = `Service Charge - ${jobLabel} (${calculation.percentage}% of $${parseFloat(calculation.imp_exp_value).toLocaleString()})`;
+        const description = `Agency Commission - ${jobLabel} (${calculation.percentage}% of $${parseFloat(calculation.imp_exp_value).toLocaleString()})`;
 
         row.innerHTML = `
         <td style="font-weight:600;color:var(--text-muted);font-size:13px;text-align:center;padding:10px 14px;border-bottom:1px solid var(--border)">
