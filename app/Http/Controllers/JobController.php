@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Job;
 use App\Models\Contact;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -80,14 +81,9 @@ class JobController extends Controller
 
     public function edit(Job $job)
     {
-        $clients = Contact::where('type', 'client')
-            ->where('is_active', true)
-            ->orderBy('business_name')
-            ->get();
-
-        $types = Job::whereNotNull('type')->distinct()->pluck('type')->sort()->values();
-
-        return view('jobs.edit', compact('job', 'clients', 'types' ));
+        $clients = Contact::where('type', 'client')->get();
+        $users = User::all();
+        return view('jobs.edit', compact('job', 'clients', 'users'));
     }
 
     public function update(Request $request, Job $job)

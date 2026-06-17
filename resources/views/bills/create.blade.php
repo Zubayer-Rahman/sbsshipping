@@ -192,6 +192,15 @@
                                             {{ $job->category }}
                                         </span>
                                         @endif
+
+                                        @if($job->type)
+                                        <span style="font-size:10px;padding:2px 6px;border-radius:10px;
+                                         background:{{ str_contains(strtolower($job->type), 'import') ? '#dbeafe' : '#fef3c7' }};
+                                         color:{{ str_contains(strtolower($job->type    ), 'import') ? '#1e40af' : '#92400e' }};
+                                         font-weight:600;text-transform:uppercase">
+                                            {{ $job->type }}
+                                        </span>
+                                        @endif
                                     </div>
                                     <div style="font-size:12px;color:var(--text-muted);
                                 overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
@@ -625,6 +634,12 @@
                 price: 150
             });
             items.push({
+                name: 'Port charge'
+            });
+            items.push({
+                name: 'Depot Charge Empty Container Payment'
+            });
+            items.push({
                 name: 'Court fee',
                 price: 110
             });
@@ -708,9 +723,10 @@
         items.forEach(item => {
             addBillRow({
                 name: item.name,
-                description: item.desc || `Job: ${job.job_id}`,
+                description: item.desc || `Job: ${job.job_id || job.job_no}`,
                 quantity: 1,
-                price: item.price
+                price: item.price,
+                jobId: job.id // ★★★ ADD THIS LINE ★★★
             });
         });
     }
@@ -835,10 +851,28 @@
         // Update hidden input
         document.getElementById('jobNumberHidden').value = ids.join(',');
 
+
+        // ★★★ NEW: AUTO-SET CLIENT FROM SELECTED JOB ★★★
+        if (ids.length > 0 && !document.getElementById('clientSelect').value) {
+            const firstCb = checked[0];
+            const clientName = firstCb.dataset.client;
+            if (clientName) {
+                autoSelectClient(clientName);
+            }
+        }
+
         // ★★★ 1. Trigger service charge calculation (% based) for each NEW job ★★★
         ids.forEach(jobId => {
             if (!addedJobsTracker.has(jobId)) {
                 fetchAndAddJobCharge(jobId);
+            }
+        });
+
+
+        // ★★★ FIX 1: Remove auto-added bill items for jobs that were UNCHECKED ★★★
+        document.querySelectorAll('.auto-bill-row').forEach(row => {
+            if (!ids.includes(row.dataset.jobId)) {
+                row.remove();
             }
         });
 
@@ -850,12 +884,86 @@
             }
         });
 
+        // Reset client when no jobs are selected
+        if (ids.length === 0) {
+            // 1. Clear the dropdown selection
+            document.getElementById('clientSelect').value = '';
+
+            // 2. Clear only the address display boxes
+            const billingDiv = document.getElementById('billingAddress');
+            const shippingDiv = document.getElementById('shippingAddress');
+
+            if (billingDiv) billingDiv.innerHTML = '';
+            if (shippingDiv) shippingDiv.innerHTML = '';
+
+            // 3. Reset advance balance display
+            const balanceEl = document.getElementById('advanceBalance');
+            if (balanceEl) balanceEl.textContent = '0.00';
+
+            // 4. Hide the warning balance text (if shown)
+            const clientBalanceDiv = document.getElementById('clientBalance');
+            if (clientBalanceDiv) clientBalanceDiv.style.display = 'none';
+
+            // ★ DO NOT trigger the change event because it might hide the row ★
+        }
+
         // ★★★ 3. NEW: Fetch Additional Expenses for selected jobs ★★★
         fetchAdditionalExpenses(ids);
 
         if (typeof renumberRows === 'function') renumberRows();
         if (typeof calculateExpenseTotal === 'function') calculateExpenseTotal();
         if (typeof calcBillTotals === 'function') calcBillTotals();
+    }
+
+
+    // ★★★ FIX 2: AUTO-SELECT CLIENT BASED ON JOB'S CLIENT NAME ★★★
+    function autoSelectClient(clientName) {
+        const clientSelect = document.getElementById('clientSelect');
+        if (!clientSelect) return;
+
+        // Loop through all client options and find a match
+        let foundMatch = false;
+        for (let option of clientSelect.options) {
+            const optionText = option.text.toLowerCase();
+            const targetName = clientName.toLowerCase().trim();
+
+            // Match by business name (handles "(C001) Client Name" format)
+            if (optionText.includes(targetName)) {
+                clientSelect.value = option.value;
+                foundMatch = true;
+
+                // Trigger the change event so loadClientInfo() runs automatically
+                const event = new Event('change');
+                clientSelect.dispatchEvent(event);
+
+                // Show notification
+                showNotification(`✓ Auto-selected client: ${clientName}`);
+                break;
+            }
+        }
+
+        if (!foundMatch) {
+            console.warn(`Client "${clientName}" not found in dropdown`);
+        }
+    }
+
+    // Simple notification helper (in case it's not defined elsewhere)
+    function showNotification(message) {
+        const notif = document.createElement('div');
+        notif.style.cssText = `
+        position: fixed; top: 20px; right: 20px;
+        background: var(--success); color: white;
+        padding: 12px 20px; border-radius: 8px;
+        font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+        box-shadow: 0 4px 12px rgba(16,185,129,0.3); z-index: 10000;
+    `;
+        notif.textContent = message;
+        document.body.appendChild(notif);
+        setTimeout(() => {
+            notif.style.opacity = '0';
+            notif.style.transition = 'opacity 0.3s';
+            setTimeout(() => notif.remove(), 300);
+        }, 2500);
     }
 
     // ─── FETCH AND ADD ADDITIONAL EXPENSES FROM JOBS ──────────────────────
@@ -1139,7 +1247,7 @@
 
     // Add empty bill row
 
-    let billRowCounter = 0; 
+    let billRowCounter = 0;
 
     function addBillRow(itemData = {}) {
         billRowCounter++;
@@ -1149,6 +1257,11 @@
         const row = document.createElement('tr');
         row.className = 'item-row';
         row.id = `billRow_${billRowCounter}`;
+
+        if (itemData.jobId) {
+            row.classList.add('auto-bill-row');
+            row.dataset.jobId = itemData.jobId;
+        }
 
         // Set defaults from itemData or empty values
         const name = itemData.name || '';

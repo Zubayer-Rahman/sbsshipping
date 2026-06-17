@@ -88,6 +88,7 @@
                     <th style="text-align:center">Client Name</th>
                     <th>AWB NO</th>
                     <th>Type</th>
+                    <th>Category</th>
                     <th style="text-align:right">Total Expenses</th>
                     <th style="text-align:right">Billed Amount</th>
                     <th style="text-align:right">Profit / Loss</th>
@@ -102,6 +103,7 @@
                 $billed = floatval($job->cost_amount ?? 0);
                 $profitLoss = $billed - $expense;
                 $sl = $jobs->total() - (($jobs->currentPage() - 1) * $jobs->perPage()) - $loop->index;
+                $category = $job->category ?? '';
                 @endphp
                 <tr>
                     <td style="color:var(--text-muted);font-size:13px">{{ $sl }}</td>
@@ -120,6 +122,7 @@
                     </td>
                     <td style="font-size:13px">{{ $job->awb_no ?? '—' }}</td>
                     <td style="font-size:13px">{{ $job->type ?? '—' }}</td>
+                    <td style="font-size:13px">{{ $category }}</td>
                     <td style="text-align:right;font-size:13px;font-weight:500">
                         {{ number_format($expense, 2) }}
                     </td>
