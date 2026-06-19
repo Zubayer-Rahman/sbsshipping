@@ -87,7 +87,7 @@
                     <th>Received Date</th>
                     <th style="text-align:center">Client Name</th>
                     <th>AWB NO</th>
-                    <th>Type</th>
+                    <th>Quantity</th>
                     <th>Category</th>
                     <th style="text-align:right">Total Expenses</th>
                     <th style="text-align:right">Billed Amount</th>
@@ -121,7 +121,7 @@
                         {{ $job->client_name ?? '—' }}
                     </td>
                     <td style="font-size:13px">{{ $job->awb_no ?? '—' }}</td>
-                    <td style="font-size:13px">{{ $job->type ?? '—' }}</td>
+                    <td style="font-size:13px">{{ $job->quantity ?? '—' }}</td>
                     <td style="font-size:13px">{{ $category }}</td>
                     <td style="text-align:right;font-size:13px;font-weight:500">
                         {{ number_format($expense, 2) }}
@@ -156,7 +156,7 @@
                                 onmouseout="this.style.background='#1a56db'">
                                 Edit
                             </a>
-                            <a href="{{ route('jobs.show', $job) }}"
+                            <a href="{{ route('jobs.print', $job) }}" target="_blank" class="btn btn-outline"
                                 style="display:inline-flex; align-items:center; gap:4px; padding:5px 12px; border-radius:5px; background:#10b981; color:#fff; font-size:12px; font-weight:600; text-decoration:none; transition:background .15s"
                                 onmouseover="this.style.background='#059669'"
                                 onmouseout="this.style.background='#10b981'">

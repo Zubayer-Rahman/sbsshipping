@@ -11,6 +11,7 @@ class Iou extends Model
 
     protected $fillable = [
         'contact_id',
+        'user_id',
         'job_id',
         'reference_number',
         'amount',
@@ -60,6 +61,11 @@ class Iou extends Model
     public function contact()
     {
         return $this->belongsTo(Contact::class);
+    }
+
+    public function Users()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function creator()

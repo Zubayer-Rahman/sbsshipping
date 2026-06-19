@@ -13,7 +13,7 @@
     <form method="POST" action="{{ route('bills.store') }}" id="billForm">
         @csrf
 
-        {{-- ── SECTION 1: Business Location ── --}}
+        <!-- {{-- ── SECTION 1: Business Location ── --}}
         <div class="card" style="margin-bottom:6px">
             <div class="card-body" style="padding:18px 24px">
                 <div style="display:flex;align-items:center;gap:8px;max-width:420px">
@@ -28,7 +28,7 @@
                     <span class="info-dot" title="Business Location">i</span>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         {{-- ── SECTION 2: Client + Dates ── --}}
         <div class="card" style="margin-bottom:6px">
@@ -623,11 +623,19 @@
         const qty = parseFloat(job.quantity) || 0;
         const items = [];
 
+        //debugging
+        console.log('Job Data:', {
+            category: category,
+            type: type,
+            client: job.client_name,
+            serviceCharge: serviceCharge
+        });
+
         // 1. RULE: Import By Sea - FCL
         if (category.includes('import') && category.includes('sea') && type === 'FCL') {
             items.push({
                 name: 'Documentation',
-                desc:"Documentation Processing & Handling Charge",
+                desc: "Documentation Processing & Handling Charge",
                 price: 1225
             });
             items.push({
@@ -686,18 +694,28 @@
         else if (category.includes('import') && category.includes('sea') && type === 'LCL') {
             items.push({
                 name: 'Documentation',
+                desc: "Documentation Processing & Handling Charge",
                 price: 900
             });
             items.push({
                 name: 'Copy B/L Noting Permission',
+                desc: "Copy of Bill of Lading Noting Permission",
                 price: 150
+            });
+            items.push({
+                name: 'Agent & NOC Charges:',
+                desc: "Agent and NOC Charges",
+            });
+            items.push({
+                name: 'Port charge',
+                desc: "Port Handling Charge",
             });
             // Labor charges: 4.17 x Quantity
             const laborAmt = (4.17 * qty).toFixed(2);
             items.push({
                 name: 'Labor sorting charge',
-                price: laborAmt,
-                desc: `4.17 x ${qty} qty`
+                desc: `4.17 x ${qty} qty`,
+                price: laborAmt
             });
             items.push({
                 name: 'Labour loading charge',
@@ -705,9 +723,16 @@
                 desc: `4.17 x ${qty} qty`
             });
             items.push({
-                name: 'Labour unloading charge',
-                price: laborAmt,
-                desc: `4.17 x ${qty} qty`
+                name: 'Transportation',
+                desc: "Transportation Charge",
+            });
+            items.push({
+                name: 'Court fee:',
+                desc: "Court Fee",
+            });
+            items.push({
+                name: 'Scanning & Vat Charge',
+                desc: "Scanning and VAT Charge",
             });
         }
 
@@ -718,8 +743,17 @@
                 price: 1000
             });
             items.push({
+                name: 'Transport',
+                desc: "Transportation Charge",
+            });
+            items.push({
                 name: 'Court Fee',
+                desc: "Court Fee",
                 price: 66
+            });
+            items.push({
+                name: 'Scanning & Vat Charge:',
+                desc: "Scanning and VAT Charge",
             });
         }
 
@@ -727,19 +761,58 @@
         else if (category.includes('export') && category.includes('sea')) {
             items.push({
                 name: 'Documentation',
+                desc: "Documentation Processing & Handling Charge",
                 price: 700
             });
             items.push({
                 name: 'Off Dock Expenses',
+                desc: "Off Dock Expenses Charge",
                 price: 150
             });
             items.push({
                 name: 'Court Fee',
+                desc: "Court Fee",
                 price: 66
+            });
+            items.push({
+                name: 'River Dues',
+                desc: "River Dues Charge"
+            });
+            items.push({
+                name: 'Transport',
+                desc: "Transportation Charge",
+            });
+            items.push({
+                name: 'Scanning & Vat Charge:',
+                desc: "Scanning and VAT Charge"
             });
         }
 
-        // 5. RULE: Import by Air
+        // 5. RULE: By Truck (IMP)
+        else if (category.includes('truck') && category.includes('imp')) {
+            items.push({
+                name: 'Documentation 0020',
+                price: 500
+            });
+            items.push({
+                name: 'DTI Charge 0043',
+                price: 500
+            });
+        }
+
+        // 5. RULE: By Truck (EXP)
+        else if (category.includes('truck') && category.includes('exp')) {
+            items.push({
+                name: 'Documentation 0020',
+                price: 500
+            });
+            items.push({
+                name: 'DTI Charge 0043',
+                price: 500
+            });
+        }
+
+        // 6. RULE: Import by Air
         else if (category.includes('import') && category.includes('air')) {
             items.push({
                 name: 'Documentation Processing & Handling Charge',
@@ -747,7 +820,7 @@
             });
         }
 
-        // 6. ALWAYS ADD: Agency Commission (Calculated Service Charge)
+        // 7. ALWAYS ADD: Agency Commission (Calculated Service Charge)
         if (serviceCharge > 0) {
             items.push({
                 name: 'Agency Commission',
@@ -763,7 +836,7 @@
                 description: item.desc || `Job: ${job.job_id || job.job_no}`,
                 quantity: 1,
                 price: item.price,
-                jobId: job.id // ★★★ ADD THIS LINE ★★★
+                jobId: job.id 
             });
         });
     }

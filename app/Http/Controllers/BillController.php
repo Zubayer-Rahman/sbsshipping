@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\JobChargeCalculator;
 
 use App\Models\Bill;
-use App\Models\BillItem;
+use App\Models\Job;
 use App\Models\BillPayment;
 use App\Models\Contact;
 use App\Models\Item;
@@ -290,7 +290,7 @@ class BillController extends Controller
      */
     public function getJobDetails($jobId)
     {
-        $job = \App\Models\Job::find($jobId);
+        $job = Job::find($jobId);
 
         if (!$job) {
             return response()->json(['error' => 'Job not found'], 404);
@@ -315,6 +315,16 @@ class BillController extends Controller
             if ($value <= 50000) $percentage = 0.11;
             elseif ($value <= 100000) $percentage = 0.08;
             else $percentage = 0.06;
+        }
+
+        elseif (str_contains($category, 'imp')) {
+            if ($value <= 50000) {
+                $percentage = 0.11;
+            } elseif ($value <= 100000) {
+                $percentage = 0.08;
+            } else {
+                $percentage = 0.06;
+            }
         }
 
         $serviceCharge = round(($value * $percentage) / 100, 2);

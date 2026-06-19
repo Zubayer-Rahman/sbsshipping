@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/',                [JobController::class, 'index'])->name('list');
         Route::get('/create',          [JobController::class, 'create'])->name('create');
         Route::post('/store',          [JobController::class, 'store'])->name('store');
+        Route::get('/{job}/print',     [JobController::class, 'print'])->name('print');
         Route::get('/forwarding/page', [ForwardingController::class, 'create'])->name('forwarding');
         Route::get('/{job}',           [JobController::class, 'show'])->name('show');
         Route::get('/{job}/edit',      [JobController::class, 'edit'])->name('edit');

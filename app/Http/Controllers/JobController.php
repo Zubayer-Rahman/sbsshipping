@@ -104,6 +104,11 @@ class JobController extends Controller
             ->with('success', 'Job updated successfully!');
     }
 
+    public function print(Job $job)
+    {
+        return view('jobs.print', compact('job'));
+    }
+
     public function destroy(Job $job)
     {
         $job->delete();

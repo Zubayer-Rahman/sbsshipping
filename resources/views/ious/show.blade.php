@@ -688,7 +688,8 @@
 
                 <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label">Payment Method</label>
-                    <select name="payment_account_id" required class="form-control">
+                    <select name="payment_account_id" class="form-control">
+                        <option value="">Select Account</option>
                         @foreach($accounts as $account)
                         <option value="{{ $account->id }}">{{ $account->account_name }} (৳{{ number_format($account->current_balance, 2) }})</option>
                         @endforeach

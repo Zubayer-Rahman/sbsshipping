@@ -300,6 +300,8 @@
 
     .pagination {
         margin-top: 1.5rem;
+        display: flex;
+        justify-content: center;
     }
 
     .btn-group {
@@ -481,9 +483,9 @@
                         <th>Contact</th>
                         <th>Type</th>
                         <th>Against</th>
-                        <th class="text-right">Amount</th>
-                        <th class="text-right">Paid</th>
-                        <th class="text-right">Balance</th>
+                        <th>Amount</th>
+                        <th>Paid</th>
+                        <th>Balance</th>
                         <th class="text-center">Status</th>
                         <th class="text-center">Due Date</th>
                         <th class="text-center">Actions</th>
@@ -519,9 +521,9 @@
                             @endif
                         </td>
 
-                        <td class="text-right">৳{{ number_format($iou->amount, 2) }}</td>
-                        <td class="text-right">৳{{ number_format($iou->paid_amount, 2) }}</td>
-                        <td class="text-right font-semibold">৳{{ number_format($iou->balance, 2) }}</td>
+                        <td class="">৳{{ number_format($iou->amount, 2) }}</td>
+                        <td class="">৳{{ number_format($iou->paid_amount, 2) }}</td>
+                        <td class="font-semibold">৳{{ number_format($iou->balance, 2) }}</td>
 
                         <td class="text-center">
                             @if($iou->status == 'paid')
@@ -597,10 +599,10 @@
         </div>
     </div>
 
-    <!-- Pagination -->
-    <div class="pagination">
+    <!-- Pagination (under maintainance, will implement later) -->
+    <!-- <div class="pagination">
         {{ $ious->links() }}
-    </div>
+    </div> -->
 </div>
 @endsection
 

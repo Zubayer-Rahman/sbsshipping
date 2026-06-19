@@ -238,9 +238,9 @@
                     <label class="form-label">Contact <span class="required">*</span></label>
                     <select name="contact_id" required class="form-control @error('contact_id') error @enderror">
                         <option value="">Select Contact</option>
-                        @foreach($contacts as $contact)
-                        <option value="{{ $contact->id }}" {{ old('contact_id') == $contact->id ? 'selected' : '' }}>
-                            {{ $contact->name }}
+                        @foreach($users as $user)
+                        <option value="{{ $user->name }}" {{ old('contact_id') == $user->name ? 'selected' : '' }}>
+                            {{ $user->name }}
                         </option>
                         @endforeach
                     </select>
@@ -335,7 +335,8 @@
             <div class="form-group" style="width: auto !important;"
                 <label class="form-label">Payment Account:</label>
                 <div style="display:flex;align-items:center;border-radius:var(--radius-sm);overflow:hidden">
-                    <select name="payment_account_id" required class="form-control">
+                    <select name="payment_account_id" class="form-control">
+                        <option value="">Select Payment Account</option>
                         @foreach(\App\Models\PaymentAccount::where('is_active', true)->orderBy('account_name')->get() as $acc)
                         <option value="{{ $acc->id }}" {{ old('payment_account_id') == $acc->id ? 'selected' : '' }}>
                             {{ $acc->account_name }} (Balance: ৳{{ number_format($acc->current_balance, 2) }})

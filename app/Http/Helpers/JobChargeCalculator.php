@@ -42,6 +42,16 @@ class JobChargeCalculator
             }
         }
 
+        elseif (str_contains($categoryLower, '')) {
+            if ($value <= 50000) {
+                $percentage = 0.11;
+            } elseif ($value <= 100000) {
+                $percentage = 0.08;
+            } else {
+                $percentage = 0.06;
+            }
+        }
+
         // Calculate the actual amount
         $serviceCharge = ($value * $percentage) / 100;
 

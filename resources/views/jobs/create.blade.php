@@ -79,7 +79,7 @@
                     {{-- Job Group Selection --}}
                     <div class="form-group">
                         <label class="form-label">Job Group <span style="color:var(--text-muted);font-size:12px;font-weight:400">(Optional)</span></label>
-    
+
                         <div style="display:flex;gap:8px;align-items:flex-start">
                             <select name="job_group_id" id="jobGroupSelect"
                                 style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:6px;font-size:14px">
@@ -90,7 +90,7 @@
                                 </option>
                                 @endforeach
                             </select>
-    
+
                             <button type="button" onclick="openNewGroupModal()"
                                 style="padding:10px 16px;background:var(--success);color:#fff;border:none;
                            border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;white-space:nowrap">
@@ -117,7 +117,8 @@
                             <option value="Import by Sea" {{ old('category')=='Import by Sea'  ?'selected':'' }}>Import by Sea</option>
                             <option value="Export by Air" {{ old('category')=='Export by Air'  ?'selected':'' }}>Export by Air</option>
                             <option value="Export by Sea" {{ old('category')=='Export by Sea'  ?'selected':'' }}>Export by Sea</option>
-                            <option value="By Truck" {{ old('category')=='By Truck'   ?'selected':'' }}>By Truck</option>
+                            <option value="By Truck (IMP)" {{ old('category')=='By Truck (IMP)'   ?'selected':'' }}>By Truck (IMP)</option>
+                            <option value="By Truck (EXP)" {{ old('category')=='By Truck (EXP)'   ?'selected':'' }}>By Truck (EXP)</option>
                             <option value="Other" {{ old('category')=='Other' ?'selected':'' }}>Other</option>
                         </select>
                         <label class="form-label" style="margin-top:6px">Items</label>
@@ -216,7 +217,10 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">B/E No</label>
-                        <input type="number" name="be_no" class="form-control" value="{{ old('be_no') }}">
+                        <input type="text" name="be_no" class="form-control"
+                            value="{{ old('be_no', $job->be_no ?? '') }}"
+                            placeholder="C-123456"
+                            oninput="autoPrefixBE(this)">
                     </div>
                     <div class="form-group">
                         <label class="form-label">B/E Date</label>
@@ -387,6 +391,17 @@
                 errorDiv.textContent = 'Error: ' + err.message;
                 errorDiv.style.display = 'block';
             });
+    }
+
+    function autoPrefixBE(input) {
+        let val = input.value.trim();
+
+        // If user types just numbers, add "C-" prefix on blur
+        input.addEventListener('blur', function() {
+            if (val && !val.startsWith('C-') && !val.startsWith('c-')) {
+                input.value = 'C-' + val.replace(/^[Cc]-?/, '');
+            }
+        });
     }
 
     // Close modal on background click
