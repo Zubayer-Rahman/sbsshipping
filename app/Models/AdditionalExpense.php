@@ -22,6 +22,7 @@ class AdditionalExpense extends Model
         'billed_to_bill_id',
         'billed_at',
         'created_by',
+        'payment_account_id',
     ];
 
     protected $casts = [
@@ -39,6 +40,11 @@ class AdditionalExpense extends Model
     public function job()
     {
         return $this->belongsTo(Job::class, 'job_id');
+    }
+
+    public function paymentAccount()
+    {
+        return $this->belongsTo(PaymentAccount::class);
     }
 
     public function bill()

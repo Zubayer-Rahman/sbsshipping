@@ -176,6 +176,13 @@
         <h1 class="page-title">Payment Accounts</h1>
         <div style="display: flex; gap: 0.75rem;">
             <a href="{{ route('accounts.cashflow') }}" class="btn btn-outline">📊 View Cash Flow</a>
+            {{-- ADD THESE TWO BUTTONS --}}
+            <button onclick="openDepositModal()" class="btn" style="background:#10b981;color:white;">
+                💰 Add Cash
+            </button>
+            <button onclick="openTransferModal()" class="btn" style="background:#6366f1;color:white;">
+                🔄 Transfer
+            </button>
             <a href="{{ route('accounts.create') }}" class="btn btn-primary">+ Add New Account</a>
         </div>
     </div>
@@ -238,15 +245,26 @@
                                 <span style="font-size: 0.7rem; color: var(--text-muted);">{{ $account->created_at->format('d M Y') }}</span>
                             </div>
                         </td>
-                        <td class="text-right" style="display: flex; gap: 0.5rem;">
-                            <a href="{{ route('accounts.show', $account) }}" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;" onclick="event.stopPropagation();">
-                                View Details
+                        <td class="text-right" style="display:flex;gap:0.5rem;" onclick="event.stopPropagation()">
+                            {{-- ADD CASH button per row --}}
+                            <button onclick="openDepositModal({{ $account->id }}, '{{ $account->account_name }}')"
+                                class="btn" style="background:#10b981;color:white;padding:0.4rem 0.8rem;font-size:0.75rem;">
+                                💰 Add Cash
+                            </button>
+                            {{-- TRANSFER button per row --}}
+                            <button onclick="openTransferModal({{ $account->id }})"
+                                class="btn" style="background:#6366f1;color:white;padding:0.4rem 0.8rem;font-size:0.75rem;">
+                                🔄 Transfer
+                            </button>
+                            <a href="{{ route('accounts.show', $account) }}"
+                                class="btn btn-outline" style="padding:0.4rem 0.8rem;font-size:0.75rem;">
+                                View
                             </a>
-                            {{-- Delete Button --}}
-                            <form action="{{ route('accounts.destroy', $account) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this account?')" onclick="event.stopPropagation();">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn" style="background: var(--danger); color: white; padding: 0.4rem 0.8rem; font-size: 0.75rem;">
+                            <form action="{{ route('accounts.destroy', $account) }}" method="POST"
+                                onsubmit="return confirm('Are you sure?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn"
+                                    style="background:var(--danger);color:white;padding:0.4rem 0.8rem;font-size:0.75rem;">
                                     Delete
                                 </button>
                             </form>
@@ -264,4 +282,200 @@
         </div>
     </div>
 </div>
+
+
+
+{{-- ===================== DEPOSIT MODAL ===================== --}}
+<div id="depositModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+     z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:var(--card-bg);border-radius:var(--radius);padding:2rem;
+                width:100%;max-width:480px;box-shadow:var(--shadow-md);position:relative;">
+
+        {{-- Close --}}
+        <button onclick="closeDepositModal()"
+            style="position:absolute;top:1rem;right:1rem;background:none;border:none;
+                   font-size:1.25rem;cursor:pointer;color:var(--text-muted)">✕</button>
+
+        <h2 style="margin:0 0 1.5rem;font-size:1.25rem;font-weight:700;color:var(--text-primary)">
+            💰 Add Cash / Deposit
+        </h2>
+
+        <form action="" method="POST" id="depositForm">
+            @csrf
+
+            {{-- Account Dropdown --}}
+            <div class="form-group" style="margin-bottom:1rem">
+                <label class="form-label">To Account <span class="required">*</span></label>
+                <select name="account_id" id="depositAccountSelect" required
+                    class="form-control" onchange="updateDepositAction(this.value)">
+                    @foreach($accounts as $acc)
+                    <option value="{{ $acc->id }}" data-name="{{ $acc->account_name }}">
+                        {{ $acc->account_name }} (৳{{ number_format($acc->current_balance, 2) }})
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Amount --}}
+            <div class="form-group" style="margin-bottom:1rem">
+                <label class="form-label">Amount <span class="required">*</span></label>
+                <input type="number" name="amount" step="0.01" min="0.01" required
+                    class="form-control" placeholder="0.00">
+            </div>
+
+            {{-- Description --}}
+            <div class="form-group" style="margin-bottom:1rem">
+                <label class="form-label">Description <span class="required">*</span></label>
+                <input type="text" name="description" required class="form-control"
+                    placeholder="e.g., Cash received from client">
+            </div>
+
+            {{-- Date --}}
+            <div class="form-group" style="margin-bottom:1.5rem">
+                <label class="form-label">Date <span class="required">*</span></label>
+                <input type="date" name="date" required class="form-control"
+                    value="{{ date('Y-m-d') }}">
+            </div>
+
+            <div style="display:flex;gap:0.75rem">
+                <button type="submit" class="btn btn-primary" style="flex:1">
+                    💰 Deposit
+                </button>
+                <button type="button" onclick="closeDepositModal()"
+                    class="btn btn-outline" style="flex:1">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- ===================== TRANSFER MODAL ===================== --}}
+<div id="transferModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+     z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:var(--card-bg);border-radius:var(--radius);padding:2rem;
+                width:100%;max-width:480px;box-shadow:var(--shadow-md);position:relative;">
+
+        {{-- Close --}}
+        <button onclick="closeTransferModal()"
+            style="position:absolute;top:1rem;right:1rem;background:none;border:none;
+                   font-size:1.25rem;cursor:pointer;color:var(--text-muted)">✕</button>
+
+        <h2 style="margin:0 0 1.5rem;font-size:1.25rem;font-weight:700;color:var(--text-primary)">
+            🔄 Transfer Between Accounts
+        </h2>
+
+        <form action="{{ route('accounts.transfer') }}" method="POST">
+            @csrf
+
+            {{-- From Account --}}
+            <div class="form-group" style="margin-bottom:1rem">
+                <label class="form-label">From Account <span class="required">*</span></label>
+                <select name="from_account_id" id="fromAccountSelect" required class="form-control">
+                    @foreach($accounts as $acc)
+                    <option value="{{ $acc->id }}">
+                        {{ $acc->account_name }} (৳{{ number_format($acc->current_balance, 2) }})
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- To Account --}}
+            <div class="form-group" style="margin-bottom:1rem">
+                <label class="form-label">To Account <span class="required">*</span></label>
+                <select name="to_account_id" id="toAccountSelect" required class="form-control">
+                    @foreach($accounts as $acc)
+                    <option value="{{ $acc->id }}">
+                        {{ $acc->account_name }} (৳{{ number_format($acc->current_balance, 2) }})
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Amount --}}
+            <div class="form-group" style="margin-bottom:1rem">
+                <label class="form-label">Amount <span class="required">*</span></label>
+                <input type="number" name="amount" step="0.01" min="0.01" required
+                    class="form-control" placeholder="0.00">
+            </div>
+
+            {{-- Description --}}
+            <div class="form-group" style="margin-bottom:1rem">
+                <label class="form-label">Description</label>
+                <input type="text" name="description" class="form-control"
+                    placeholder="Optional note about this transfer">
+            </div>
+
+            {{-- Date --}}
+            <div class="form-group" style="margin-bottom:1.5rem">
+                <label class="form-label">Date <span class="required">*</span></label>
+                <input type="date" name="date" required class="form-control"
+                    value="{{ date('Y-m-d') }}">
+            </div>
+
+            <div style="display:flex;gap:0.75rem">
+                <button type="submit" class="btn" style="flex:1;background:#6366f1;color:white;">
+                    🔄 Transfer
+                </button>
+                <button type="button" onclick="closeTransferModal()"
+                    class="btn btn-outline" style="flex:1">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+    // ---- Deposit Modal ----
+    function openDepositModal(accountId = null, accountName = null) {
+        const modal = document.getElementById('depositModal');
+        modal.style.display = 'flex';
+
+        // Pre-select account if called from row button
+        if (accountId) {
+            const select = document.getElementById('depositAccountSelect');
+            select.value = accountId;
+            updateDepositAction(accountId);
+        } else {
+            // Default to first account
+            const select = document.getElementById('depositAccountSelect');
+            updateDepositAction(select.value);
+        }
+    }
+
+    function closeDepositModal() {
+        document.getElementById('depositModal').style.display = 'none';
+    }
+
+    function updateDepositAction(accountId) {
+        const routes = @json($depositRoutes);
+        document.getElementById('depositForm').action = routes[accountId];
+    }
+
+    // ---- Transfer Modal ----
+    function openTransferModal(fromAccountId = null) {
+        const modal = document.getElementById('transferModal');
+        modal.style.display = 'flex';
+
+        // Pre-select from account if called from row button
+        if (fromAccountId) {
+            document.getElementById('fromAccountSelect').value = fromAccountId;
+        }
+    }
+
+    function closeTransferModal() {
+        document.getElementById('transferModal').style.display = 'none';
+    }
+
+    // Close modals on backdrop click
+    document.getElementById('depositModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDepositModal();
+    });
+    document.getElementById('transferModal').addEventListener('click', function(e) {
+        if (e.target === this) closeTransferModal();
+    });
+</script>
+@endpush

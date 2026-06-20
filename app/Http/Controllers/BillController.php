@@ -296,38 +296,31 @@ class BillController extends Controller
             return response()->json(['error' => 'Job not found'], 404);
         }
 
-        // Determine value to use for calculation
-        $value = $job->imp_exp_value ?? $job->invoice_value_usd ?? 0;
-        $category = strtolower($job->category ?? '');
-        $type = strtolower($job->type ?? '');
-        $qty = $job->quantity ?? 0;
+        $value = (float) ($job->imp_exp_value ?? $job->invoice_value_usd ?? 0);
+        $category = strtolower(trim($job->category ?? ''));
+        $type = strtoupper(trim($job->type ?? ''));
+        $qty = (float) ($job->quantity ?? 0);
+
         $percentage = 0;
 
-        // IMPORT Category
-        if (str_contains($category, 'import')) {
-            if ($value <= 20000) $percentage = 0.13;
-            elseif ($value <= 50000) $percentage = 0.12;
-            elseif ($value <= 100000) $percentage = 0.09;
-            else $percentage = 0.07;
-        }
-        // EXPORT Category
-        elseif (str_contains($category, 'export')) {
-            if ($value <= 50000) $percentage = 0.11;
-            elseif ($value <= 100000) $percentage = 0.08;
-            else $percentage = 0.06;
-        }
+        $isImportAir = str_contains($category, 'import') && str_contains($category, 'air');
+        $isImport = str_contains($category, 'import') || str_contains($category, 'imp');
+        $isExport = str_contains($category, 'export') || str_contains($category, 'exp');
 
-        elseif (str_contains($category, 'imp')) {
-            if ($value <= 50000) {
-                $percentage = 0.11;
+        // Import calculation
+        if ($isImport) {
+            if ($value <= 20000) {
+                $percentage = 0.13;
+            } elseif ($value <= 50000) {
+                $percentage = 0.12;
             } elseif ($value <= 100000) {
-                $percentage = 0.08;
+                $percentage = 0.09;
             } else {
-                $percentage = 0.06;
+                $percentage = 0.07;
             }
         }
-
-        elseif (str_contains($category, 'exp')) {
+        // Export calculation
+        elseif ($isExport) {
             if ($value <= 50000) {
                 $percentage = 0.11;
             } elseif ($value <= 100000) {
@@ -354,6 +347,7 @@ class BillController extends Controller
                 'percentage' => $percentage,
                 'service_charge_amount' => $serviceCharge,
                 'imp_exp_value' => $value,
+                'skip_agency_commission' => $isImportAir,
             ]
         ]);
     }

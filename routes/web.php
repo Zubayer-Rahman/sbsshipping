@@ -150,6 +150,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{account}', [PaymentAccountController::class, 'destroy'])->name('destroy');
         Route::get('/{account}', [PaymentAccountController::class, 'show'])->name('show');
         Route::post('/{account}/toggle', [PaymentAccountController::class, 'toggleActive'])->name('toggle');
+        Route::post('/{account}/deposit', [PaymentAccountController::class, 'deposit'])->name('deposit');
+        Route::post('/transfer', [PaymentAccountController::class, 'transfer'])->name('transfer');
     });
 
 

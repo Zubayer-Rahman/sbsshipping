@@ -623,12 +623,19 @@
         const qty = parseFloat(job.quantity) || 0;
         const items = [];
 
-        //debugging
-        console.log('Job Data:', {
-            category: category,
-            type: type,
-            client: job.client_name,
-            serviceCharge: serviceCharge
+        const isImportByAir = category.includes('import') && category.includes('air');
+
+        removeAutoBillRows(job.id);
+
+        // // Remove previously generated rows for this job first
+        // removeGeneratedRowsForJob(job.id);
+
+        console.log('generateBillItems called:', {
+            jobId: job.id,
+            category,
+            type,
+            serviceCharge,
+            isImportByAir
         });
 
         // 1. RULE: Import By Sea - FCL
@@ -645,7 +652,7 @@
             });
             items.push({
                 name: 'Port charge',
-                desc: "Port Handling Charge",
+                desc: "Port Handling Charge"
             });
             items.push({
                 name: 'Depot Charge Empty Container Payment',
@@ -657,19 +664,19 @@
             });
             items.push({
                 name: 'Labor sorting charge',
-                desc: "Labor Sorting Charge",
+                desc: "Labor Sorting Charge"
             });
             items.push({
                 name: 'Labor loading charge',
-                desc: "Labor Loading Charge",
+                desc: "Labor Loading Charge"
             });
             items.push({
                 name: 'Labor unloading charge',
-                desc: "Labor Unloading Charge",
+                desc: "Labor Unloading Charge"
             });
             items.push({
                 name: 'Transportation',
-                desc: "Transportation Charge",
+                desc: "Transportation Charge"
             });
             items.push({
                 name: 'Survey fee',
@@ -704,13 +711,13 @@
             });
             items.push({
                 name: 'Agent & NOC Charges:',
-                desc: "Agent and NOC Charges",
+                desc: "Agent and NOC Charges"
             });
             items.push({
                 name: 'Port charge',
-                desc: "Port Handling Charge",
+                desc: "Port Handling Charge"
             });
-            // Labor charges: 4.17 x Quantity
+
             const laborAmt = (4.17 * qty).toFixed(2);
             items.push({
                 name: 'Labor sorting charge',
@@ -719,20 +726,20 @@
             });
             items.push({
                 name: 'Labour loading charge',
-                price: laborAmt,
-                desc: `4.17 x ${qty} qty`
+                desc: `4.17 x ${qty} qty`,
+                price: laborAmt
             });
             items.push({
                 name: 'Transportation',
-                desc: "Transportation Charge",
+                desc: "Transportation Charge"
             });
             items.push({
                 name: 'Court fee:',
-                desc: "Court Fee",
+                desc: "Court Fee"
             });
             items.push({
                 name: 'Scanning & Vat Charge',
-                desc: "Scanning and VAT Charge",
+                desc: "Scanning and VAT Charge"
             });
         }
 
@@ -744,7 +751,7 @@
             });
             items.push({
                 name: 'Transport',
-                desc: "Transportation Charge",
+                desc: "Transportation Charge"
             });
             items.push({
                 name: 'Court Fee',
@@ -753,7 +760,7 @@
             });
             items.push({
                 name: 'Scanning & Vat Charge:',
-                desc: "Scanning and VAT Charge",
+                desc: "Scanning and VAT Charge"
             });
         }
 
@@ -780,7 +787,7 @@
             });
             items.push({
                 name: 'Transport',
-                desc: "Transportation Charge",
+                desc: "Transportation Charge"
             });
             items.push({
                 name: 'Scanning & Vat Charge:',
@@ -800,7 +807,7 @@
             });
         }
 
-        // 5. RULE: By Truck (EXP)
+        // 6. RULE: By Truck (EXP)
         else if (category.includes('truck') && category.includes('exp')) {
             items.push({
                 name: 'Documentation 0020',
@@ -812,29 +819,16 @@
             });
         }
 
-        // 6. RULE: Import by Air
-        else if (category.includes('import') && category.includes('air')) {
+        // 7. RULE: Import by Air
+        else if (isImportByAir) {
             items.push({
                 name: 'Documentation Processing & Handling Charge',
                 price: 1575
             });
         }
 
-        // if(category.includes('import') && category.includes('air')){
-        //     items.push({
-        //         name: 'Documentation Processing & Handling Charge',
-        //         price: 1575
-        //     });
-        // }else if(serviceCharge > 0){
-        //     items.push({
-        //         name: 'Agency Commission',
-        //         price: serviceCharge,
-        //         desc: `${percentage}% Service Charge for Job ${job.job_id || job.job_no}`
-        //     });
-        // }
-
-        // 7. ALWAYS ADD: Agency Commission (Calculated Service Charge)
-        if (serviceCharge > 0) {
+        // Skip agency commission only for import by air
+        if (serviceCharge > 0 && !isImportByAir) {
             items.push({
                 name: 'Agency Commission',
                 price: serviceCharge,
@@ -842,17 +836,23 @@
             });
         }
 
-        // Now insert all these items into the main Bill table
         items.forEach(item => {
             addBillRow({
                 name: item.name,
                 description: item.desc || `Job: ${job.job_id || job.job_no}`,
                 quantity: 1,
                 price: item.price,
-                jobId: job.id 
+                jobId: job.id,
+                autoGenerated: true
             });
         });
     }
+
+    // //helper function to remove previously generated rows for a job
+    // function removeGeneratedRowsForJob(jobId) {
+    //     document.querySelectorAll(`.bill-row[data-job-id="${jobId}"][data-auto-generated="1"]`)
+    //         .forEach(row => row.remove());
+    // }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Job Dropdown with Search by Job ID or Client Name
@@ -1178,6 +1178,7 @@
         if (noExp) noExp.style.display = 'none';
     }
 
+
     function removeJob(id) {
         const cb = document.querySelector(`#jobCheckboxPool .job-check[value="${id}"]`);
         if (cb) {
@@ -1228,6 +1229,10 @@
         expenseRowCounter++;
         const tbody = document.getElementById('expenseRowsBody');
 
+        const category = (job.category || '').toLowerCase();
+        const isImportByAir = category.includes('import') && category.includes('air');
+        if (isImportByAir) return;
+
         if (!tbody) {
             console.error('expenseRowsBody not found! Make sure your additional expenses table exists.');
             return;
@@ -1272,7 +1277,7 @@
         </td>
         <td style="text-align:center;padding:10px 14px;border-bottom:1px solid var(--border)">
             <button type="button" 
-                    onclick="removeServiceChargeRow('${row.id}', '${job.id}')"
+                    onclick="removeServiceChargeRow('${row.id}')"
                     style="background:none;border:1px solid var(--danger);color:var(--danger);
                            width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px">
                 ×
@@ -1293,10 +1298,9 @@
         showNotification(`✓ Added ৳${calculation.service_charge_amount.toFixed(2)} service charge for ${jobLabel}`, 'success');
     }
 
-    function removeServiceChargeRow(rowId, jobId) {
+    function removeServiceChargeRow(rowId) {
         const row = document.getElementById(rowId);
         if (row) row.remove();
-        addedJobsTracker.delete(jobId);
 
         if (typeof calculateExpenseTotal === 'function') calculateExpenseTotal();
         if (typeof renumberRows === 'function') renumberRows();
@@ -1422,6 +1426,25 @@
     `;
 
         tbody.appendChild(row);
+        calcBillTotals();
+    }
+
+    function updateBillRowNumbers() {
+        const rows = document.querySelectorAll('#billItemsBody tr');
+        rows.forEach((row, index) => {
+            const firstCell = row.querySelector('td');
+            if (firstCell) {
+                firstCell.textContent = index + 1;
+            }
+        });
+    }
+
+    function removeAutoBillRows(jobId) {
+        document.querySelectorAll(`.auto-bill-row[data-job-id="${jobId}"]`).forEach(row => {
+            row.remove();
+        });
+
+        updateBillRowNumbers();
         calcBillTotals();
     }
 

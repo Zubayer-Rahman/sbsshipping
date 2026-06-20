@@ -60,13 +60,26 @@ class AdditionalExpenseController extends Controller
             'to_be_billed' => 'required|numeric|min:0',
             'expense_date' => 'required|date',
             'notes' => 'nullable|string',
+            'payment_account_id' => 'required|exists:payment_accounts,id', // ← ADD THIS
         ]);
 
         $validated['reference_no'] = AdditionalExpense::generateReferenceNo();
         $validated['created_by'] = Auth::id();
         $validated['status'] = 'pending';
 
-        AdditionalExpense::create($validated);
+        $expense = AdditionalExpense::create($validated);
+
+        // ← ADD THIS BLOCK: Deduct from payment account
+        $account = \App\Models\PaymentAccount::findOrFail($validated['payment_account_id']);
+        $account->recordTransaction(
+            'debit',
+            $validated['actual_amount'],
+            'additional_expense',
+            $expense->id,
+            'Additional Expense: ' . $validated['description'] . ' (' . $expense->reference_no . ')',
+            $validated['expense_date'],
+            Auth::id()
+        );
 
         return redirect()->route('additional-expenses.index')
             ->with('success', 'Additional expense created successfully!');

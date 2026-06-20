@@ -18,7 +18,12 @@ class PaymentAccountController extends Controller
         $totalBalance = $accounts->sum('current_balance');
         $activeAccounts = $accounts->where('is_active', true)->count();
 
-        return view('accounts.index', compact('accounts', 'totalBalance', 'activeAccounts'));
+
+        $depositRoutes = $accounts->mapWithKeys(function ($account) {
+            return [$account->id => route('accounts.deposit', $account)];
+        })->toArray();
+
+        return view('accounts.index', compact('accounts', 'totalBalance', 'activeAccounts', 'depositRoutes'));
     }
 
     // Show create form
@@ -136,6 +141,79 @@ class PaymentAccountController extends Controller
         );
 
         return redirect()->back()->with('success', 'Account balance adjusted successfully!');
+    }
+
+    public function deposit(Request $request, PaymentAccount $account)
+    {
+        $validated = $request->validate([
+            'amount'      => 'required|numeric|min:0.01',
+            'description' => 'required|string|max:255',
+            'date'        => 'required|date',
+        ]);
+
+        $account->recordTransaction(
+            'credit',
+            $validated['amount'],
+            'deposit',
+            $account->id,
+            $validated['description'],
+            $validated['date'],
+            Auth::id()
+        );
+
+        return redirect()->route('accounts.index')
+            ->with('success', '৳' . number_format($validated['amount'], 2) . ' deposited to ' . $account->account_name . ' successfully!');
+    }
+
+    // Transfer money between accounts
+    public function transfer(Request $request)
+    {
+        $validated = $request->validate([
+            'from_account_id' => 'required|exists:payment_accounts,id',
+            'to_account_id'   => 'required|exists:payment_accounts,id|different:from_account_id',
+            'amount'          => 'required|numeric|min:0.01',
+            'description'     => 'nullable|string|max:255',
+            'date'            => 'required|date',
+        ]);
+
+        $fromAccount = PaymentAccount::findOrFail($validated['from_account_id']);
+        $toAccount   = PaymentAccount::findOrFail($validated['to_account_id']);
+
+        // Check sufficient balance
+        if ($fromAccount->current_balance < $validated['amount']) {
+            return redirect()->back()
+                ->with('error', 'Insufficient balance in ' . $fromAccount->account_name . '!');
+        }
+
+        $description = $validated['description']
+            ?: 'Transfer from ' . $fromAccount->account_name . ' to ' . $toAccount->account_name;
+
+        DB::transaction(function () use ($fromAccount, $toAccount, $validated, $description) {
+            // Deduct from source
+            $fromAccount->recordTransaction(
+                'debit',
+                $validated['amount'],
+                'transfer',
+                $toAccount->id,
+                'Transfer to ' . $toAccount->account_name . ': ' . $description,
+                $validated['date'],
+                Auth::id()
+            );
+
+            // Add to destination
+            $toAccount->recordTransaction(
+                'credit',
+                $validated['amount'],
+                'transfer',
+                $fromAccount->id,
+                'Transfer from ' . $fromAccount->account_name . ': ' . $description,
+                $validated['date'],
+                Auth::id()
+            );
+        });
+
+        return redirect()->route('accounts.index')
+            ->with('success', '৳' . number_format($validated['amount'], 2) . ' transferred from ' . $fromAccount->account_name . ' to ' . $toAccount->account_name . ' successfully!');
     }
 
     // Toggle active status
