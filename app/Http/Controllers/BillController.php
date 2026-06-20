@@ -327,6 +327,16 @@ class BillController extends Controller
             }
         }
 
+        elseif (str_contains($category, 'exp')) {
+            if ($value <= 50000) {
+                $percentage = 0.11;
+            } elseif ($value <= 100000) {
+                $percentage = 0.08;
+            } else {
+                $percentage = 0.06;
+            }
+        }
+
         $serviceCharge = round(($value * $percentage) / 100, 2);
 
         return response()->json([

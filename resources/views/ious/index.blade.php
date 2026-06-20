@@ -500,7 +500,7 @@
                         <td>
                             <span class="text-link font-semibold">{{ $iou->reference_number }}</span>
                         </td>
-                        <td>{{ $iou->contact->name }}</td>
+                        <td>{{ $iou->contact->name ?? 'N/A' }}</td>
                         <td>
                             <span class="badge {{ $iou->type == 'receivable' ? 'badge-success' : 'badge-danger' }}">
                                 {{ ucfirst($iou->type) }}

@@ -72,8 +72,8 @@ class IouController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'contact_id' => 'required|exists:contacts,id',
-            'user_id' => 'required|exists:users,id',
+            'contact_id' => 'required|exists:users,id',
+            // 'user_id' => 'nullable|exists:users,id',
             'job_id' => 'nullable|string',
             'amount' => 'required|numeric|min:0.01',
             'type' => 'required|in:receivable,payable',
@@ -230,6 +230,8 @@ class IouController extends Controller
     //             ->with('success', 'IOU created and Account balance updated!');
     //     });
     // }
+
+
 
     // Show single IOU
     public function show(Iou $iou)

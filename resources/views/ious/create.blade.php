@@ -238,9 +238,9 @@
                     <label class="form-label">Contact <span class="required">*</span></label>
                     <select name="contact_id" required class="form-control @error('contact_id') error @enderror">
                         <option value="">Select Contact</option>
-                        @foreach($users as $user)
-                        <option value="{{ $user->name }}" {{ old('contact_id') == $user->name ? 'selected' : '' }}>
-                            {{ $user->name }}
+                        @foreach($users as $contact)
+                        <option value="{{ $contact->id }}" {{ old('contact_id') == $contact->id ? 'selected' : '' }}>
+                            {{ $contact->name }}
                         </option>
                         @endforeach
                     </select>

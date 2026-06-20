@@ -63,7 +63,12 @@
                             <label class="form-label">User</label>
                             <select name="assigned_user" class="form-select">
                                 <option value="">Select User</option>
-                                <option value="{{ auth()->id() }}" selected>{{ auth()->user()->name }}</option>
+                                @foreach($users as $user)
+                                <option value="{{ $user->id }}" {{ old('assigned_user') == $user->id ? 'selected' : '' }}>
+                                    {{ $user->name }}
+                                </option>
+                                @endforeach
+                                <!-- <option value="{{ auth()->id() }}" selected>{{ auth()->user()->name }}</option> -->
                             </select>
                         </div>
                     </div>

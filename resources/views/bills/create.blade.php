@@ -820,6 +820,19 @@
             });
         }
 
+        // if(category.includes('import') && category.includes('air')){
+        //     items.push({
+        //         name: 'Documentation Processing & Handling Charge',
+        //         price: 1575
+        //     });
+        // }else if(serviceCharge > 0){
+        //     items.push({
+        //         name: 'Agency Commission',
+        //         price: serviceCharge,
+        //         desc: `${percentage}% Service Charge for Job ${job.job_id || job.job_no}`
+        //     });
+        // }
+
         // 7. ALWAYS ADD: Agency Commission (Calculated Service Charge)
         if (serviceCharge > 0) {
             items.push({

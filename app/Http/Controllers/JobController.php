@@ -43,6 +43,8 @@ class JobController extends Controller
 
     public function create()
     {
+
+        $users = User::orderBy('name')->get();
         // Load all active clients from the contacts table
         $clients = Contact::where('type', 'client')
             ->where('is_active', true)
@@ -51,7 +53,7 @@ class JobController extends Controller
 
         $types = Job::whereNotNull('type')->distinct()->pluck('type')->sort()->values();
 
-        return view('jobs.create', compact('clients', 'types'));
+        return view('jobs.create', compact('clients', 'types', 'users'));
     }
 
     public function store(Request $request)
@@ -82,7 +84,7 @@ class JobController extends Controller
     public function edit(Job $job)
     {
         $clients = Contact::where('type', 'client')->get();
-        $users = User::all();
+        $users = User::orderBy('name')->get();
         return view('jobs.edit', compact('job', 'clients', 'users'));
     }
 
