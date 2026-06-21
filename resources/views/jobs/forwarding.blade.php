@@ -79,12 +79,12 @@
                     @php
                     $cols = [
                     'job_no' => 'Job Bill No',
-                    'be_no' => 'Bill Number',
+                    // 'be_no' => 'Bill Number',
                     'ip_ep_no' => 'IP/EP No',
-                    'ip_ep_date' => 'IP/EP Date',
                     'boe_no' => 'BOE No',
                     'awb_no' => 'AWB No',
                     'invoice_no' => 'Invoice No',
+                    'invoice_date' => 'Invoice Date',
                     'invoice_value_usd' => 'Invoice Amount',
                     'buyer_name' => 'Buyer',
                     'vessel_name' => 'IIMS',
@@ -122,12 +122,13 @@
                                         style="accent-color:#fff;width:14px;height:14px">
                                 </th>
                                 <th style="padding:10px 12px;text-align:left;white-space:nowrap">Job Bill No</th>
-                                <th class="col-be_no" style="padding:10px 12px;text-align:left;white-space:nowrap">Bill Number</th>
+                                <!-- <th class="col-be_no" style="padding:10px 12px;text-align:left;white-space:nowrap">Bill Number</th> -->
                                 <th class="col-ip_ep_no" style="padding:10px 12px;text-align:left;white-space:nowrap">IP/EP No</th>
                                 <th class="col-ip_ep_date" style="padding:10px 12px;text-align:left;white-space:nowrap">IP/EP Date</th>
                                 <th class="col-boe_no" style="padding:10px 12px;text-align:left;white-space:nowrap">BOE No</th>
                                 <th class="col-awb_no" style="padding:10px 12px;text-align:left;white-space:nowrap">AWB No</th>
                                 <th class="col-invoice_no" style="padding:10px 12px;text-align:left;white-space:nowrap">Invoice No</th>
+                                <th class="col-invoice_no" style="padding:10px 12px;text-align:left;white-space:nowrap">Invoice Date</th>
                                 <th class="col-invoice_value_usd" style="padding:10px 12px;text-align:right;white-space:nowrap">Invoice Amount</th>
                                 <th class="col-buyer_name" style="padding:10px 12px;text-align:left;white-space:nowrap">Buyer</th>
                                 <th class="col-vessel_name" style="padding:10px 12px;text-align:left;white-space:nowrap">IIMS</th>
@@ -267,12 +268,12 @@
             <td><input type="checkbox" class="job-check" data-id="${j.id}"
                        style="accent-color:var(--primary);width:14px;height:14px"></td>
             <td style="font-weight:700;color:var(--primary)">${j.job_no ?? j.job_id ?? '—'}</td>
-            <td class="col-be_no">${j.be_no ?? '—'}</td>
             <td class="col-ip_ep_no">${j.ip_ep_no ?? '—'}</td>
             <td class="col-ip_ep_date">${j.ip_ep_date ? j.ip_ep_date.substring(0,10) : '—'}</td>
             <td class="col-boe_no">${j.be_no ?? '—'}</td>
             <td class="col-awb_no">${j.awb_no ?? '—'}</td>
             <td class="col-invoice_no">${j.invoice_no ?? '—'}</td>
+            <td class="col-invoice_date">${j.invoice_date ? j.invoice_date.substring(0,10) : '—'}</td>
             <td class="col-invoice_value_usd" style="text-align:right">${j.invoice_value_usd ? parseFloat(j.invoice_value_usd).toFixed(2) : '0.00'}</td>
             <td class="col-buyer_name">${j.buyer_name ?? '—'}</td>
             <td class="col-vessel_name">${j.vessel_name ?? '—'}</td>

@@ -92,7 +92,7 @@
             width: 210mm;
             min-height: 297mm;
             background: #fff;
-            padding: 14mm 16mm;
+            padding: 14mm 10mm;
             box-shadow: 0 4px 24px rgba(0, 0, 0, .15);
             position: relative;
         }
@@ -100,7 +100,7 @@
         /* ── Letter Head ── */
         .lh-wrapper {
             display: grid;
-            grid-template-columns: 1fr auto 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 8px;
             align-items: start;
             border-bottom: 2px solid #000;
@@ -116,10 +116,11 @@
 
         .lh-center {
             text-align: center;
+            font-size: 28px;
         }
 
         .lh-name-bn {
-            font-size: 18px;
+            /* font-size: 18px; */
             font-weight: 900;
             color: #003087;
             line-height: 1.2;
@@ -276,6 +277,12 @@
         <div class="paper">
 
             {{-- ── Letter Head ── --}}
+            <div class="lh-center">
+                <div class="lh-name-bn">S.B.S Shipping and Trading Agencies (Pvt.) Ltd.</div>
+                <div class="lh-name-local">এস.বি,এস শিপিং এন্ড ট্রেডিং এজেন্সীস (প্রাঃ) লিমিটেড</div>
+                <div><span class="lh-badge">C &amp; F AGENT</span></div>
+            </div>
+
             <div class="lh-wrapper">
                 <div class="lh-left">
                     <strong>Head Office</strong><br>
@@ -283,16 +290,11 @@
                     Phone : 02333358128, 02333514390,<br>
                     E-mail: sbshipping12@gmail.com
                 </div>
-                <div class="lh-center">
-                    <div class="lh-name-bn">S.B.S Shipping and Trading Agencies (Pvt.) Ltd.</div>
-                    <div class="lh-name-local">এস.বি,এস শিপিং এন্ড ট্রেডিং এজেন্সীস (প্রাঃ) লিমিটেড</div>
-                    <div><span class="lh-badge">C &amp; F AGENT</span></div>
-                </div>
                 <div class="lh-right" style="text-align:right">
                     <strong>Dhaka Office</strong><br>
                     House # 71 (Gd.Fl.), Road # 27, Gulshan -1, Dhaka<br>
                     Phone : 02333358128, 02333514390<br>
-                    E-mail: sbshipping12@gmail.com
+                    E-mail: sbsshipping12@gmail.com
                 </div>
             </div>
 
@@ -322,15 +324,16 @@
 
             {{-- ── Jobs Table ── --}}
             @php
-            $visibleCols = $letter->visible_columns ?? array_keys(['job_no'=>1,'be_no'=>1,'ip_ep_no'=>1,'ip_ep_date'=>1,'boe_no'=>1,'awb_no'=>1,'invoice_no'=>1,'invoice_value_usd'=>1,'buyer_name'=>1,'vessel_name'=>1]);
+            $visibleCols = $letter->visible_columns ?? array_keys(['job_no'=>1,'be_no'=>1,'ip_ep_no'=>1,'ip_ep_date'=>1,'boe_no'=>1,'awb_no'=>1,'invoice_no'=>1,'invoice_date'=>1,'invoice_value_usd'=>1,'buyer_name'=>1,'vessel_name'=>1]);
             $colMap = [
             'job_no' => 'Job No',
-            'be_no' => 'Bill Number',
+            // 'be_no' => 'Bill Number',
             'ip_ep_no' => 'IP/EP No',
             'ip_ep_date' => 'IP/EP Date',
             'boe_no' => 'BOE No.',
             'awb_no' => 'AWB No',
             'invoice_no' => 'Invoice No',
+            'invoice_date' => 'Invoice Date',
             'invoice_value_usd' => 'Amount (TK.)',
             'buyer_name' => 'Buyer',
             'vessel_name' => 'IIMS',

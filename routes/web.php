@@ -95,7 +95,7 @@ Route::middleware('auth')->group(function () {
     // ── Expenses ─────────────────────────────────────────────────────────────
     Route::prefix('expenses')->name('expenses.')->group(function () {
         Route::get('/',                    [ExpenseController::class, 'index'])->name('list');
-        Route::get('/additional',          [ExpenseController::class, 'additionalExpenses'])->name('additionalExpenses');
+        // Route::get('/additional',          [ExpenseController::class, 'additionalExpenses'])->name('additionalExpenses');
         Route::get('/create',              [ExpenseController::class, 'create'])->name('create');
         Route::post('/store',              [ExpenseController::class, 'store'])->name('store');
         Route::get('/{expense}/edit',      [ExpenseController::class, 'edit'])->name('edit');

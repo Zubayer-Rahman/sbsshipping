@@ -74,7 +74,8 @@ class Job extends Model
         'cost_amount'    => 'decimal:2',
         'expense_amount' => 'decimal:2',
         'type'           => 'string',
-        'awb_no'         => 'float:20',
+        'awb_no'         => 'string',
+        'container_no'   => 'string',
     ];
 
     public function user()

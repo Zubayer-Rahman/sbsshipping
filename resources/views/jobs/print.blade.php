@@ -59,22 +59,19 @@
         /* ─── HEADER ─── */
         .company-header {
             text-align: center;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #ccc;
-            margin-bottom: 15px;
         }
 
         .company-header h1 {
             font-size: 26px;
-            color: #1e3a8a;
+            color: #215092;
             font-weight: 800;
             margin-bottom: 4px;
             letter-spacing: -0.5px;
         }
 
         .company-header h2 {
-            font-size: 22px;
-            color: #1e3a8a;
+            font-size: 26px;
+            color: black;
             font-weight: 700;
             margin-bottom: 8px;
         }
@@ -103,6 +100,7 @@
 
         .office-block p {
             font-size: 11px;
+            font-weight: 700;
             color: #333;
             margin-top: 2px;
             line-height: 1.5;
@@ -113,7 +111,7 @@
             padding: 6px 18px;
             font-weight: 800;
             font-size: 13px;
-            color: #1a56db;
+            color: black;
             border-radius: 3px;
             background: #fff;
         }
@@ -167,8 +165,8 @@
         }
 
         .info-table td {
-            border: 1px solid #1e3a8a;
-            padding: 8px 12px;
+            border: 1px solid black;
+            padding: 4px;
             font-size: 12px;
             vertical-align: middle;
             background: #fff;
@@ -195,7 +193,7 @@
         }
 
         .expense-table th {
-            border: 1px solid #1e3a8a;
+            border: 1px solid black;
             padding: 8px 12px;
             background: #fff;
             font-weight: 700;
@@ -205,7 +203,7 @@
         }
 
         .expense-table td {
-            border: 1px solid #1e3a8a;
+            border: 1px solid black;
             padding: 8px 12px;
             font-size: 12px;
             text-align: center;
@@ -235,7 +233,7 @@
 
         .signature-cell {
             display: table-cell;
-            border: 1px solid #1e3a8a;
+            border: 1px solid black;
             padding: 14px 16px;
             font-weight: 700;
             font-size: 13px;

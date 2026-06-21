@@ -34,7 +34,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">AWB No</label>
-                        <input type="number" name="awb_no" class="form-control" value="{{ old('awb_no') }}">
+                        <input type="text" name="awb_no" class="form-control" value="{{ old('awb_no') }}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Start Date</label>
@@ -245,7 +245,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Container No</label>
-                        <input type="number" name="container_no" class="form-control" value="{{ old('container_no') }}">
+                        <input type="text" name="container_no" class="form-control" value="{{ old('container_no') }}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Shipping Agent</label>

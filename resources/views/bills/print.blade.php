@@ -6,7 +6,6 @@
     <title>Bill #{{ $bill->bill_no }} - {{ config('app.name') }}</title>
 
     <style>
-        /* ─── PRINT-OPTIMIZED RESET ─── */
         * {
             margin: 0;
             padding: 0;
@@ -16,26 +15,16 @@
         }
 
         body {
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            color: #1f2937;
+            font-family: 'Arial', 'Segoe UI', sans-serif;
+            color: #000;
             background: #f5f5f5;
-            line-height: 1.5;
-            font-size: 13px;
+            line-height: 1.4;
+            font-size: 12px;
         }
 
-        /* ─── PAGE LAYOUT ─── */
-        .page-wrap {
-            max-width: 850px;
-            margin: 20px auto;
-            background: #fff;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
-            padding: 40px;
-            border-radius: 4px;
-        }
-
-        /* ─── PRINT BUTTON (Hidden when printing) ─── */
+        /* Print Controls (hidden when printing) */
         .print-controls {
-            max-width: 850px;
+            max-width: 800px;
             margin: 20px auto 0;
             display: flex;
             justify-content: flex-end;
@@ -54,7 +43,6 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: all .2s;
         }
 
         .btn-print {
@@ -64,7 +52,6 @@
 
         .btn-print:hover {
             background: #1340b0;
-            transform: translateY(-1px);
         }
 
         .btn-back {
@@ -73,346 +60,216 @@
             border: 1px solid #e2e8f0;
         }
 
-        .btn-back:hover {
-            background: #f1f5f9;
+        /* Main Page Wrapper */
+        .page-wrap {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 25px 35px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
         }
 
-        /* ─── HEADER ─── */
-        .invoice-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding-bottom: 25px;
-            border-bottom: 3px solid #1a56db;
-            margin-bottom: 30px;
+        /* ─── COMPANY HEADER ─── */
+        .company-header {
+            text-align: center;
         }
 
-        .company-info h1 {
-            font-size: 28px;
-            color: #0f1f4b;
-            margin-bottom: 8px;
+        .company-header h1 {
+            font-size: 24px;
+            color: #215092;
             font-weight: 800;
+            margin-bottom: 4px;
             letter-spacing: -0.5px;
         }
 
-        .company-info p {
-            font-size: 12px;
-            color: #64748b;
-            line-height: 1.6;
-        }
-
-        .invoice-title {
-            text-align: right;
-        }
-
-        .invoice-title .label {
-            font-size: 32px;
-            font-weight: 800;
-            color: #1a56db;
-            letter-spacing: -1px;
-            line-height: 1;
-            margin-bottom: 8px;
-        }
-
-        .invoice-title .meta {
-            font-size: 12px;
-            color: #64748b;
-            line-height: 1.8;
-        }
-
-        .invoice-title .meta strong {
-            color: #1f2937;
-        }
-
-        /* ─── INFO GRID ─── */
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        .info-block {
-            padding: 16px;
-            background: #f9fafb;
-            border-left: 3px solid #1a56db;
-            border-radius: 4px;
-        }
-
-        .info-block .label {
-            font-size: 11px;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+        .company-header h2 {
+            font-size: 24px;
+            color: black;
             font-weight: 700;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
-        .info-block .name {
-            font-size: 15px;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 4px;
-        }
-
-        .info-block .details {
-            font-size: 12px;
-            color: #4b5563;
-            line-height: 1.6;
-        }
-
-        /* ─── ITEMS TABLE ─── */
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        .items-table thead {
-            background: #0f1f4b;
-            color: #fff;
-        }
-
-        .items-table th {
-            padding: 12px 10px;
-            text-align: left;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .items-table th.text-right {
-            text-align: right;
-        }
-
-        .items-table th.text-center {
-            text-align: center;
-        }
-
-        .items-table tbody tr {
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .items-table tbody tr:nth-child(even) {
-            background: #f9fafb;
-        }
-
-        .items-table td {
-            padding: 12px 10px;
-            font-size: 13px;
-            color: #1f2937;
-        }
-
-        .items-table td.text-right {
-            text-align: right;
-        }
-
-        .items-table td.text-center {
-            text-align: center;
-        }
-
-        .item-name {
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .item-desc {
-            font-size: 11px;
-            color: #64748b;
-            margin-top: 2px;
-        }
-
-        /* ─── ADDITIONAL EXPENSES ─── */
-        .add-exp-section {
-            margin: 25px 0;
-            padding: 16px;
-            background: #fffbeb;
-            border: 1px solid #fde68a;
-            border-radius: 6px;
-        }
-
-        .add-exp-section h3 {
-            font-size: 13px;
-            font-weight: 700;
-            color: #92400e;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .add-exp-list {
-            list-style: none;
-        }
-
-        .add-exp-list li {
+        /* Office Info Bar */
+        .office-bar {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 6px 0;
-            border-bottom: 1px dashed #fde68a;
+            font-size: 11px;
+        }
+
+        .office-block {
+            flex: 1;
+        }
+
+        .office-block.left {
+            text-align: left;
+        }
+
+        .office-block.right {
+            text-align: right;
+        }
+
+        .office-block strong {
             font-size: 12px;
-        }
-
-        .add-exp-list li:last-child {
-            border-bottom: none;
-        }
-
-        .add-exp-list .desc {
-            color: #4b5563;
-        }
-
-        .add-exp-list .amt {
+            color: #1e3a8a;
             font-weight: 700;
-            color: #1f2937;
         }
 
-        /* ─── TOTALS ─── */
-        .totals-wrap {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 30px;
+        .office-block p {
+            font-size: 11px;
+            font-weight: 700;
+            color: #333;
+            margin-top: 2px;
+            line-height: 1.5;
         }
 
-        .totals-table {
-            width: 350px;
+        .agent-badge {
+            border: 2px solid #1a56db;
+            padding: 6px 18px;
+            font-weight: 800;
+            font-size: 13px;
+            color: black;
+            border-radius: 3px;
+            background: #fff;
+        }
+
+        /* ─── BILL INFO TABLE ─── */
+        .bill-info-table {
+            width: 100%;
             border-collapse: collapse;
+            margin-top: 20px;
         }
 
-        .totals-table tr {
-            border-bottom: 1px solid #e5e7eb;
+        .bill-info-table td {
+            border: 1px solid black;
+            padding: 5px 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #000;
         }
 
-        .totals-table td {
-            padding: 10px 16px;
+        /* ─── CLIENT INFO TABLE ─── */
+        .client-info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: -1px;
+        }
+
+        .client-info-table td {
+            border: 1px solid black;
+            padding: 4px;
+            font-size: 12px;
+            vertical-align: top;
+        }
+
+        .client-info-table td.label {
+            font-weight: 700;
+            width: 18%;
+        }
+
+        .client-info-table td.value {
+            font-weight: 600;
+            width: 32%;
+        }
+
+        .client-name-row td {
+            font-weight: 800;
+            font-size: 13px;
+            background: #fff;
+        }
+
+        /* ─── PARTICULARS TABLE ─── */
+        .particulars-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+
+        .particulars-table th {
+            border: 1px solid black;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 800;
+            text-align: left;
+            background: #fff;
+            color: #000;
+            letter-spacing: 2px;
+        }
+
+        .particulars-table th.amount-col {
+            text-align: right;
+            width: 25%;
+            letter-spacing: 2px;
+        }
+
+        .particulars-table td {
+            border: 1px solid black;
+            padding: 4px 5px;
+            font-size: 12px;
+            color: #000;
+        }
+
+        .particulars-table td.amount {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .particulars-table tr.subheader td {
+            text-align: right;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+        }
+
+        .particulars-table tr.total-row td {
+            font-weight: 800;
             font-size: 13px;
         }
 
-        .totals-table td.label {
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        .totals-table td.value {
+        .particulars-table tr.total-row td.label-cell {
             text-align: right;
-            font-weight: 700;
-            color: #1f2937;
         }
 
-        .totals-table tr.grand-total {
-            background: #0f1f4b;
-            color: #fff;
-            border: none;
-        }
-
-        .totals-table tr.grand-total td {
-            padding: 14px 16px;
-            font-size: 16px;
+        .particulars-table tr.grand-total td {
             font-weight: 800;
-            color: #fff;
+            text-align: center;
+            font-size: 12px;
+            padding: 6px 10px;
         }
 
-        .totals-table tr.paid td {
-            color: #10b981;
+        /* ─── ENCLOSURE ─── */
+        .enclosure-section {
+            margin-top: 30px;
         }
 
-        .totals-table tr.due td {
-            color: #ef4444;
+        .enclosure-section h4 {
+            font-size: 13px;
+            font-weight: 800;
+            text-decoration: underline;
+            margin-bottom: 5px;
         }
 
-        /* ─── PAYMENT STATUS BADGE ─── */
-        .payment-status {
-            display: inline-block;
-            padding: 5px 14px;
-            border-radius: 14px;
+        .enclosure-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .enclosure-table td {
+            border: 1px solid black;
+            padding: 2px;
             font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .status-paid {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .status-partial {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .status-due {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        /* ─── NOTES ─── */
-        .notes-section {
-            margin: 30px 0;
-            padding: 16px;
-            background: #f9fafb;
-            border-radius: 6px;
-            border-left: 3px solid #1a56db;
-        }
-
-        .notes-section h4 {
-            font-size: 12px;
-            font-weight: 700;
-            color: #1a56db;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-        }
-
-        .notes-section p {
-            font-size: 12px;
-            color: #4b5563;
-            line-height: 1.6;
+            font-weight: 600;
+            width: 25%;
         }
 
         /* ─── FOOTER ─── */
-        .invoice-footer {
-            margin-top: 50px;
-            padding-top: 25px;
-            border-top: 2px solid #e5e7eb;
-            text-align: center;
-        }
-
-        .signature-area {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-            margin-bottom: 30px;
-        }
-
-        .signature-block {
-            text-align: center;
-        }
-
-        .signature-line {
-            border-top: 1px solid #1f2937;
-            margin-bottom: 8px;
-            padding-top: 6px;
-            min-height: 50px;
-        }
-
-        .signature-label {
-            font-size: 12px;
-            color: #4b5563;
-            font-weight: 600;
-        }
-
-        .footer-text {
-            font-size: 11px;
-            color: #9ca3af;
-            line-height: 1.6;
-        }
-
-        .footer-text .thank-you {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1a56db;
-            display: block;
-            margin-bottom: 8px;
+        .footer-signature {
+            text-align: right;
+            margin-top: 70px;
+            font-weight: 800;
+            font-size: 13px;
+            color: #215092;
         }
 
         /* ─── PRINT STYLES ─── */
@@ -426,36 +283,17 @@
             .page-wrap {
                 margin: 0;
                 box-shadow: none;
-                padding: 20px;
+                padding: 10px 20px;
                 max-width: 100%;
-                border-radius: 0;
             }
 
             .print-controls {
                 display: none !important;
             }
 
-            .invoice-header {
-                page-break-after: avoid;
-            }
-
-            .items-table {
-                page-break-inside: auto;
-            }
-
-            .items-table tr {
-                page-break-inside: avoid;
-                page-break-after: auto;
-            }
-
-            .totals-wrap,
-            .signature-area {
-                page-break-inside: avoid;
-            }
-
             @page {
                 size: A4;
-                margin: 15mm;
+                margin: 10mm 12mm;
             }
         }
     </style>
@@ -463,229 +301,205 @@
 
 <body>
 
-    {{-- PRINT BUTTONS (Hidden when printing) --}}
+    {{-- Print Controls --}}
     <div class="print-controls">
-        <a href="{{ route('bills.show', $bill->id) }}" class="btn-back">
-            ← Back to Bill
-        </a>
-        <button class="btn-print" onclick="window.print()">
-            🖨 Print Invoice
-        </button>
+        <a href="{{ route('bills.show', $bill->id) }}" class="btn-back">← Back to Bill</a>
+        <button class="btn-print" onclick="window.print()">🖨 Print PDF</button>
     </div>
 
     <div class="page-wrap">
 
-        {{-- ── HEADER ── --}}
-        <div class="invoice-header">
-            <div class="company-info">
-                <h1>SBS SHIPPING</h1>
-                <p>
-                    {{ $bill->business_location ?? 'SBS Shipping (BL0001)' }}<br>
-                    Dhaka, Bangladesh<br>
-                    📞 +880 XXX-XXXXXX | ✉ info@sbsshipping.com
-                </p>
+        {{-- ── COMPANY HEADER ── --}}
+        <div class="company-header">
+            <h1>S.B.S Shipping and Trading Agencies (Pvt.) Ltd.</h1>
+            <h2>এস.বি.এস শিপিং এন্ড ট্রেডিং এজেন্সীস (প্রাঃ) লিমিটেড</h2>
+        </div>
+
+        {{-- ── OFFICE BAR ── --}}
+        <div class="office-bar">
+            <div class="office-block left">
+                <strong>Head Office</strong>
+                <p>345/E Chanmari Raod, Lalkhan Bazar, Chattogram</p>
+                <p><strong>Phone :</strong> 02333358128, 02333514390,</p>
+                <p><strong>E-mail:</strong> sbsshipping12@gmail.com</p>
             </div>
-            <div class="invoice-title">
-                <div class="label">INVOICE</div>
-                <div class="meta">
-                    <strong>Bill No:</strong> #{{ $bill->bill_no }}<br>
-                    <strong>Date:</strong> {{ \Carbon\Carbon::parse($bill->billing_date)->format('d M Y') }}<br>
-                    <strong>Status:</strong>
-                    <span class="payment-status status-{{ strtolower($bill->payment_status) }}">
-                        {{ $bill->payment_status }}
-                    </span>
-                </div>
+            <div class="agent-badge">C & F AGENT</div>
+            <div class="office-block right">
+                <strong>Dhaka Office</strong>
+                <p>House # 71 (Gd.Fl.), Road # 27, Gulshan -1, Dhaka</p>
+                <p><strong>Phone :</strong> 02333358128, 02333514390</p>
+                <p><strong>E-mail:</strong> sbsshipping12@gmail.com</p>
             </div>
         </div>
 
-        {{-- ── CLIENT INFO ── --}}
-        <div class="info-grid">
-            <div class="info-block">
-                <div class="label">Bill To</div>
-                <div class="name">{{ $bill->client_name }}</div>
-                <div class="details">
-                    {{ $bill->billing_address }}<br>
-                    @if($bill->client_contact)
-                    📞 {{ $bill->client_contact }}
-                    @endif
-                </div>
-            </div>
-            <div class="info-block">
-                <div class="label">Ship To</div>
-                <div class="name">{{ $bill->client_name }}</div>
-                <div class="details">
-                    {{ $bill->shipping_address ?? $bill->billing_address }}<br>
-                    @if($bill->job_number)
-                    <strong>Job #:</strong> {{ $bill->job_number }}
-                    @endif
-                </div>
-            </div>
-        </div>
+        {{-- ── BILL HEADER INFO (Bill No, Job No, Date) ── --}}
+        <table class="bill-info-table">
+            <tr>
+                <td colspan="4" style="font-weight:700">REC. DT- {{ \Carbon\Carbon::parse($bill->billing_date)->format('Y-m-d') }}</td>
+                <td style="width:34%">Job No: {{ $bill->job_number ?? '—' }}</td>
+                <td style="width:33%">Date: {{ \Carbon\Carbon::parse($bill->billing_date)->format('d-m-Y') }}</td>
+            </tr>
+        </table>
 
-        {{-- ── ITEMS TABLE ── --}}
-        <table class="items-table">
+        {{-- ── CLIENT INFO TABLE ── --}}
+        <table class="client-info-table">
+            <tr class="client-name-row">
+                <td colspan="4">{{ strtoupper($bill->client_name) }}</td>
+            </tr>
+            <tr>
+                <td colspan="4" style="font-weight:600">{{ $bill->billing_address ?? '—' }}</td>
+            </tr>
+            <tr>
+                <td class="label">Items:</td>
+                <td class="value" colspan="3">
+                    @if($bill->items && $bill->items->count() > 0)
+                    {{ $bill->items->pluck('item_name')->first() ?? '—' }}
+                    @else — @endif
+                </td>
+            </tr>
+            <tr>
+                <td class="label">SS:</td>
+                <td class="value">{{ $bill->shipping_service ?? $bill->job_category ?? '—' }}</td>
+                <td class="label">From:</td>
+                <td class="value">{{ $bill->origin ?? '—' }}</td>
+            </tr>
+            <tr>
+                <td class="label">Quantity:</td>
+                <td class="value">{{ $bill->quantity ?? '—' }} {{ $bill->job_type ?? '' }}</td>
+                <td class="label">To:</td>
+                <td class="value">{{ $bill->destination ?? '—' }}</td>
+            </tr>
+            <tr>
+                <td class="label">AWB No:</td>
+                <td class="value">{{ $bill->awb_no ?? '—' }}</td>
+                <td class="label">Cleared On:</td>
+                <td class="value">{{ $bill->cleared_on ?? '—' }}</td>
+            </tr>
+            <tr>
+                <td class="label">Inv. No.:</td>
+                <td class="value">{{ $bill->invoice_no ?? '—' }}</td>
+                <td class="label">DT:</td>
+                <td class="value">{{ $bill->invoice_date ? \Carbon\Carbon::parse($bill->invoice_date)->format('Y-m-d') : '—' }}</td>
+            </tr>
+            <tr>
+                <td class="label">ROT No:</td>
+                <td class="value">{{ $bill->rot_no ?? '—' }}</td>
+                <td class="label">DT :</td>
+                <td class="value">{{ $bill->rot_date ?? '—' }}</td>
+            </tr>
+            <tr>
+                <td class="label">USD</td>
+                <td class="value">{{ $bill->usd_value ?? '—' }}</td>
+                <td class="label">Exch. Rate</td>
+                <td class="value">{{ $bill->exchange_rate ?? '—' }}</td>
+            </tr>
+            <tr>
+                <td class="label">B/E No.:</td>
+                <td class="value">{{ $bill->be_no ?? '—' }}</td>
+                <td class="label">DT:</td>
+                <td class="value">{{ $bill->be_date ? \Carbon\Carbon::parse($bill->be_date)->format('Y-m-d') : '—' }}</td>
+            </tr>
+            <tr>
+                <td class="label">IP/EP No:</td>
+                <td class="value">{{ $bill->ip_ep_no ?? '—' }}</td>
+                <td class="label">IMP./EXP. Value :</td>
+                <td class="value">{{ $bill->imp_exp_value ? number_format($bill->imp_exp_value, 4) : '—' }}</td>
+            </tr>
+            <tr>
+                <td class="label">Conatiner No:</td>
+                <td class="value">{{ $bill->container_no ?? '—' }}</td>
+                <td class="label">DT:</td>
+                <td class="value">{{ $bill->ip_ep_date ? \Carbon\Carbon::parse($bill->ip_ep_date)->format('Y-m-d') : '—' }}</td>
+            </tr>
+        </table>
+
+        {{-- ── PARTICULARS TABLE ── --}}
+        <table class="particulars-table">
             <thead>
                 <tr>
-                    <th style="width:40px">#</th>
-                    <th>Item / Description</th>
-                    <th class="text-center" style="width:80px">Qty</th>
-                    <th class="text-right" style="width:120px">Unit Price</th>
-                    <th class="text-right" style="width:130px">Amount</th>
+                    <th>P A R T I C U L A R S</th>
+                    <th class="amount-col">A M O U N T</th>
+                </tr>
+                <tr class="subheader">
+                    <td></td>
+                    <td class="amount">Taka / Ps.</td>
                 </tr>
             </thead>
             <tbody>
-                @forelse($bill->items as $idx => $item)
+                @forelse($bill->items as $item)
                 <tr>
-                    <td>{{ $idx + 1 }}</td>
                     <td>
-                        <div class="item-name">{{ $item->item_name }}</div>
-                        @if($item->description)
-                        <div class="item-desc">{{ $item->description }}</div>
-                        @endif
+                        {{ $item->item_name }}
+                        @if($item->description) - {{ $item->description }} @endif
                     </td>
-                    <td class="text-center">{{ number_format($item->quantity, 2) }}</td>
-                    <td class="text-right">৳ {{ number_format($item->unit_price, 2) }}</td>
-                    <td class="text-right">৳ {{ number_format($item->subtotal, 2) }}</td>
+                    <td class="amount">{{ number_format($item->subtotal, 2) }}</td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" style="text-align:center;padding:20px;color:#9ca3af">
-                        No items
-                    </td>
+                    <td colspan="2" style="text-align:center;color:#888">No items</td>
                 </tr>
                 @endforelse
+
+                {{-- Additional Expenses --}}
+                @if($bill->additionalExpenses && $bill->additionalExpenses->count() > 0)
+                @foreach($bill->additionalExpenses as $expense)
+                <tr>
+                    <td>{{ $expense->description }}</td>
+                    <td class="amount">{{ number_format($expense->amount, 2) }}</td>
+                </tr>
+                @endforeach
+                @endif
+
+                {{-- Total Row --}}
+                <tr class="total-row">
+                    <td class="label-cell">Total</td>
+                    <td class="amount">TK. {{ number_format($bill->total_payable, 2) }}</td>
+                </tr>
+
+                {{-- Grand Total with Words --}}
+                <tr class="grand-total">
+                    <td colspan="2">
+                        Total : TK. {{ number_format($bill->total_payable, 2) }}
+                        &nbsp;|&nbsp;
+                        Inwords : {{ ucwords(numberToWords($bill->total_payable)) }} Only
+                    </td>
+                </tr>
             </tbody>
         </table>
 
-        {{-- ── ADDITIONAL EXPENSES ── --}}
-        @if($bill->additionalExpenses && $bill->additionalExpenses->count() > 0)
-        <div class="add-exp-section">
-            <h3>Additional Expenses</h3>
-            <ul class="add-exp-list">
-                @foreach($bill->additionalExpenses as $expense)
-                <li>
-                    <span class="desc">
-                        @if($expense->is_auto) ⚡ @endif
-                        {{ $expense->description }}
-                    </span>
-                    <span class="amt">৳ {{ number_format($expense->amount, 2) }}</span>
-                </li>
-                @endforeach
-            </ul>
-        </div>
-        @endif
-
-        {{-- ── TOTALS ── --}}
-        <div class="totals-wrap">
-            <table class="totals-table">
+        {{-- ── ENCLOSURE ── --}}
+        <div class="enclosure-section">
+            <h4>Enclosure:</h4>
+            <table class="enclosure-table">
                 <tr>
-                    <td class="label">Sub Total ({{ number_format($bill->total_items, 0) }} items)</td>
-                    <td class="value">৳ {{ number_format($bill->sub_total, 2) }}</td>
+                    <td>Invoice -</td>
+                    <td>License Permit -</td>
+                    <td>Undertaking -</td>
+                    <td>Biman Fee -</td>
                 </tr>
-
-                @if($bill->additionalExpenses && $bill->additionalExpenses->count() > 0)
                 <tr>
-                    <td class="label">Additional Expenses</td>
-                    <td class="value">৳ {{ number_format($bill->additionalExpenses->sum('amount'), 2) }}</td>
+                    <td>B/E Custom Trip -</td>
+                    <td>C & F Subscription -</td>
+                    <td>Quota -</td>
+                    <td>VAT (Original) -</td>
                 </tr>
-                @endif
-
-                @if($bill->shipping_charges > 0)
                 <tr>
-                    <td class="label">Shipping Charges</td>
-                    <td class="value">৳ {{ number_format($bill->shipping_charges, 2) }}</td>
+                    <td>D/Challan</td>
+                    <td>R/D & W/C, L/C -</td>
+                    <td>Bank G'Fee -</td>
+                    <td>Agent Charges -</td>
                 </tr>
-                @endif
-
-                @if($bill->discount_value > 0)
-                <tr>
-                    <td class="label">Discount</td>
-                    <td class="value">- ৳ {{ number_format($bill->discount_value, 2) }}</td>
-                </tr>
-                @endif
-
-                @if($bill->order_tax_value > 0)
-                <tr>
-                    <td class="label">Tax</td>
-                    <td class="value">+ ৳ {{ number_format($bill->order_tax_value, 2) }}</td>
-                </tr>
-                @endif
-
-                <tr class="grand-total">
-                    <td>TOTAL PAYABLE</td>
-                    <td class="value">৳ {{ number_format($bill->total_payable, 2) }}</td>
-                </tr>
-
-                @if($bill->total_paid > 0)
-                <tr class="paid">
-                    <td class="label">Amount Paid</td>
-                    <td class="value">৳ {{ number_format($bill->total_paid, 2) }}</td>
-                </tr>
-                @endif
-
-                @if($bill->total_remaining > 0)
-                <tr class="due">
-                    <td class="label">Balance Due</td>
-                    <td class="value">৳ {{ number_format($bill->total_remaining, 2) }}</td>
-                </tr>
-                @endif
             </table>
         </div>
 
-        {{-- ── PAYMENT INFO ── --}}
-        @if($bill->total_paid > 0)
-        <div class="info-block" style="margin-bottom:25px;background:#f0fdf4;border-left-color:#10b981">
-            <div class="label" style="color:#15803d">Payment Information</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:8px;font-size:12px">
-                <div>
-                    <strong>Method:</strong><br>
-                    <span style="color:#4b5563">{{ $bill->payment_method ?? '—' }}</span>
-                </div>
-                <div>
-                    <strong>Paid On:</strong><br>
-                    <span style="color:#4b5563">{{ \Carbon\Carbon::parse($bill->paid_on)->format('d M Y') }}</span>
-                </div>
-                <div>
-                    <strong>Account:</strong><br>
-                    <span style="color:#4b5563">{{ $bill->payment_account ?? '—' }}</span>
-                </div>
-            </div>
-        </div>
-        @endif
-
-        {{-- ── NOTES ── --}}
-        @if($bill->billing_note)
-        <div class="notes-section">
-            <h4>📝 Notes</h4>
-            <p>{{ $bill->billing_note }}</p>
-        </div>
-        @endif
-
-        {{-- ── FOOTER ── --}}
-        <div class="invoice-footer">
-            <div class="signature-area">
-                <div class="signature-block">
-                    <div class="signature-line"></div>
-                    <div class="signature-label">Customer Signature</div>
-                </div>
-                <div class="signature-block">
-                    <div class="signature-line"></div>
-                    <div class="signature-label">Authorized Signature</div>
-                </div>
-            </div>
-
-            <div class="footer-text">
-                <span class="thank-you">Thank You for Your Business!</span>
-                This is a computer-generated invoice. No signature is required for verification.<br>
-                For any queries, please contact us at info@sbsshipping.com<br>
-                <strong>{{ $bill->added_by ?? 'SBS Shipping Team' }}</strong>
-            </div>
+        {{-- ── FOOTER SIGNATURE ── --}}
+        <div class="footer-signature">
+            For - S.B.S Shipping & Trading Agencies (Pvt.) Ltd.
         </div>
 
     </div>
 
     <script>
-        // Auto-trigger print dialog if URL has ?auto=1
         if (window.location.search.includes('auto=1')) {
             setTimeout(() => window.print(), 500);
         }
@@ -694,3 +508,31 @@
 </body>
 
 </html>
+
+@php
+function numberToWords($number) {
+$number = floatval($number);
+$whole = floor($number);
+$decimal = round(($number - $whole) * 100);
+
+$words = numberToWordsHelper($whole);
+if ($decimal > 0) {
+$words .= ' Point ' . numberToWordsHelper($decimal);
+}
+return $words;
+}
+
+function numberToWordsHelper($num) {
+$ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+$tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+if ($num == 0) return 'Zero';
+if ($num < 20) return $ones[$num];
+    if ($num < 100) return $tens[intval($num/10)] . ($num%10 ? ' ' . $ones[$num%10] : '' );
+    if ($num < 1000) return $ones[intval($num/100)] . ' Hundred' . ($num%100 ? ' ' . numberToWordsHelper($num%100) : '' );
+    if ($num < 100000) return numberToWordsHelper(intval($num/1000)) . ' Thousand' . ($num%1000 ? ' ' . numberToWordsHelper($num%1000) : '' );
+    if ($num < 10000000) return numberToWordsHelper(intval($num/100000)) . ' Lakh' . ($num%100000 ? ' ' . numberToWordsHelper($num%100000) : '' );
+    return numberToWordsHelper(intval($num/10000000)) . ' Crore' . ($num%10000000 ? ' ' . numberToWordsHelper($num%10000000) : '' );
+    }
+    @endphp
