@@ -96,12 +96,12 @@ class ExpenseController extends Controller
         // Fetch Account
         $account = PaymentAccount::find($request->payment_account_id);
 
-        // Balance Check
-        if ($request->total_amount > $account->current_balance) {
-            return redirect()->back()
-                ->with('error', 'Insufficient funds in ' . $account->account_name)
-                ->withInput();
-        }
+        // // Balance Check
+        // if ($request->total_amount > $account->current_balance) {
+        //     return redirect()->back()
+        //         ->with('error', 'Insufficient funds in ' . $account->account_name)
+        //         ->withInput();
+        // }
 
         try {
             DB::transaction(function () use ($request, $account) {

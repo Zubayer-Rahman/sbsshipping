@@ -82,10 +82,30 @@ class Job extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    public function additionalExpenses()
+    {
+        return $this->hasMany(AdditionalExpense::class);
+    }
+
+    public function ious()
+    {
+        return $this->hasMany(Iou::class);
+    }
+
+    public function bills()
+    {
+        // If one job can have many bills
+        return $this->hasMany(Bill::class, 'job_number', 'id'); // Check FK
+    }
 
     public function groups()
     {
-        return $this->belongsToMany(JobGroup::class, 'job_group_job', 'job_id', 'job_group_id');
+        return $this->belongsToMany(JobGroup::class, 'job_group_job', 'job_id', 'job_group_id', 'job_no');
     }
 
     // Auto-generate Job ID before creating
@@ -94,8 +114,7 @@ class Job extends Model
         parent::boot();
         static::creating(function ($job) {
             if (empty($job->job_id)) {
-                $count = static::count() + 1;
-                $job->job_id = 'SBS-' . date('Y') . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+                $job->job_id = "-";
             }
         });
     }

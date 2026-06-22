@@ -95,6 +95,7 @@
                         <label class="form-label">Shipping Address:</label>
                         <div id="shippingAddress" style="font-size:13px;color:var(--text-primary);padding:8px 12px;background:var(--body-bg);border-radius:var(--radius-sm);min-height:60px;line-height:1.6"></div>
                     </div>
+                    
                     {{-- Job Selection Dropdown --}}
                     <div class="form-group">
                         <label class="form-label">Select Job(s) <span style="color:var(--text-muted);font-size:12px;font-weight:400">(Service charge will be auto-added)</span></label>
@@ -131,8 +132,8 @@
                         @foreach(\App\Models\Job::orderBy('id', 'desc')->get() as $job)
                         <input type="checkbox"
                             class="job-check"
-                            value="{{ $job->id }}"
-                            data-ref="{{ $job->job_id ?? $job->job_no }}"
+                            value="{{ $job->no ?? $job->id }}"
+                            data-ref="{{ $job->job_no ?? $job->job_id }}"
                             data-client="{{ $job->client_name }}"
                             data-category="{{ $job->category }}"
                             data-invoice="{{ $job->invoice_value_usd }}"
@@ -182,7 +183,7 @@
                                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
                                         <span style="font-size:13px;font-weight:700;color:var(--primary);
                                      font-family:'Inter',sans-serif">
-                                            {{ $job->job_id ?? $job->job_no ?? 'Job #' . $job->id }}
+                                            {{ $job->job_no ?? $job->job_id }}
                                         </span>
                                         @if($job->category)
                                         <span style="font-size:10px;padding:2px 6px;border-radius:10px;

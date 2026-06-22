@@ -179,17 +179,12 @@ class PaymentAccountController extends Controller
         $fromAccount = PaymentAccount::findOrFail($validated['from_account_id']);
         $toAccount   = PaymentAccount::findOrFail($validated['to_account_id']);
 
-        // Check sufficient balance
-        if ($fromAccount->current_balance < $validated['amount']) {
-            return redirect()->back()
-                ->with('error', 'Insufficient balance in ' . $fromAccount->account_name . '!');
-        }
+        // ✅ Balance check removed — accounts can go negative
 
         $description = $validated['description']
             ?: 'Transfer from ' . $fromAccount->account_name . ' to ' . $toAccount->account_name;
 
         DB::transaction(function () use ($fromAccount, $toAccount, $validated, $description) {
-            // Deduct from source
             $fromAccount->recordTransaction(
                 'debit',
                 $validated['amount'],
@@ -200,7 +195,6 @@ class PaymentAccountController extends Controller
                 Auth::id()
             );
 
-            // Add to destination
             $toAccount->recordTransaction(
                 'credit',
                 $validated['amount'],

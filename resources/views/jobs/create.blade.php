@@ -237,7 +237,7 @@
                 <div class="cj-grid4" style="margin-bottom:20px">
                     <div class="form-group">
                         <label class="form-label">IP/EP No</label>
-                        <input type="number" name="ip_ep_no" class="form-control" value="{{ old('ip_ep_no') }}">
+                        <input type="text" name="ip_ep_no" class="form-control" value="{{ old('ip_ep_no') }}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">IP/EP Date</label>

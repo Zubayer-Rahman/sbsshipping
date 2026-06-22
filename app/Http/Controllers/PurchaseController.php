@@ -46,8 +46,9 @@ class PurchaseController extends Controller
             ->get();
 
         $items = Item::orderBy('item_name')->get();
-        $jobs  = DB::table('sbs_jobs')->orderByDesc('id')
-            ->get(['id', 'job_no', 'job_id', 'client_name']);
+        $jobs = \App\Models\Job::select('id', 'job_no', 'job_id', 'client_name', 'category', 'type', 'invoice_value_usd')
+            ->orderBy('id', 'desc')
+            ->get();
 
         $view = View::exists('purchases.create') ? 'purchases.create' : 'expenses.PurchaseCreate';
         return view($view, compact('suppliers', 'items', 'jobs'));
@@ -65,10 +66,10 @@ class PurchaseController extends Controller
 
         $account = PaymentAccount::find($request->payment_account_id);
 
-        // 1. Check Balance
-        if ($request->payment_amount > $account->current_balance) {
-            return redirect()->back()->with('error', 'Insufficient funds in ' . $account->account_name)->withInput();
-        }
+        // // 1. Check Balance
+        // if ($request->payment_amount > $account->current_balance) {
+        //     return redirect()->back()->with('error', 'Insufficient funds in ' . $account->account_name)->withInput();
+        // }
 
         DB::transaction(function () use ($request, $account) {
             $supplier = Contact::find($request->supplier_id);

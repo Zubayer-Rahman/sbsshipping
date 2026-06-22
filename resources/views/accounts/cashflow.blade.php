@@ -7,7 +7,6 @@
 <style>
     .cashflow-container {
         padding: 2rem;
-        max-width: 1400px;
         margin: 0 auto;
         font-family: 'Inter', sans-serif;
     }

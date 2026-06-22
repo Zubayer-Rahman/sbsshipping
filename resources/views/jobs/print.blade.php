@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Job Details - {{ $job->job_id }}</title>
-    
+
     <style>
         * {
             margin: 0;
@@ -30,7 +31,8 @@
             gap: 10px;
         }
 
-        .btn-print, .btn-back {
+        .btn-print,
+        .btn-back {
             padding: 10px 20px;
             border-radius: 6px;
             border: none;
@@ -43,9 +45,20 @@
             gap: 6px;
         }
 
-        .btn-print { background: #1a56db; color: #fff; }
-        .btn-print:hover { background: #1340b0; }
-        .btn-back { background: #fff; color: #64748b; border: 1px solid #e2e8f0; }
+        .btn-print {
+            background: #1a56db;
+            color: #fff;
+        }
+
+        .btn-print:hover {
+            background: #1340b0;
+        }
+
+        .btn-back {
+            background: #fff;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
 
         /* Main Page Wrapper */
         .page-wrap {
@@ -53,7 +66,7 @@
             margin: 20px auto;
             background: #fff;
             padding: 30px 40px;
-            box-shadow: 0 4px 20px rgba(0,0,0,.08);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
         }
 
         /* ─── HEADER ─── */
@@ -89,8 +102,13 @@
             flex: 1;
         }
 
-        .office-block.left { text-align: left; }
-        .office-block.right { text-align: right; }
+        .office-block.left {
+            text-align: left;
+        }
+
+        .office-block.right {
+            text-align: right;
+        }
 
         .office-block strong {
             font-size: 12px;
@@ -271,6 +289,7 @@
         }
     </style>
 </head>
+
 <body>
 
     {{-- Print Controls (hidden when printing) --}}
@@ -380,35 +399,84 @@
                 <tr>
                     <th style="width: 5%;">SL</th>
                     <th style="width: 12%;">Date</th>
-                    <th style="width: 18%;">Category</th>
-                    <th style="width: 18%;">Sub Category</th>
-                    <th style="width: 17%;">Note</th>
-                    <th style="width: 15%;">Expense By</th>
-                    <th style="width: 15%;">Amount</th>
+                    <th style="width: 12%;">Type</th>
+                    <th style="width: 16%;">Category</th>
+                    <th style="width: 16%;">Sub Category</th>
+                    <th style="width: 17%;">Note / Description</th>
+                    <th style="width: 12%;">Expense By</th>
+                    <th style="width: 10%;">Amount</th>
                 </tr>
             </thead>
             <tbody>
                 @php
-                    // Fetch expenses linked to this job
-                    $jobExpenses = \App\Models\Expense::where('job_id', $job->id)->get();
-                    $totalExpenses = $jobExpenses->sum('total_amount');
-                    $totalInvoiced = $job->cost_amount ?? 0;
-                    $profitLoss = $totalInvoiced - $totalExpenses;
+                // 1. Normal Expenses
+                $normalExpenses = \App\Models\Expense::where('job_id', $job->id)->get()->map(function ($e) {
+                return [
+                'date' => $e->expense_date,
+                'type' => 'Expense',
+                'category' => $e->expense_category ?? '—',
+                'sub_category' => $e->sub_category ?? '—',
+                'note' => $e->expense_note ?? '—',
+                'added_by' => $e->added_by ?? '—',
+                'amount' => $e->total_amount ?? 0,
+                ];
+                });
+
+                // 2. Additional Expenses
+                $additionalExpenses = \App\Models\AdditionalExpense::where('job_id', $job->id)->get()->map(function ($a) {
+                return [
+                'date' => $a->expense_date,
+                'type' => 'Additional',
+                'category' => 'Additional Expense',
+                'sub_category' => $a->reference_no ?? '—',
+                'note' => $a->description ?? '—',
+                'added_by' => optional($a->creator)->name ?? '—',
+                'amount' => $a->actual_amount ?? 0,
+                ];
+                });
+
+                // 3. IOUs
+                $ious = \App\Models\Iou::where('job_id', $job->id)->get()->map(function ($i) {
+                return [
+                'date' => $i->created_at,
+                'type' => 'IOU',
+                'category' => 'IOU - ' . ucfirst($i->type ?? '—'),
+                'sub_category' => $i->reference_number ?? '—',
+                'note' => $i->description ?? $i->against ?? '—',
+                'added_by' => optional($i->creator)->name ?? '—',
+                'amount' => $i->amount ?? 0,
+                ];
+                });
+
+                // Merge all and sort by date
+                $allExpenses = $normalExpenses
+                ->concat($additionalExpenses)
+                ->concat($ious)
+                ->sortBy('date')
+                ->values();
+
+                $totalExpenses = $allExpenses->sum('amount');
+                $totalInvoiced = $job->cost_amount ?? 0;
+                $profitLoss = $totalInvoiced - $totalExpenses;
                 @endphp
-                
-                @forelse($jobExpenses as $idx => $expense)
+
+                @forelse($allExpenses as $idx => $expense)
                 <tr>
-                    <td>{{ $idx + 1 }}</td>
-                    <td>{{ optional($expense->expense_date)->format('Y-m-d') ?? '—' }}</td>
-                    <td>{{ $expense->expense_category ?? '—' }}</td>
-                    <td>{{ $expense->sub_category ?? '—' }}</td>
-                    <td>{{ Str::limit($expense->expense_note, 30) ?? '—' }}</td>
-                    <td>{{ $expense->added_by ?? '—' }}</td>
-                    <td>{{ number_format($expense->total_amount, 2) }}</td>
+                    <td style="text-align:center">{{ $idx + 1 }}</td>
+                    <td>{{ $expense['date'] ? \Carbon\Carbon::parse($expense['date'])->format('Y-m-d') : '—' }}</td>
+                    <td style="font-weight:700; 
+                {{ $expense['type']=='Expense' ? 'color:#1a56db' : ($expense['type']=='Additional' ? 'color:#92400e' : 'color:#065f46') }}">
+                        {{ $expense['type'] }}
+                    </td>
+                    <td>{{ $expense['category'] }}</td>
+                    <td>{{ $expense['sub_category'] }}</td>
+                    <td>{{ \Illuminate\Support\Str::limit($expense['note'], 35) }}</td>
+                    <td>{{ $expense['added_by'] }}</td>
+                    <td style="text-align:right; font-weight:600">{{ number_format($expense['amount'], 2) }}</td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" style="padding: 20px; color: #888;">No expenses recorded</td>
+                    <td colspan="8" style="padding: 20px; color: #888; text-align:center">No expenses recorded</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -439,4 +507,5 @@
     </script>
 
 </body>
+
 </html>

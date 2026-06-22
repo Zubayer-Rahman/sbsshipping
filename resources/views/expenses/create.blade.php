@@ -235,14 +235,17 @@
             </div>
         </div>
 
-        {{-- Hidden job checkboxes — inside form so they submit --}}
+        {{-- Hidden checkbox pool to track selections --}}
         <div id="jobCheckboxPool" style="display:none">
-            @foreach($jobs as $job)
-            @php $ref = $job->job_no ?? $job->job_id; @endphp
-            <input type="checkbox" name="job_ids[]"
-                value="{{ $job->id }}"
-                data-ref="{{ $ref }}"
-                class="job-check">
+            @foreach(\App\Models\Job::orderBy('id', 'desc')->get() as $job)
+            <input type="checkbox"
+                class="job-check"
+                value="{{ $job->no ?? $job->id }}"
+                data-ref="{{ $job->job_no ?? $job->job_id }}"
+                data-client="{{ $job->client_name }}"
+                data-category="{{ $job->category }}"
+                data-invoice="{{ $job->invoice_value_usd }}"
+                data-imp-exp="{{ $job->imp_exp_value }}">
             @endforeach
         </div>
 
@@ -260,54 +263,82 @@
     </form>
 </div>
 
-{{-- Floating job dropdown — body level, never clipped --}}
+{{-- Floating Dropdown Panel --}}
 <div id="jobFloatingDropdown"
     style="display:none;position:fixed;background:#fff;
-            border:1.5px solid var(--primary);border-radius:var(--radius-sm);
-            box-shadow:0 8px 28px rgba(15,31,75,.14);
-            max-height:280px;z-index:9999;flex-direction:column;overflow:hidden">
+           border:1.5px solid var(--primary);border-radius:var(--radius-sm);
+           box-shadow:0 8px 28px rgba(15,31,75,.14);
+           max-height:380px;z-index:9999;flex-direction:column;overflow:hidden">
 
     <div style="display:flex;justify-content:space-between;align-items:center;
-                padding:8px 14px;border-bottom:1px solid var(--border);
+                padding:10px 14px;border-bottom:1px solid var(--border);
                 background:var(--body-bg);flex-shrink:0">
-        <span style="font-size:11px;font-weight:700;color:var(--text-muted);
-                     text-transform:uppercase;letter-spacing:.06em">Select Jobs</span>
-        <div style="display:flex;gap:12px">
-            <button type="button" onclick="selectAllJobs()"
-                style="font-size:12px;color:var(--primary);background:none;
-                           border:none;cursor:pointer;font-weight:700;padding:0;
-                           font-family:'Inter',sans-serif">
-                Select All
-            </button>
-            <button type="button" onclick="clearAllJobs()"
-                style="font-size:12px;color:var(--danger);background:none;
-                           border:none;cursor:pointer;font-weight:700;padding:0;
-                           font-family:'Inter',sans-serif">
-                Clear
-            </button>
-        </div>
+        <span style="font-size:12px;font-weight:700;color:var(--text-primary)">
+            Select Jobs (Multiple Allowed)
+        </span>
+        <button type="button" onclick="clearAllJobs()"
+            style="font-size:12px;color:var(--danger);background:none;
+                   border:none;cursor:pointer;font-weight:600;padding:0">
+            Clear All
+        </button>
     </div>
 
-    <div id="jobVisualList" style="overflow-y:auto;flex:1">
-        @foreach($jobs as $job)
-        @php $ref = $job->job_no ?? $job->job_id; @endphp
-        <div class="job-visual-option" data-ref="{{ $ref }}" data-id="{{ $job->id }}"
-            style="display:flex;align-items:center;gap:10px;padding:9px 14px;
-                    cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s">
+    <div id="jobVisualList" style="overflow-y:auto;flex:1;padding:4px">
+        @foreach(\App\Models\Job::orderBy('id', 'desc')->get() as $job)
+        <div class="job-visual-option"
+            data-id="{{ $job->id }}"
+            data-search="{{ strtolower(($job->job_id ?? $job->job_no) . ' ' . $job->client_name) }}"
+            style="display:flex;align-items:center;gap:12px;padding:12px 14px;
+                        cursor:pointer;border-bottom:1px solid var(--border);
+                        transition:background .15s">
+
+            {{-- Checkbox visual --}}
             <span class="job-visual-check"
-                style="width:16px;height:16px;border:2px solid var(--border);
-                         border-radius:3px;flex-shrink:0;display:flex;
-                         align-items:center;justify-content:center;
-                         transition:all .15s;background:#fff">
+                style="width:18px;height:18px;border:2px solid var(--border);
+                             border-radius:4px;flex-shrink:0;display:flex;
+                             align-items:center;justify-content:center;
+                             transition:all .2s;background:#fff">
             </span>
-            <span style="font-size:13px;font-weight:600;color:var(--primary);
-                         font-family:'Inter',sans-serif">{{ $ref }}</span>
-            @if(!empty($job->client_name))
-            <span style="font-size:12px;color:var(--text-muted);margin-left:auto;
-                             max-width:180px;overflow:hidden;text-overflow:ellipsis;
-                             white-space:nowrap;font-family:'Inter',sans-serif">
-                {{ $job->client_name }}
-            </span>
+
+            {{-- Job info --}}
+            <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+                    <span style="font-size:13px;font-weight:700;color:var(--primary);
+                                     font-family:'Inter',sans-serif">
+                        {{ $job->job_no ?? $job->job_id }}
+                    </span>
+                    @if($job->category)
+                    <span style="font-size:10px;padding:2px 6px;border-radius:10px;
+                                         background:{{ str_contains(strtolower($job->category), 'import') ? '#dbeafe' : '#fef3c7' }};
+                                         color:{{ str_contains(strtolower($job->category), 'import') ? '#1e40af' : '#92400e' }};
+                                         font-weight:600;text-transform:uppercase">
+                        {{ $job->category }}
+                    </span>
+                    @endif
+
+                    @if($job->type)
+                    <span style="font-size:10px;padding:2px 6px;border-radius:10px;
+                                         background:{{ str_contains(strtolower($job->type), 'import') ? '#dbeafe' : '#fef3c7' }};
+                                         color:{{ str_contains(strtolower($job->type    ), 'import') ? '#1e40af' : '#92400e' }};
+                                         font-weight:600;text-transform:uppercase">
+                        {{ $job->type }}
+                    </span>
+                    @endif
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);
+                                overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                    👤 {{ $job->client_name ?? 'No client' }}
+                </div>
+            </div>
+
+            {{-- Invoice Value --}}
+            @if($job->invoice_value_usd)
+            <div style="text-align:right;flex-shrink:0">
+                <div style="font-size:11px;color:var(--text-muted)">Invoice</div>
+                <div style="font-size:12px;font-weight:700;color:var(--text-primary)">
+                    ${{ number_format($job->invoice_value_usd, 0) }}
+                </div>
+            </div>
             @endif
         </div>
         @endforeach
@@ -315,8 +346,8 @@
 
     <div id="jobNoResults"
         style="display:none;padding:20px;text-align:center;font-size:13px;
-                color:var(--text-muted);font-family:'Inter',sans-serif">
-        No jobs found
+               color:var(--text-muted)">
+        No jobs found matching your search.
     </div>
 </div>
 

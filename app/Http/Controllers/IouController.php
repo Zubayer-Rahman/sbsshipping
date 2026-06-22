@@ -84,19 +84,19 @@ class IouController extends Controller
             'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
-        // Balance check ONLY if account is selected AND it's a Receivable IOU
-        if (!empty($validated['payment_account_id']) && $validated['type'] == 'receivable') {
-            $account = PaymentAccount::find($validated['payment_account_id']);
+        // // Balance check ONLY if account is selected AND it's a Receivable IOU
+        // if (!empty($validated['payment_account_id']) && $validated['type'] == 'receivable') {
+        //     $account = PaymentAccount::find($validated['payment_account_id']);
 
-            // Check if account name contains "cash" (Cash in Hand can go negative)
-            $isCashAccount = $account && stripos($account->account_name, 'cash') !== false;
+        //     // Check if account name contains "cash" (Cash in Hand can go negative)
+        //     $isCashAccount = $account && stripos($account->account_name, 'cash') !== false;
 
-            if ($account && !$isCashAccount && $validated['amount'] > $account->current_balance) {
-                return redirect()->back()
-                    ->with('error', "Insufficient funds in {$account->account_name}! Only Cash in Hand can go negative.")
-                    ->withInput();
-            }
-        }
+        //     if ($account && !$isCashAccount && $validated['amount'] > $account->current_balance) {
+        //         return redirect()->back()
+        //             ->with('error', "Insufficient funds in {$account->account_name}! Only Cash in Hand can go negative.")
+        //             ->withInput();
+        //     }
+        // }
 
         return DB::transaction(function () use ($request, $validated) {
             $validated['reference_number'] = Iou::generateReferenceNumber();

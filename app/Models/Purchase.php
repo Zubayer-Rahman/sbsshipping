@@ -52,10 +52,28 @@ class Purchase extends Model
     protected static function boot()
     {
         parent::boot();
-        static::creating(function ($p) {
-            if (empty($p->reference_no)) {
-                $count = static::count() + 1;
-                $p->reference_no = 'PO' . date('Y') . '/' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        static::creating(function ($purchase) {
+            if (empty($purchase->reference_no)) {
+                $year = date('Y');
+                $prefix = 'PO' . $year . '/';
+
+                // Find the highest number for the current year
+                $lastRef = static::where('reference_no', 'like', $prefix . '%')
+                    ->orderBy('id', 'desc')
+                    ->value('reference_no');
+
+                $lastNumber = $lastRef ? (int) substr($lastRef, -4) : 0;
+                $nextNumber = $lastNumber + 1;
+                $reference = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+                // Safety loop for concurrent requests
+                while (static::where('reference_no', $reference)->exists()) {
+                    $nextNumber++;
+                    $reference = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+                }
+
+                $purchase->reference_no = $reference;
             }
         });
     }

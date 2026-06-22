@@ -10,11 +10,11 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
         <div>
             <h2 style="font-family:'Inter',sans-serif;font-size:22px;font-weight:800;color:var(--text-primary)">
-                {{ $job->job_id }}
+                {{ $job->job_no }}
             </h2>
             <p style="font-size:13px;color:var(--text-muted);margin-top:3px">
                 Created {{ $job->created_at->format('d M Y, h:i A') }}
-                @if($job->job_no) · Job No: <strong>{{ $job->job_no }}</strong>@endif
+                <!-- @if($job->job_no) · Job No: <strong>{{ $job->job_no }}</strong>@endif -->
             </p>
         </div>
         <div style="display:flex;gap:10px">

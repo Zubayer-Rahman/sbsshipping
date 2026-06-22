@@ -67,7 +67,9 @@ $totalProfit = $totalBilled - $totalExpenses;
                 @php $jobProfit = $job->cost_amount - $job->expense_amount; @endphp
                 <tr style="border-bottom:1px solid var(--border)">
                     <td style="padding:16px 24px">
-                        <a href="{{ route('jobs.show', $job->id) }}" style="font-weight:700;color:var(--primary);text-decoration:none">{{ $job->job_id }}</a>
+                        <a href="{{ route('jobs.show', $job->id) }}" style="font-weight:700;color:var(--primary);text-decoration:none">
+                            {{ $job->job_no ?? $job->job_id ?? 'Job #' . $job->id }}
+                        </a>
                         <div style="font-size:12px;color:var(--text-muted);margin-top:2px">{{ $job->client_name }}</div>
                     </td>
                     <td style="padding:16px 24px;text-align:right;font-weight:600">

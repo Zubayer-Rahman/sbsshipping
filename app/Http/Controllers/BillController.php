@@ -229,10 +229,20 @@ class BillController extends Controller
         return view('bills.show', compact('bill'));
     }
 
-    public function print(Bill $bill)
+    public function print($id)
     {
-        $bill->load(['items', 'payments', 'additionalExpenses.job']);
-        return view('bills.print', compact('bill'));
+        $bill = Bill::with(['items', 'additionalExpenses'])->findOrFail($id);
+
+        // Fetch related job using job_number
+        $job = null;
+        if ($bill->job_number) {
+            $job = \App\Models\Job::where('id', $bill->job_number)
+                ->orWhere('job_id', $bill->job_number)
+                ->orWhere('job_no', $bill->job_number)
+                ->first();
+        }
+
+        return view('bills.print', compact('bill', 'job'));
     }
 
     // ── Delete ────────────────────────────────────────────────────────────────

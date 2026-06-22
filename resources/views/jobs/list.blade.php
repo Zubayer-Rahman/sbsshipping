@@ -65,6 +65,11 @@
                 Filter
             </button>
 
+            <!-- LIVE SEARCH -->
+            <input type="text" id="liveSearch" placeholder="Search ..."
+                class="form-control" style="width:auto;padding:6px 20px;font-size:13px;justify-self:flex-end;min-width:200px"
+                value="{{ request('search') }}">
+
             @if(request()->hasAny(['client','job_bill','status','date_from','date_to']))
             <a href="{{ route('jobs.list') }}" class="btn btn-outline">Clear</a>
             @endif
@@ -99,8 +104,12 @@
             <tbody>
                 @forelse($jobs as $job)
                 @php
-                $expense = floatval($job->expense_amount ?? 0);
-                $billed = floatval($job->cost_amount ?? 0);
+                $expense = $job->expenses()->sum('total_amount') +
+                $job->additionalExpenses()->sum('to_be_billed') +
+                $job->ious()->sum('amount');
+
+                $billed = $job->bills()->sum('total_payable');
+
                 $profitLoss = $billed - $expense;
                 $sl = $jobs->total() - (($jobs->currentPage() - 1) * $jobs->perPage()) - $loop->index;
                 $category = $job->category ?? '';
@@ -246,4 +255,20 @@
         border-color: var(--primary);
     }
 </style>
+@endpush
+
+
+@push('scripts')
+<script>
+    // Live Search
+    document.getElementById('liveSearch').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('table tbody tr');
+
+        rows.forEach(row => {
+            const rowText = row.textContent.toLowerCase();
+            row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+        });
+    });
+</script>
 @endpush
