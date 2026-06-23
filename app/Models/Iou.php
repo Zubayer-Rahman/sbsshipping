@@ -41,7 +41,10 @@ class Iou extends Model
         'released_at' => 'datetime',
     ];
 
-
+    public function iouJobs()
+    {
+        return $this->hasMany(IouJob::class, 'iou_id');
+    }
 
     public function jobs()
     {
@@ -63,14 +66,28 @@ class Iou extends Model
         return $this->belongsTo(User::class, 'contact_id');
     }
 
-    // public function user()
-    // {
-    //     return $this->belongsTo(User::class, 'user_id');
-    // }
+    public function linkedJobs()
+    {
+        return Job::whereIn('id', $this->iouJobs()->pluck('job_id'));
+    }
 
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($iou) {
+            if (empty($iou->job_no) && $iou->job_id) {
+                $job = Job::find($iou->job_id);
+                if ($job) {
+                    $iou->job_no = $job->job_id;
+                }
+            }
+        });
     }
 
     public function payments()

@@ -84,17 +84,35 @@ class Job extends Model
     }
     public function expenses()
     {
-        return $this->hasMany(Expense::class);
+        return Expense::whereIn('id', function ($query) {
+            $query->select('expense_id')
+                ->from('expense_job')
+                ->where('job_id', $this->id);
+        });
+    }
+
+    public function expenseJobs()
+    {
+        return $this->hasMany(ExpenseJob::class, 'job_id');
     }
 
     public function additionalExpenses()
     {
-        return $this->hasMany(AdditionalExpense::class);
+        return $this->hasMany(AdditionalExpense::class, 'job_id');
     }
 
     public function ious()
     {
-        return $this->hasMany(Iou::class);
+        return Iou::whereIn('id', function ($query) {
+            $query->select('iou_id')
+                ->from('iou_job')
+                ->where('job_id', $this->id);
+        });
+    }
+
+    public function iouJobs()
+    {
+        return $this->hasMany(IouJob::class, 'job_id');
     }
 
     public function bills()
@@ -118,10 +136,53 @@ class Job extends Model
             }
         });
     }
-
     // Computed: dues = cost - expenses
     public function getDuesAttribute()
     {
         return ($this->cost_amount ?? 0) - ($this->expense_amount ?? 0);
+    }
+    
+    public function allExpenses()
+    {
+        // Normal Expenses through pivot
+        $normal = $this->expenses()->get()->map(function ($e) {
+            return [
+                'date' => $e->expense_date,
+                'type' => 'Expense',
+                'category' => $e->expense_category ?? '—',
+                'sub_category' => $e->sub_category ?? '—',
+                'note' => $e->expense_note ?? '—',
+                'added_by' => $e->added_by ?? '—',
+                'amount' => $e->total_amount ?? 0,
+            ];
+        });
+
+        // Additional Expenses
+        $additional = $this->additionalExpenses()->get()->map(function ($a) {
+            return [
+                'date' => $a->expense_date,
+                'type' => 'Additional',
+                'category' => 'Additional Expense',
+                'sub_category' => $a->reference_no ?? '—',
+                'note' => $a->description ?? '—',
+                'added_by' => optional($a->creator)->name ?? '—',
+                'amount' => $a->to_be_billed ?? 0,
+            ];
+        });
+
+        // IOUs through pivot
+        $ious = $this->ious()->get()->map(function ($i) {
+            return [
+                'date' => $i->created_at,
+                'type' => 'IOU',
+                'category' => 'IOU - ' . ucfirst($i->type ?? '—'),
+                'sub_category' => $i->reference_number ?? '—',
+                'note' => $i->description ?? $i->against ?? '—',
+                'added_by' => optional($i->creator)->name ?? '—',
+                'amount' => $i->amount ?? 0,
+            ];
+        });
+
+        return $normal->concat($additional)->concat($ious)->sortBy('date')->values();
     }
 }

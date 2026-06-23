@@ -409,54 +409,11 @@
             </thead>
             <tbody>
                 @php
-                // 1. Normal Expenses
-                $normalExpenses = \App\Models\Expense::where('job_id', $job->id)->get()->map(function ($e) {
-                return [
-                'date' => $e->expense_date,
-                'type' => 'Expense',
-                'category' => $e->expense_category ?? '—',
-                'sub_category' => $e->sub_category ?? '—',
-                'note' => $e->expense_note ?? '—',
-                'added_by' => $e->added_by ?? '—',
-                'amount' => $e->total_amount ?? 0,
-                ];
-                });
-
-                // 2. Additional Expenses
-                $additionalExpenses = \App\Models\AdditionalExpense::where('job_id', $job->id)->get()->map(function ($a) {
-                return [
-                'date' => $a->expense_date,
-                'type' => 'Additional',
-                'category' => 'Additional Expense',
-                'sub_category' => $a->reference_no ?? '—',
-                'note' => $a->description ?? '—',
-                'added_by' => optional($a->creator)->name ?? '—',
-                'amount' => $a->actual_amount ?? 0,
-                ];
-                });
-
-                // 3. IOUs
-                $ious = \App\Models\Iou::where('job_id', $job->id)->get()->map(function ($i) {
-                return [
-                'date' => $i->created_at,
-                'type' => 'IOU',
-                'category' => 'IOU - ' . ucfirst($i->type ?? '—'),
-                'sub_category' => $i->reference_number ?? '—',
-                'note' => $i->description ?? $i->against ?? '—',
-                'added_by' => optional($i->creator)->name ?? '—',
-                'amount' => $i->amount ?? 0,
-                ];
-                });
-
-                // Merge all and sort by date
-                $allExpenses = $normalExpenses
-                ->concat($additionalExpenses)
-                ->concat($ious)
-                ->sortBy('date')
-                ->values();
+                // Use the model relationship - clean MVC approach!
+                $allExpenses = $job->allExpenses();
 
                 $totalExpenses = $allExpenses->sum('amount');
-                $totalInvoiced = $job->cost_amount ?? 0;
+                $totalInvoiced = $job->imp_exp_value ?? 0;
                 $profitLoss = $totalInvoiced - $totalExpenses;
                 @endphp
 
@@ -465,7 +422,7 @@
                     <td style="text-align:center">{{ $idx + 1 }}</td>
                     <td>{{ $expense['date'] ? \Carbon\Carbon::parse($expense['date'])->format('Y-m-d') : '—' }}</td>
                     <td style="font-weight:700; 
-                {{ $expense['type']=='Expense' ? 'color:#1a56db' : ($expense['type']=='Additional' ? 'color:#92400e' : 'color:#065f46') }}">
+        {{ $expense['type']=='Expense' ? 'color:#1a56db' : ($expense['type']=='Additional' ? 'color:#92400e' : 'color:#065f46') }}">
                         {{ $expense['type'] }}
                     </td>
                     <td>{{ $expense['category'] }}</td>

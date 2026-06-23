@@ -72,6 +72,11 @@ class ExpenseController extends Controller
         return view('expenses.additionalExpenses', compact('expenses', 'totalAuto', 'totalManual', 'totalAll'));
     }
 
+    public function show(Expense $expense)
+    {
+        return view('expenses.show', compact('expense'));
+    }
+
     // ── Create form ───────────────────────────────────────────────────────────
     public function create()
     {
@@ -86,56 +91,55 @@ class ExpenseController extends Controller
     // ── Store ─────────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
-        // Simple validation with no variables - just plain strings
         $request->validate([
             'total_amount'       => 'required|numeric|min:0',
             'expense_date'       => 'required',
             'payment_account_id' => 'required|exists:payment_accounts,id',
+            'job_ids'            => 'nullable|array',
+            'job_ids.*'          => 'exists:jobs,id',
         ]);
 
-        // Fetch Account
         $account = PaymentAccount::find($request->payment_account_id);
-
-        // // Balance Check
-        // if ($request->total_amount > $account->current_balance) {
-        //     return redirect()->back()
-        //         ->with('error', 'Insufficient funds in ' . $account->account_name)
-        //         ->withInput();
-        // }
 
         try {
             DB::transaction(function () use ($request, $account) {
+                $data = $request->except('_token', 'job_ids', 'job_ref_no');
 
-                // Build data from your EXACT column names
-                $data = $request->except('_token', 'job_ids');
-
-                // Handle job selections
-                $jobIds = array_filter((array) $request->input('job_ids', []));
-                $data['job_id']     = !empty($jobIds) ? $jobIds[0] : null;
-                $data['job_ref_no'] = $request->input('job_ref_no');
-
-                // Handle file upload
                 if ($request->hasFile('document')) {
                     $data['document_path'] = $request->file('document')
                         ->store('expense_docs', 'public');
                 }
 
-                // Set user info
                 $data['user_id']      = Auth::id();
                 $data['added_by']     = Auth::user()->name;
                 $data['is_refund']    = $request->boolean('is_refund');
                 $data['is_recurring'] = $request->boolean('is_recurring');
-
-                // Link payment account
                 $data['payment_account_id'] = $request->payment_account_id;
 
-                // Clean empty strings to null
                 foreach ($data as $k => $v) {
                     if ($v === '') $data[$k] = null;
                 }
 
-                // Create the Expense
+                // ✅ Create the Expense
                 $expense = \App\Models\Expense::create($data);
+
+                // ✅ Verify the expense was created with an ID
+                if (!$expense->id) {
+                    throw new \Exception('Failed to create expense - no ID returned');
+                }
+
+                // ✅ Attach to jobs via pivot table
+                $jobIds = array_filter((array) $request->input('job_ids', []));
+
+                if (!empty($jobIds)) {
+                    foreach ($jobIds as $jobId) {
+                        // Direct creation to avoid the null issue
+                        \App\Models\ExpenseJob::firstOrCreate([
+                            'expense_id' => $expense->id,
+                            'job_id'     => $jobId,
+                        ]);
+                    }
+                }
 
                 // REAL-TIME DEDUCTION
                 $account->recordTransaction(
@@ -172,38 +176,74 @@ class ExpenseController extends Controller
     // ── Update ────────────────────────────────────────────────────────────────
     public function update(Request $request, Expense $expense)
     {
-        $data = $request->except('_token', '_method');
+        $request->validate([
+            'total_amount'       => 'required|numeric|min:0',
+            'expense_date'       => 'required',
+            'payment_account_id' => 'required|exists:payment_accounts,id',
+            'job_ids'            => 'nullable|array',
+            'job_ids.*'          => 'exists:jobs,id',
+        ]);
 
-        if ($request->hasFile('document')) {
-            $data['document_path'] = $request->file('document')
-                ->store('expense_docs', 'public');
+        try {
+            DB::transaction(function () use ($request, $expense) {
+                $data = $request->except('_token', '_method', 'job_ids', 'job_ref_no');
+
+                if ($request->hasFile('document')) {
+                    $data['document_path'] = $request->file('document')
+                        ->store('expense_docs', 'public');
+                }
+
+                foreach ($data as $k => $v) {
+                    if ($v === '') $data[$k] = null;
+                }
+
+                $data['is_refund']    = $request->boolean('is_refund');
+                $data['is_recurring'] = $request->boolean('is_recurring');
+
+                $total = floatval($data['total_amount'] ?? $expense->total_amount);
+                $paid  = floatval($data['payment_amount'] ?? $expense->payment_amount);
+                $due   = $total - $paid;
+                $data['payment_due']    = max(0, $due);
+                $data['payment_status'] = $due <= 0 ? 'Paid' : ($paid > 0 ? 'Partial' : 'Due');
+
+                $expense->update($data);
+
+                // ✅ Sync pivot table
+                $jobIds = array_filter((array) $request->input('job_ids', []));
+
+                \App\Models\ExpenseJob::where('expense_id', $expense->id)->delete();
+
+                if (!empty($jobIds)) {
+                    foreach ($jobIds as $jobId) {
+                        \App\Models\ExpenseJob::create([
+                            'expense_id' => $expense->id,
+                            'job_id'     => $jobId,
+                        ]);
+                    }
+                }
+            });
+
+            return redirect()->route('expenses.list')
+                ->with('success', 'Expense updated.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error: ' . $e->getMessage())
+                ->withInput();
         }
-
-        foreach ($data as $k => $v) {
-            if ($v === '') $data[$k] = null;
-        }
-
-        $data['is_refund']    = $request->boolean('is_refund');
-        $data['is_recurring'] = $request->boolean('is_recurring');
-
-        // Recalculate payment due
-        $total   = floatval($data['total_amount']   ?? $expense->total_amount);
-        $paid    = floatval($data['payment_amount'] ?? $expense->payment_amount);
-        $due     = $total - $paid;
-        $data['payment_due']    = max(0, $due);
-        $data['payment_status'] = $due <= 0 ? 'Paid' : ($paid > 0 ? 'Partial' : 'Due');
-
-        $expense->update($data);
-
-        return redirect()->route('expenses.list')
-            ->with('success', 'Expense updated.');
     }
 
-    // ── Delete ────────────────────────────────────────────────────────────────
     public function destroy(Expense $expense)
     {
-        $expense->delete();
-        return back()->with('success', 'Expense deleted.');
+        try {
+            DB::transaction(function () use ($expense) {
+                \App\Models\ExpenseJob::where('expense_id', $expense->id)->delete();
+                $expense->delete();
+            });
+
+            return back()->with('success', 'Expense deleted.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error deleting expense: ' . $e->getMessage());
+        }
     }
 
     // ── AJAX: subcategories for a parent ─────────────────────────────────────

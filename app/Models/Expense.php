@@ -60,6 +60,53 @@ class Expense extends Model
     {
         return $this->belongsTo(Contact::class);
     }
+    public function expenseJobs()
+    {
+        return $this->hasMany(ExpenseJob::class, 'expense_id');
+    }
+
+    public function linkedJobs()
+    {
+        return Job::whereIn('id', $this->expenseJobs()->pluck('job_id'));
+    }
+
+    public function attachToJob($jobId)
+    {
+        $expenseId = $this->id ?? ExpenseJob::max('expense_id') + 1; // Fallback
+
+        return ExpenseJob::firstOrCreate([
+            'expense_id' => $expenseId,
+            'job_id'     => $jobId,
+        ]);
+    }
+
+    /**
+     * Helper: Detach expense from a job
+     */
+    public function detachFromJob($jobId)
+    {
+        return ExpenseJob::where('expense_id', $this->id)
+            ->where('job_id', $jobId)
+            ->delete();
+    }
+
+    /**
+     * Helper: Sync jobs (remove all, add new)
+     */
+    public function syncJobs($jobIds = [])
+    {
+        ExpenseJob::where('expense_id', $this->id)->delete();
+
+        foreach (array_filter((array) $jobIds) as $jobId) {
+            $this->attachToJob($jobId);
+        }
+    }
+
+
+    public function jobs()
+    {
+        return $this->belongsToMany(Job::class, 'expense_job', 'expense_id', 'job_id');
+    }
 
     // Auto-generate ref before creating
     protected static function boot()
@@ -79,6 +126,23 @@ class Expense extends Model
                 $expense->payment_status = 'Partial';
             } else {
                 $expense->payment_status = 'Due';
+            }
+
+            // If old job_id column has value, migrate it to pivot
+            if ($expense->job_id) {
+                $job = Job::find($expense->job_id);
+                if (!$job) {
+                    $job = Job::where('job_id', $expense->job_id)->first();
+                }
+
+                if ($job && $job->id != $expense->job_id) {
+                    // Try to find by job_id field instead
+                    $job = Job::where('job_id', $expense->job_id)->first();
+                }
+
+                if ($job) {
+                    $expense->attachToJob($job->id);
+                }
             }
         });
     }

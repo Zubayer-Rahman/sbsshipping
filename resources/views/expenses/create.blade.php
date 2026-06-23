@@ -440,13 +440,14 @@
         const jobSearch = document.getElementById('jobSearch');
         const isOffice = parent === 'Office Expense';
 
-        // Disable sub-category for Office Expense
-        subCat.innerHTML = '<option value="">Please Select</option>';
-        subCat.disabled = isOffice;
-        subCat.style.opacity = isOffice ? '.45' : '1';
-        subCat.style.cursor = isOffice ? 'not-allowed' : '';
-        subCat.style.background = isOffice ? '#f1f5f9' : '';
+        // // Disable sub-category for Office Expense
+        // subCat.innerHTML = '<option value="">Please Select</option>';
+        // subCat.disabled = isOffice;
+        // subCat.style.opacity = isOffice ? '.45' : '1';
+        // subCat.style.cursor = isOffice ? 'not-allowed' : '';
+        // subCat.style.background = isOffice ? '#f1f5f9' : '';
 
+        
         // Disable job number trigger for Office Expense
         jobWrap.style.opacity = isOffice ? '.45' : '1';
         jobWrap.style.pointerEvents = isOffice ? 'none' : '';

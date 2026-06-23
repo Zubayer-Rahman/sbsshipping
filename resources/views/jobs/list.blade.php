@@ -108,7 +108,7 @@
                 $job->additionalExpenses()->sum('to_be_billed') +
                 $job->ious()->sum('amount');
 
-                $billed = $job->bills()->sum('total_payable');
+                $billed = $job->imp_exp_value;
 
                 $profitLoss = $billed - $expense;
                 $sl = $jobs->total() - (($jobs->currentPage() - 1) * $jobs->perPage()) - $loop->index;
