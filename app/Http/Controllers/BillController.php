@@ -310,14 +310,43 @@ class BillController extends Controller
         $category = strtolower(trim($job->category ?? ''));
         $type = strtoupper(trim($job->type ?? ''));
         $qty = (float) ($job->quantity ?? 0);
+        $clientName = strtolower(trim($job->client_name ?? ''));
 
         $percentage = 0;
 
+        // Category checks
         $isImportAir = str_contains($category, 'import') && str_contains($category, 'air');
+        $isImportSea = str_contains($category, 'import') && str_contains($category, 'sea');
         $isImport = str_contains($category, 'import') || str_contains($category, 'imp');
         $isExport = str_contains($category, 'export') || str_contains($category, 'exp');
+        $isByTruck = str_contains($category, 'truck');
 
-        // Import calculation
+        // Client check
+        $isHitechImport = str_contains($clientName, 'hitech') && $isImport;
+
+        // Skip agency commission for import by air
+        if ($isImportAir) {
+            return response()->json([
+                'success' => true,
+                'job' => [
+                    'id' => $job->id,
+                    'job_id' => $job->job_id,
+                    'job_no' => $job->job_no,
+                    'client_name' => $job->client_name,
+                    'category' => $job->category,
+                    'type' => $type,
+                    'quantity' => $qty,
+                ],
+                'calculation' => [
+                    'percentage' => 0,
+                    'service_charge_amount' => 0,
+                    'imp_exp_value' => $value,
+                    'skip_agency_commission' => true,
+                ]
+            ]);
+        }
+
+        // Calculate percentage-based commission
         if ($isImport) {
             if ($value <= 20000) {
                 $percentage = 0.13;
@@ -328,9 +357,7 @@ class BillController extends Controller
             } else {
                 $percentage = 0.07;
             }
-        }
-        // Export calculation
-        elseif ($isExport) {
+        } elseif ($isExport) {
             if ($value <= 50000) {
                 $percentage = 0.11;
             } elseif ($value <= 100000) {
@@ -340,7 +367,27 @@ class BillController extends Controller
             }
         }
 
-        $serviceCharge = round(($value * $percentage) / 100, 2);
+        // Calculate base service charge (percentage of value)
+        $calculatedCharge = round($value * $percentage, 2);
+
+        // Determine minimum commission based on job type
+        $minimumCommission = 0;
+        $commissionType = '';
+
+        if ($isHitechImport) {
+            $minimumCommission = 850;
+            $commissionType = 'Hitech Import Minimum';
+        } elseif ($isImportSea) {
+            $minimumCommission = 1150;
+            $commissionType = 'Import by Sea Minimum';
+        } elseif ($isExport || $isByTruck) {
+            $minimumCommission = 750;
+            $commissionType = ($isByTruck ? 'Truck' : 'Export') . ' Minimum';
+        }
+
+        // Use the higher of calculated vs minimum
+        $finalCharge = max($calculatedCharge, $minimumCommission);
+        $isMinimumApplied = $finalCharge === $minimumCommission && $minimumCommission > 0;
 
         return response()->json([
             'success' => true,
@@ -355,9 +402,13 @@ class BillController extends Controller
             ],
             'calculation' => [
                 'percentage' => $percentage,
-                'service_charge_amount' => $serviceCharge,
+                'calculated_charge' => $calculatedCharge,
+                'minimum_commission' => $minimumCommission,
+                'service_charge_amount' => $finalCharge,
                 'imp_exp_value' => $value,
-                'skip_agency_commission' => $isImportAir,
+                'skip_agency_commission' => false,
+                'is_minimum_applied' => $isMinimumApplied,
+                'commission_type' => $isMinimumApplied ? $commissionType : 'Percentage Based',
             ]
         ]);
     }
