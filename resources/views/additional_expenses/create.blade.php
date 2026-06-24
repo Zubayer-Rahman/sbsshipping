@@ -50,8 +50,8 @@
                         style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:6px;font-size:14px">
                         <option value="">Select Job (Optional)</option>
                         @foreach($jobs as $job)
-                        <option value="{{ $job->id }}" {{ old('job_id') == $job->id ? 'selected' : '' }}>
-                            {{ $job->job_id ?? 'Job #'.$job->id }} - {{ $job->client_name ?? 'No client' }}
+                        <option value="{{ $job->no }}" {{ old('job_no') == $job->no ? 'selected' : '' }}>
+                            {{ $job->job_no ?? 'Job #'.$job->no }} - {{ $job->client_name ?? 'No client' }}
                         </option>
                         @endforeach
                     </select>

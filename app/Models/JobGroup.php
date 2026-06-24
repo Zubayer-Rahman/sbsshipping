@@ -19,17 +19,19 @@ class JobGroup extends Model
 
     public function jobs()
     {
-        return $this->belongsToMany(Job::class, 'job_group_job', 'job_group_id', 'job_id');
+        return $this->belongsToMany(
+            Job::class,
+            'job_group_job',
+            'job_group_id',
+            'job_id',
+            'id',
+            'id'
+        );
     }
 
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function groups()
-    {
-        return $this->belongsToMany(JobGroup::class, 'job_group_job', 'job_id', 'job_group_id');
     }
 
     public static function generateGroupCode()

@@ -440,36 +440,45 @@
         const jobSearch = document.getElementById('jobSearch');
         const isOffice = parent === 'Office Expense';
 
-        // // Disable sub-category for Office Expense
-        // subCat.innerHTML = '<option value="">Please Select</option>';
-        // subCat.disabled = isOffice;
-        // subCat.style.opacity = isOffice ? '.45' : '1';
-        // subCat.style.cursor = isOffice ? 'not-allowed' : '';
-        // subCat.style.background = isOffice ? '#f1f5f9' : '';
+        console.log('Category changed to:', parent);
 
-        
-        // Disable job number trigger for Office Expense
+        // Subcategory is ALWAYS enabled - never disabled
+        subCat.innerHTML = '<option value="">Please Select</option>';
+        subCat.disabled = false;
+        subCat.style.opacity = '1';
+        subCat.style.cursor = '';
+        subCat.style.background = '';
+
+        // Only disable JOB NUMBER for Office Expense
         jobWrap.style.opacity = isOffice ? '.45' : '1';
         jobWrap.style.pointerEvents = isOffice ? 'none' : '';
         jobWrap.style.cursor = isOffice ? 'not-allowed' : 'pointer';
         jobWrap.style.background = isOffice ? '#f1f5f9' : '#fff';
         jobSearch.disabled = isOffice;
+
         if (isOffice) {
             closeJobDropdown();
             clearAllJobs();
         }
 
-        if (!parent || isOffice) return;
+        // Return only if no category selected
+        if (!parent) return;
 
+        //  Fetch subcategories for BOTH Job Expense AND Office Expense
         fetch(`/expenses/subcategories/ajax?parent=${encodeURIComponent(parent)}`)
             .then(r => r.json())
             .then(data => {
+                console.log('Subcategories loaded for', parent, ':', data);
+
                 data.forEach(c => {
                     const o = document.createElement('option');
                     o.value = c.name;
                     o.textContent = c.name;
                     subCat.appendChild(o);
                 });
+            })
+            .catch(error => {
+                console.error('Error fetching subcategories:', error);
             });
     });
 

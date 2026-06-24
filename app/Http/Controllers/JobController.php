@@ -58,7 +58,7 @@ class JobController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->except('_token');
+        $data = $request->except('_token', 'job_group_id');
         $data['user_id'] = Auth::id();
 
         foreach ($data as $key => $value) {
@@ -67,13 +67,30 @@ class JobController extends Controller
 
         $job = Job::create($data);
 
-        // Attach to job group if selected
-        if ($request->job_group_id) {
-            $job->groups()->attach($request->job_group_id);
+        if ($request->filled('job_group_id')) {
+            $job->jobGroups()->attach($request->job_group_id);
         }
 
         return redirect()->route('jobs.list')
             ->with('success', 'Job created successfully!');
+    }
+
+    public function update(Request $request, Job $job)
+    {
+        $data = $request->except('_token', '_method', 'job_group_id');
+        foreach ($data as $key => $value) {
+            if ($value === '') $data[$key] = null;
+        }
+        $job->update($data);
+
+        if ($request->filled('job_group_id')) {
+            $job->jobGroups()->sync([$request->job_group_id]);
+        } else {
+            $job->jobGroups()->detach();
+        }
+
+        return redirect()->route('jobs.list')
+            ->with('success', 'Job updated successfully!');
     }
 
     public function show(Job $job)
@@ -88,23 +105,6 @@ class JobController extends Controller
         return view('jobs.edit', compact('job', 'clients', 'users'));
     }
 
-    public function update(Request $request, Job $job)
-    {
-        $data = $request->except('_token', '_method');
-        foreach ($data as $key => $value) {
-            if ($value === '') $data[$key] = null;
-        }
-        $job->update($data);
-
-        if ($request->job_group_id) {
-            $job->groups()->sync([$request->job_group_id]);
-        } else {
-            $job->groups()->detach();
-        }
-
-        return redirect()->route('jobs.list')
-            ->with('success', 'Job updated successfully!');
-    }
 
     public function print(Job $job)
     {

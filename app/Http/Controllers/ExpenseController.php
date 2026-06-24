@@ -249,9 +249,12 @@ class ExpenseController extends Controller
     // ── AJAX: subcategories for a parent ─────────────────────────────────────
     public function subcategories(Request $request)
     {
-        $subs = ExpenseCategory::where('parent_category', $request->parent)
+        $parent = trim($request->parent);
+
+        // Case-insensitive search
+        $subs = ExpenseCategory::whereRaw('LOWER(TRIM(parent_category)) = ?', [strtolower($parent)])
             ->orderBy('name')
-            ->get(['id', 'name', 'code']);
+            ->get(['id', 'name', 'code', 'parent_category']);
 
         return response()->json($subs);
     }

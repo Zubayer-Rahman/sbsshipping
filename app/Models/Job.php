@@ -82,6 +82,7 @@ class Job extends Model
     {
         return $this->belongsTo(User::class);
     }
+
     public function expenses()
     {
         return Expense::whereIn('id', function ($query) {
@@ -121,9 +122,16 @@ class Job extends Model
         return $this->hasMany(Bill::class, 'job_number', 'id'); // Check FK
     }
 
-    public function groups()
+    public function jobGroups()
     {
-        return $this->belongsToMany(JobGroup::class, 'job_group_job', 'job_id', 'job_group_id', 'job_no');
+        return $this->belongsToMany(
+            JobGroup::class,
+            'job_group_job',  // pivot table
+            'job_id',         // pivot column storing Job's key
+            'job_group_id',   // pivot column storing JobGroup's key
+            'id',             // ← FIXED: use numeric primary key, not job_id string
+            'id'              // JobGroup primary key
+        );
     }
 
     // Auto-generate Job ID before creating
@@ -141,7 +149,7 @@ class Job extends Model
     {
         return ($this->cost_amount ?? 0) - ($this->expense_amount ?? 0);
     }
-    
+
     public function allExpenses()
     {
         // Normal Expenses through pivot
