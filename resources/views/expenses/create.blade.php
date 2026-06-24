@@ -67,8 +67,8 @@
 
                     <div id="jobTags" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px"></div>
 
-                    <input type="hidden" name="job_id" id="jobIdSingle">
-                    <input type="hidden" name="job_ref_no" id="jobRefNo">
+                    <!-- <input type="hidden" name="job_id" id="jobIdSingle">
+                    <input type="hidden" name="job_no" id="jobfNo"> -->
 
                     <div style="font-size:12px;color:var(--text-muted);margin-top:5px;
                             display:flex;align-items:center;gap:10px">
@@ -240,7 +240,8 @@
             @foreach(\App\Models\Job::orderBy('id', 'desc')->get() as $job)
             <input type="checkbox"
                 class="job-check"
-                value="{{ $job->no ?? $job->id }}"
+                name="job_ids[]"
+                value="{{ $job->id }}" {{-- ✅ Use the integer ID --}}
                 data-ref="{{ $job->job_no ?? $job->job_id }}"
                 data-client="{{ $job->client_name }}"
                 data-category="{{ $job->category }}"
@@ -287,55 +288,66 @@
         @foreach(\App\Models\Job::orderBy('id', 'desc')->get() as $job)
         <div class="job-visual-option"
             data-id="{{ $job->id }}"
-            data-search="{{ strtolower(($job->job_id ?? $job->job_no) . ' ' . $job->client_name) }}"
+            data-search="{{ strtolower(($job->job_id ?? $job->job_no) . ' ' . ($job->client_name ?? '') . ' ' . ($job->category ?? '') . ' ' . ($job->type ?? '')) }}"
             style="display:flex;align-items:center;gap:12px;padding:12px 14px;
-                        cursor:pointer;border-bottom:1px solid var(--border);
-                        transition:background .15s">
+                   cursor:pointer;border-bottom:1px solid var(--border);
+                   transition:background .15s">
 
             {{-- Checkbox visual --}}
             <span class="job-visual-check"
                 style="width:18px;height:18px;border:2px solid var(--border);
-                             border-radius:4px;flex-shrink:0;display:flex;
-                             align-items:center;justify-content:center;
-                             transition:all .2s;background:#fff">
+                       border-radius:4px;flex-shrink:0;display:flex;
+                       align-items:center;justify-content:center;
+                       transition:all .2s;background:#fff">
             </span>
 
             {{-- Job info --}}
             <div style="flex:1;min-width:0">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+                {{-- Top row: Job Number + Category + Type Badges --}}
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
                     <span style="font-size:13px;font-weight:700;color:var(--primary);
-                                     font-family:'Inter',sans-serif">
+                                 font-family:'Inter',sans-serif">
                         {{ $job->job_no ?? $job->job_id }}
                     </span>
+
+                    {{-- Category Badge --}}
                     @if($job->category)
-                    <span style="font-size:10px;padding:2px 6px;border-radius:10px;
-                                         background:{{ str_contains(strtolower($job->category), 'import') ? '#dbeafe' : '#fef3c7' }};
-                                         color:{{ str_contains(strtolower($job->category), 'import') ? '#1e40af' : '#92400e' }};
-                                         font-weight:600;text-transform:uppercase">
+                    <span style="font-size:10px;padding:2px 8px;border-radius:10px;
+                                 background:{{ str_contains(strtolower($job->category), 'import') ? '#dbeafe' : '#fef3c7' }};
+                                 color:{{ str_contains(strtolower($job->category), 'import') ? '#1e40af' : '#92400e' }};
+                                 font-weight:600;text-transform:uppercase;letter-spacing:0.3px">
                         {{ $job->category }}
                     </span>
                     @endif
 
+                    {{-- Type Badge --}}
                     @if($job->type)
-                    <span style="font-size:10px;padding:2px 6px;border-radius:10px;
-                                         background:{{ str_contains(strtolower($job->type), 'import') ? '#dbeafe' : '#fef3c7' }};
-                                         color:{{ str_contains(strtolower($job->type    ), 'import') ? '#1e40af' : '#92400e' }};
-                                         font-weight:600;text-transform:uppercase">
+                    <span style="font-size:10px;padding:2px 8px;border-radius:10px;
+                                 background:#e0e7ff;color:#3730a3;
+                                 font-weight:600;text-transform:uppercase;letter-spacing:0.3px">
                         {{ $job->type }}
                     </span>
                     @endif
                 </div>
+
+                {{-- Bottom row: Client Name --}}
                 <div style="font-size:12px;color:var(--text-muted);
-                                overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                    👤 {{ $job->client_name ?? 'No client' }}
+                            overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+                            display:flex;align-items:center;gap:6px">
+                    <i class="bi bi-person-fill" style="color:var(--primary);font-size:13px"></i>
+                    <span style="font-weight:500;color:var(--text-primary)">
+                        {{ $job->client_name ?? 'No client' }}
+                    </span>
                 </div>
             </div>
 
-            {{-- Invoice Value --}}
+            {{-- Right side: Invoice Value --}}
             @if($job->invoice_value_usd)
-            <div style="text-align:right;flex-shrink:0">
-                <div style="font-size:11px;color:var(--text-muted)">Invoice</div>
-                <div style="font-size:12px;font-weight:700;color:var(--text-primary)">
+            <div style="text-align:right;flex-shrink:0;border-left:1px solid var(--border);padding-left:12px">
+                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600">
+                    Invoice
+                </div>
+                <div style="font-size:13px;font-weight:700;color:var(--success, #059669);font-family:'Inter',sans-serif">
                     ${{ number_format($job->invoice_value_usd, 0) }}
                 </div>
             </div>
@@ -347,6 +359,7 @@
     <div id="jobNoResults"
         style="display:none;padding:20px;text-align:center;font-size:13px;
                color:var(--text-muted)">
+        <i class="bi bi-search" style="font-size:24px;display:block;margin-bottom:8px;opacity:0.5"></i>
         No jobs found matching your search.
     </div>
 </div>
@@ -527,6 +540,7 @@
     document.addEventListener('click', e => {
         if (!trigger.contains(e.target) && !floatDD.contains(e.target)) closeJobDropdown();
     });
+
     ['scroll', 'resize'].forEach(ev =>
         window.addEventListener(ev, () => {
             if (ddOpen) positionDD();
@@ -551,19 +565,20 @@
         const v = val.toLowerCase().trim();
         let any = false;
         document.querySelectorAll('.job-visual-option').forEach(opt => {
-            const match = !v || opt.dataset.ref.toLowerCase().includes(v);
+            const searchData = (opt.dataset.search || '').toLowerCase();
+            const match = !v || searchData.includes(v);
             opt.style.display = match ? 'flex' : 'none';
             if (match) any = true;
         });
         document.getElementById('jobNoResults').style.display = any ? 'none' : 'block';
     }
 
-    // Sync tags, hidden inputs, and count badge
+    // ✅ Sync tags, hidden inputs, and count badge
     function syncTags() {
         const checked = [...document.querySelectorAll('#jobCheckboxPool .job-check:checked')];
         jobTags.innerHTML = '';
-        const refs = [],
-            ids = [];
+        const refs = [];
+        const ids = [];
 
         checked.forEach(cb => {
             refs.push(cb.dataset.ref);
@@ -592,10 +607,14 @@
             if (!ids.includes(opt.dataset.id)) opt.classList.remove('selected');
         });
 
-        document.getElementById('jobIdSingle').value = ids[0] || '';
-        document.getElementById('jobRefNo').value = refs.join(', ');
+        // ✅ Update hidden inputs (safely check if they exist)
+        const jobIdSingle = document.getElementById('jobIdSingle');
+        const jobNoInput = document.getElementById('jobfNo');
 
-        // ── Update count badge ──
+        if (jobIdSingle) jobIdSingle.value = ids[0] || '';
+        if (jobNoInput) jobNoInput.value = refs.join(', ');
+
+        // ✅ Update count badge
         const count = ids.length;
         badge.style.display = count > 0 ? 'inline-flex' : 'none';
         badge.textContent = count + (count === 1 ? ' job selected' : ' jobs selected');
@@ -627,6 +646,27 @@
         document.getElementById('jobSearch').value = '';
         filterJobs('');
     }
+
+    // ✅ CRITICAL FIX: Before form submit, ensure checkboxes are in the form
+    document.getElementById('expenseForm').addEventListener('submit', function(e) {
+        // Move checked checkboxes into the form so they get submitted
+        const form = this;
+        const checkedJobs = document.querySelectorAll('#jobCheckboxPool .job-check:checked');
+
+        // Remove any previously appended hidden inputs from the form
+        form.querySelectorAll('input[name="job_ids[]"]').forEach(inp => inp.remove());
+
+        // Add hidden inputs for each selected job
+        checkedJobs.forEach(cb => {
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'job_ids[]';
+            hidden.value = cb.value;
+            form.appendChild(hidden);
+        });
+
+        console.log('Submitting with job_ids:', [...checkedJobs].map(cb => cb.value));
+    });
 
     // ── Total amount display ──────────────────────────────────────────────────────
     document.getElementById('totalAmount').addEventListener('input', function() {

@@ -119,7 +119,7 @@
                         @if($exp->job)
                         <span style="padding:3px 8px;background:var(--primary-light);color:var(--primary);
                                          border-radius:6px;font-size:11px;font-weight:600">
-                            {{ $exp->job->job_id ?? 'Job #'.$exp->job_id }}
+                            {{ $exp->job->job_no ?? 'Job #'.$exp->job_id }}
                         </span>
                         @else
                         <span style="color:var(--text-muted)">—</span>

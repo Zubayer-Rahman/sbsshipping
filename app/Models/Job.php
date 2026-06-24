@@ -85,11 +85,12 @@ class Job extends Model
 
     public function expenses()
     {
-        return Expense::whereIn('id', function ($query) {
-            $query->select('expense_id')
-                ->from('expense_job')
-                ->where('job_id', $this->id);
-        });
+        return $this->belongsToMany(
+            Expense::class,
+            'expense_job',
+            'job_id',
+            'expense_id'
+        );
     }
 
     public function expenseJobs()
@@ -100,6 +101,26 @@ class Job extends Model
     public function additionalExpenses()
     {
         return $this->hasMany(AdditionalExpense::class, 'job_id');
+    }
+
+    public function additionalExpensesPivot()
+    {
+        return $this->belongsToMany(
+            AdditionalExpense::class,
+            'additional_expense_job',
+            'job_id',
+            'additional_expense_id'
+        );
+    }
+
+    public function allAdditionalExpenses()
+    {
+        return AdditionalExpense::where('job_id', $this->id)
+            ->orWhereIn('id', function ($query) {
+                $query->select('additional_expense_id')
+                    ->from('additional_expense_job')
+                    ->where('job_id', $this->id);
+            });
     }
 
     public function ious()
@@ -165,7 +186,7 @@ class Job extends Model
             ];
         });
 
-        // Additional Expenses
+        // ✅ Additional Expenses - direct relationship only
         $additional = $this->additionalExpenses()->get()->map(function ($a) {
             return [
                 'date' => $a->expense_date,

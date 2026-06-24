@@ -103,17 +103,24 @@
             </thead>
             <tbody>
                 @forelse($jobs as $job)
-                @php
-                $expense = $job->expenses()->sum('total_amount') +
-                $job->additionalExpenses()->sum('to_be_billed') +
-                $job->ious()->sum('amount');
+                    @php
+                        // Normal Expenses (through pivot)
+                        $normalExpenses = $job->expenses()->sum('total_amount');
 
-                $billed = $job->imp_exp_value;
+                        // Additional Expenses (direct only - no pivot)
+                        $additionalExpenses = \App\Models\AdditionalExpense::where('job_id', $job->id)
+                        ->sum('to_be_billed');
 
-                $profitLoss = $billed - $expense;
-                $sl = $jobs->total() - (($jobs->currentPage() - 1) * $jobs->perPage()) - $loop->index;
-                $category = $job->category ?? '';
-                @endphp
+                        // IOUs (through pivot)
+                        $iouExpenses = $job->ious()->sum('amount');
+
+                        $expense = $normalExpenses + $additionalExpenses + $iouExpenses;
+                        $billed = $job->imp_exp_value ?? 0;
+                        $profitLoss = $billed - $expense;
+
+                        $sl = $jobs->total() - (($jobs->currentPage() - 1) * $jobs->perPage()) - $loop->index;
+                        $category = $job->category ?? '';
+                    @endphp
                 <tr>
                     <td style="color:var(--text-muted);font-size:13px">{{ $sl }}</td>
                     <td>

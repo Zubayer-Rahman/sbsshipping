@@ -397,7 +397,7 @@
         <table class="expense-table">
             <thead>
                 <tr>
-                    <th style="width: 5%;">SL</th>
+                    <!-- <th style="width: 5%;">SL</th> -->
                     <th style="width: 12%;">Date</th>
                     <th style="width: 12%;">Type</th>
                     <th style="width: 16%;">Category</th>
@@ -408,34 +408,50 @@
                 </tr>
             </thead>
             <tbody>
+                @foreach($jobs as $job)
                 @php
-                // Use the model relationship - clean MVC approach!
-                $allExpenses = $job->allExpenses();
+                $normalExpenses = $job->expenses()->sum('total_amount');
+                $additionalExpenses = \App\Models\AdditionalExpense::where('job_id', $job->id)->sum('to_be_billed');
+                $iouExpenses = $job->ious()->sum('amount');
 
-                $totalExpenses = $allExpenses->sum('amount');
+                $totalExpenses = $normalExpenses + $additionalExpenses + $iouExpenses;
                 $totalInvoiced = $job->imp_exp_value ?? 0;
                 $profitLoss = $totalInvoiced - $totalExpenses;
+                $category = $job->category ?? '';
+
+                $allExpenses = $job->allExpenses();
                 @endphp
 
-                @forelse($allExpenses as $idx => $expense)
+                @forelse($allExpenses as $item)
                 <tr>
-                    <td style="text-align:center">{{ $idx + 1 }}</td>
-                    <td>{{ $expense['date'] ? \Carbon\Carbon::parse($expense['date'])->format('Y-m-d') : '—' }}</td>
-                    <td style="font-weight:700; 
-        {{ $expense['type']=='Expense' ? 'color:#1a56db' : ($expense['type']=='Additional' ? 'color:#92400e' : 'color:#065f46') }}">
-                        {{ $expense['type'] }}
+                    <td>{{ $item['date'] ? \Carbon\Carbon::parse($item['date'])->format('Y-m-d') : '—' }}</td>
+                    <td style="font-weight:700; {{ $item['type']=='Expense' ? 'color:#1a56db' : ($item['type']=='Additional' ? 'color:#92400e' : 'color:#065f46') }}">
+                        {{ $item['type'] }}
                     </td>
-                    <td>{{ $expense['category'] }}</td>
-                    <td>{{ $expense['sub_category'] }}</td>
-                    <td>{{ \Illuminate\Support\Str::limit($expense['note'], 35) }}</td>
-                    <td>{{ $expense['added_by'] }}</td>
-                    <td style="text-align:right; font-weight:600">{{ number_format($expense['amount'], 2) }}</td>
+                    <td>{{ $item['category'] }}</td>
+                    <td>{{ $item['sub_category'] }}</td>
+                    <td>{{ \Illuminate\Support\Str::limit($item['note'], 35) }}</td>
+                    <td>{{ $item['added_by'] }}</td>
+                    <td style="text-align:right; font-weight:600">{{ number_format($item['amount'], 2) }}</td>
                 </tr>
                 @empty
                 <tr>
                     <td colspan="8" style="padding: 20px; color: #888; text-align:center">No expenses recorded</td>
                 </tr>
                 @endforelse
+
+                <!-- @foreach($allExpenses as $item)
+                <tr>
+                    <td>{{ $item['date'] ? \Carbon\Carbon::parse($item['date'])->format('Y-m-d') : '—' }}</td>
+                    <td>{{ $item['type'] }}</td>
+                    <td>{{ $item['category'] }}</td>
+                    <td>{{ $item['sub_category'] }}</td>
+                    <td>{{ $item['note'] }}</td>
+                    <td>{{ $item['added_by'] }}</td>
+                    <td>{{ number_format($item['amount'], 2) }}</td>
+                </tr>
+                @endforeach -->
+                @endforeach
             </tbody>
         </table>
 

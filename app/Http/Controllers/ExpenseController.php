@@ -96,7 +96,7 @@ class ExpenseController extends Controller
             'expense_date'       => 'required',
             'payment_account_id' => 'required|exists:payment_accounts,id',
             'job_ids'            => 'nullable|array',
-            'job_ids.*'          => 'exists:jobs,id',
+            'job_ids.*'          => 'exists:sbs_jobs,id',
         ]);
 
         $account = PaymentAccount::find($request->payment_account_id);

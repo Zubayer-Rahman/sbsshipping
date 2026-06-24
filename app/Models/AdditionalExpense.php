@@ -42,6 +42,33 @@ class AdditionalExpense extends Model
         return $this->belongsTo(Job::class, 'job_id');
     }
 
+    public function jobs()
+    {
+        return $this->belongsToMany(
+            Job::class,
+            'additional_expense_job',
+            'additional_expense_id',
+            'job_id'
+        );
+    }
+
+    public function attachToJob($jobId)
+    {
+        return AdditionalExpenseJob::firstOrCreate([
+            'additional_expense_id' => $this->id,
+            'job_id' => $jobId,
+        ]);
+    }
+
+    public function syncJobs(array $jobIds)
+    {
+        AdditionalExpenseJob::where('additional_expense_id', $this->id)->delete();
+
+        foreach (array_filter($jobIds) as $jobId) {
+            $this->attachToJob($jobId);
+        }
+    }
+
     public function paymentAccount()
     {
         return $this->belongsTo(PaymentAccount::class);

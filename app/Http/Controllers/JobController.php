@@ -108,7 +108,8 @@ class JobController extends Controller
 
     public function print(Job $job)
     {
-        return view('jobs.print', compact('job'));
+        $jobs = collect([$job]);
+        return view('jobs.print', compact('job', 'jobs'));
     }
 
     public function destroy(Job $job)

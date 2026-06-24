@@ -7,6 +7,8 @@ use App\Models\Contact;
 use App\Models\Job;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\PaymentAccount;
 
 class AdditionalExpenseController extends Controller
 {
@@ -42,8 +44,11 @@ class AdditionalExpenseController extends Controller
     // Create form
     public function create()
     {
-        $clients = Contact::orderBy('business_name')->get();
-        $jobs = Job::orderBy('id', 'desc')->get();
+        $clients = Contact::where('is_active', true)
+            ->orderBy('business_name')
+            ->get();
+        $jobs = Job::orderBy('id', 'desc')
+            ->get(['id', 'job_no', 'job_id', 'client_name', 'category', 'type', 'invoice_value_usd']);
         $referenceNo = AdditionalExpense::generateReferenceNo();
 
         return view('additional_expenses.create', compact('clients', 'jobs', 'referenceNo'));
@@ -54,35 +59,52 @@ class AdditionalExpenseController extends Controller
     {
         $validated = $request->validate([
             'client_id' => 'required|exists:contacts,id',
-            'job_id' => 'nullable|exists:sbs_jobs,id',
+            'job_ids' => 'nullable|array',
+            'job_ids.*' => 'exists:sbs_jobs,id',
             'description' => 'required|string|max:255',
             'actual_amount' => 'required|numeric|min:0',
             'to_be_billed' => 'required|numeric|min:0',
             'expense_date' => 'required|date',
             'notes' => 'nullable|string',
-            'payment_account_id' => 'required|exists:payment_accounts,id', // ← ADD THIS
+            'payment_account_id' => 'required|exists:payment_accounts,id',
         ]);
 
-        $validated['reference_no'] = AdditionalExpense::generateReferenceNo();
-        $validated['created_by'] = Auth::id();
-        $validated['status'] = 'pending';
+        try {
+            DB::transaction(function () use ($request, $validated) {
+                // Get the first job ID
+                $jobIds = array_filter((array) $request->input('job_ids', []));
+                $primaryJobId = !empty($jobIds) ? $jobIds[0] : null;
 
-        $expense = AdditionalExpense::create($validated);
+                $data = array_merge($validated, [
+                    'job_id' => $primaryJobId,
+                    'reference_no' => AdditionalExpense::generateReferenceNo(),
+                    'created_by' => Auth::id(),
+                    'status' => 'pending',
+                ]);
 
-        // ← ADD THIS BLOCK: Deduct from payment account
-        $account = \App\Models\PaymentAccount::findOrFail($validated['payment_account_id']);
-        $account->recordTransaction(
-            'debit',
-            $validated['actual_amount'],
-            'additional_expense',
-            $expense->id,
-            'Additional Expense: ' . $validated['description'] . ' (' . $expense->reference_no . ')',
-            $validated['expense_date'],
-            Auth::id()
-        );
+                unset($data['job_ids']);
 
-        return redirect()->route('additional-expenses.index')
-            ->with('success', 'Additional expense created successfully!');
+                $expense = AdditionalExpense::create($data);
+
+                $account = PaymentAccount::findOrFail($validated['payment_account_id']);
+                $account->recordTransaction(
+                    'debit',
+                    $validated['actual_amount'],
+                    'additional_expense',
+                    $expense->id,
+                    'Additional Expense: ' . $validated['description'] . ' (' . $expense->reference_no . ')',
+                    $validated['expense_date'],
+                    Auth::id()
+                );
+            });
+
+            return redirect()->route('additional-expenses.index')
+                ->with('success', 'Additional expense created successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     // Show

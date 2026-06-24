@@ -12,6 +12,7 @@ class Expense extends Model
         'expense_category',
         'sub_category',
         'job_id',
+        'job_no',
         'job_ref_no',
         'expense_date',
         'expense_for',
@@ -47,6 +48,11 @@ class Expense extends Model
         'is_recurring'  => 'boolean',
     ];
 
+    public function jobs()
+    {
+        return $this->belongsToMany(Job::class, 'expense_job', 'expense_id', 'job_id', 'job_no');
+    }
+    
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -103,10 +109,6 @@ class Expense extends Model
     }
 
 
-    public function jobs()
-    {
-        return $this->belongsToMany(Job::class, 'expense_job', 'expense_id', 'job_id');
-    }
 
     // Auto-generate ref before creating
     protected static function boot()
