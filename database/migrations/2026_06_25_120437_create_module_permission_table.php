@@ -1,0 +1,26 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('module_permissions', function (Blueprint $table) {
+            $table->id();
+            $table->enum('role', ['super_admin', 'admin', 'power_user', 'user']);
+            $table->string('module'); // jobs, expenses, bills, accounts, contacts, ious, reports, additional-expenses, items
+            $table->boolean('allowed')->default(false);
+            $table->timestamps();
+
+            $table->unique(['role', 'module']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('module_permissions');
+    }
+};
