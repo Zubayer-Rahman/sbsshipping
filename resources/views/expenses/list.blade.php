@@ -130,23 +130,27 @@
             <tbody id="expBody">
                 @forelse($expenses as $exp)
                 <tr style="border-bottom:1px solid var(--border);transition:background .12s"
-                    onmouseover="this.style.background='#f8faff'" onmouseout="this.style.background=''">
+                    onmouseover="this.style.background='#f8faff'"
+                    onmouseout="this.style.background=''">
+
+                    {{-- Actions --}}
                     <td class="exp-td">
                         <div style="position:relative;display:inline-block">
                             <button type="button" class="exp-actions-btn" onclick="expToggle(this)"
-                                style="display:inline-flex;align-items:center;gap:5px;
-                                           padding:4px 12px;border-radius:20px;
-                                           border:1.5px solid var(--primary);background:#fff;
-                                           color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">
+                                style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:1.5px solid var(--primary);background:#fff;color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">
                                 Actions <i class="bi bi-chevron-down" style="font-size:10px"></i>
                             </button>
                             <div class="exp-dd" style="display:none">
                                 <a href="{{ route('expenses.edit', $exp) }}" class="exp-dd-item">
                                     <i class="bi bi-pencil" style="color:var(--primary)"></i> Edit
                                 </a>
+                                <a href="{{ route('expenses.show', $exp) }}" class="exp-dd-item">
+                                    <i class="bi bi-eye" style="color:var(--success)"></i> View
+                                </a>
                                 <form method="POST" action="{{ route('expenses.destroy', $exp) }}"
                                     onsubmit="return confirm('Delete this expense?')" style="margin:0">
-                                    @csrf @method('DELETE')
+                                    @csrf
+                                    @method('DELETE')
                                     <button type="submit" class="exp-dd-item exp-dd-btn">
                                         <i class="bi bi-trash" style="color:var(--danger)"></i> Delete
                                     </button>
@@ -154,20 +158,66 @@
                             </div>
                         </div>
                     </td>
+
+                    {{-- Date & Ref --}}
                     <td class="exp-td" style="white-space:nowrap">
                         {{ $exp->expense_date ? $exp->expense_date->format('d/m/Y h:i A') : '—' }}<br>
                         <span style="font-size:11px;color:var(--primary);font-weight:600">{{ $exp->expense_ref }}</span>
                     </td>
-                    <td class="exp-td" style="font-weight:600;color:var(--primary)">{{ $exp->job_no ?? '—' }}</td>
+
+                    {{-- Linked Jobs -- jobs() is a belongsToMany collection --}}
+                    <td class="exp-td" style="font-weight:600;color:var(--primary)">
+                        @if($exp->jobs && $exp->jobs->count() > 0)
+                        @foreach($exp->jobs as $job)
+                        <span style="display:inline-block;background:var(--primary-light);color:var(--primary);font-size:11px;font-weight:600;padding:2px 7px;border-radius:10px;margin-bottom:2px">
+                            {{ $job->job_no ?? $job->job_id ?? '—' }}
+                        </span>
+                        @endforeach
+                        @else
+                        <span style="color:var(--text-muted)">—</span>
+                        @endif
+                    </td>
+
+                    {{-- Category --}}
                     <td class="exp-td">{{ $exp->expense_category ?? '—' }}</td>
+
+                    {{-- Sub Category --}}
                     <td class="exp-td" style="color:var(--text-muted)">{{ $exp->sub_category ?? '—' }}</td>
-                    <td class="exp-td" style="text-align:right;font-weight:600">TK. {{ number_format($exp->total_amount,2) }}</td>
+
+                    {{-- Amount --}}
+                    <td class="exp-td" style="text-align:right;font-weight:600">
+                        TK. {{ number_format($exp->total_amount, 2) }}
+                    </td>
+
+                    <!-- {{-- Payment Status --}}
+                    <td class="exp-td">
+                        @php
+                        $statusColor = match($exp->payment_status ?? '') {
+                        'Paid' => ['#d1fae5', '#065f46'],
+                        'Partial' => ['#fef3c7', '#92400e'],
+                        'Due' => ['#fee2e2', '#991b1b'],
+                        default => ['#f1f5f9', '#64748b'],
+                        };
+                        @endphp
+                        <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:{{ $statusColor[0] }};color:{{ $statusColor[1] }}">
+                            {{ $exp->payment_status ?? '—' }}
+                        </span>
+                    </td> -->
+
+                    {{-- Expense For --}}
                     <td class="exp-td">{{ $exp->expense_for ?? '—' }}</td>
+
+                    {{-- Contact --}}
                     <td class="exp-td" style="font-size:12px">{{ $exp->expense_for_contact ?? '—' }}</td>
+
+                    {{-- Note --}}
                     <td class="exp-td" style="max-width:180px;font-size:12px;color:var(--text-muted)">
                         {{ Str::limit($exp->expense_note, 60) }}
                     </td>
+
+                    {{-- Added By --}}
                     <td class="exp-td" style="font-size:12px">{{ $exp->added_by ?? '—' }}</td>
+
                 </tr>
                 @empty
                 <tr>

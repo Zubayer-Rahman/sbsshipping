@@ -16,7 +16,7 @@ class ExpenseController extends Controller
     // ── List ─────────────────────────────────────────────────────────────────
     public function index(Request $request)
     {
-        $query = Expense::latest();
+        $query = Expense::with('jobs')->latest(); // ✅ Added eager loading
 
         if ($request->filled('search')) {
             $s = $request->search;

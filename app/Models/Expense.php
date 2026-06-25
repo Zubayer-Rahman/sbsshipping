@@ -47,12 +47,19 @@ class Expense extends Model
         'is_refund'     => 'boolean',
         'is_recurring'  => 'boolean',
     ];
-
+    
     public function jobs()
     {
-        return $this->belongsToMany(Job::class, 'expense_job', 'expense_id', 'job_id', 'job_no');
+        return $this->belongsToMany(
+            Job::class,
+            'expense_job',
+            'expense_id',
+            'job_id',
+            'id',    // ← must be 'id', not 'job_no' or anything else
+            'id'
+        );
     }
-    
+
     public function user()
     {
         return $this->belongsTo(User::class);
