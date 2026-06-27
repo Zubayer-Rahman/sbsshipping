@@ -923,6 +923,32 @@
                     </ul>
                 </li>
 
+                @php $salaryActive = request()->routeIs('salary.'); @endphp
+                <li class="nav-item has-submenu {{ $salaryActive ? 'open' : '' }}">
+                    <a href="#" class="nav-link {{ $salaryActive ? 'active' : '' }}" data-label="Salary Manager" onclick="toggleSubmenu(this);return false;">
+                        <i class="bi bi-cash-stack"></i>
+                        <span class="nav-link-label">Salary Manager</span>
+                        <i class="bi bi-chevron-right nav-arrow"></i>
+                    </a>
+                    <ul class="nav-submenu {{ $salaryActive ? 'open' : '' }}">
+                        <li class="nav-item">
+                            <a href="{{ route('salary.staff.index') }}" class="nav-link {{ request()->routeIs('salary.staff.*') ? 'active' : '' }}">
+                                <span class="nav-link-label">Staff</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('salary.attendance') }}" class="nav-link {{ request()->routeIs('salary.attendance*') ? 'active' : '' }}">
+                                <span class="nav-link-label">Attendance</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('salary.sheet') }}" class="nav-link {{ request()->routeIs('salary.sheet') ? 'active' : '' }}">
+                                <span class="nav-link-label">Salary Sheet</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
                 @php $jobsActive = request()->routeIs('jobs.*') || request()->routeIs('forwarding.*'); @endphp
                 <li class="nav-item has-submenu {{ $jobsActive ? 'open' : '' }}">
                     <a href="#" class="nav-link {{ $jobsActive ? 'active' : '' }}"

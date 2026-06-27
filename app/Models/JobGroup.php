@@ -29,6 +29,10 @@ class JobGroup extends Model
         );
     }
 
+    public function Job(){
+        return $this->belongsTo(Job::class, 'job_id', 'imp_exp_value');
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

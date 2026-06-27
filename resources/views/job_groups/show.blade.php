@@ -4,22 +4,22 @@
 
 @php
 // ✅ Calculate totals from ALL jobs in this group
-$totalBilled = 0;
-$totalExpenses = 0;
+    $totalBilled = 0;
+    $totalExpenses = 0;
 
-foreach ($jobGroup->jobs as $job) {
-// Billed amount
-$totalBilled += $job->imp_exp_value ?? 0;
+    foreach ($jobGroup->jobs as $job) {
+    // Billed amount
+    $totalBilled = \App\Models\Job::where('job_id', $job->id)->sum('imp_exp_value');//$job->imp_exp_value ?? 0;
 
-// Calculate expenses for each job
-$normalExpenses = $job->expenses()->sum('total_amount');
-$additionalExpenses = \App\Models\AdditionalExpense::where('job_id', $job->id)->sum('actual_amount');
-$iouExpenses = $job->ious()->sum('amount');
+    // Calculate expenses for each job
+    $normalExpenses = $job->expenses()->sum('total_amount');
+    $additionalExpenses = \App\Models\AdditionalExpense::where('job_id', $job->id)->sum('actual_amount');
+    $iouExpenses = $job->ious()->sum('amount');
 
-$totalExpenses += ($normalExpenses + $additionalExpenses + $iouExpenses);
-}
+    $totalExpenses += ($normalExpenses + $additionalExpenses + $iouExpenses);
+    }
 
-$totalProfit = $totalBilled - $totalExpenses;
+    $totalProfit = $totalBilled - $totalExpenses;
 @endphp
 
 <div style="padding:2rem;max-width:1400px;margin:0 auto;font-family:'Inter',sans-serif">

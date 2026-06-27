@@ -12,6 +12,7 @@ use App\Http\Controllers\JobGroupController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PaymentAccountController;
 use App\Http\Controllers\AdditionalExpenseController;
+use App\Http\Controllers\SalaryController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\IouController;
 use App\Http\Controllers\UserController;
@@ -207,5 +208,23 @@ Route::middleware('auth')->group(function () {
         Route::get('/contact/{contact}',  [ReportController::class, 'contactLedger'])->name('contact.ledger');
         Route::get('/expenses',           [ReportController::class, 'expenseReport'])->name('expense');
         Route::get('/income',             [ReportController::class, 'incomeReport'])->name('income');
+    });
+
+
+    Route::prefix('salary')->name('salary.')->middleware('module:staffs')->group(function () {
+
+        // Staff management
+        Route::get('staff',               [SalaryController::class, 'staffIndex'])->name('staff.index');
+        Route::post('staff',              [SalaryController::class, 'staffStore'])->name('staff.store');
+        Route::put('staff/{staff}',       [SalaryController::class, 'staffUpdate'])->name('staff.update');
+        Route::delete('staff/{staff}',    [SalaryController::class, 'staffDestroy'])->name('staff.destroy');
+
+        // Attendance sheet
+        Route::get('attendance',          [SalaryController::class, 'attendance'])->name('attendance');
+        Route::post('attendance/mark',    [SalaryController::class, 'attendanceMark'])->name('attendance.mark');
+
+        // Salary sheet
+        Route::get('sheet',               [SalaryController::class, 'salarySheet'])->name('sheet');
+        Route::post('update',             [SalaryController::class, 'salaryUpdate'])->name('update');
     });
 });
