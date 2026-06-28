@@ -668,8 +668,100 @@
                 name: 'Documentation',
                 price: 675
             });
+            items.push({
+                name: 'River Dues/vgm',
+            });
+            items.push({
+                name: 'Labour',
+            });
+            items.push({
+                name: 'Transportation ',
+            });
+            items.push({
+                name: 'Scanning Charge & Vat ',
+            });
+        } else if (isIcdtechExportSea) {
+            items.push({
+                name: 'Documentation',
+                price: 2500
+            });
+            items.push({
+                name: 'River Dues/vgm',
+            });
+            items.push({
+                name: 'Port charge Transportation',
+            });
+        } else if(isHightechImportSeaFcl){
+            items.push({
+                name: 'Documentation',
+                price: 1225
+            });
+            items.push({
+                name: 'Copy B/L Nothing Permission ',
+            });
+            items.push({
+                name: 'Agent & NOC charge ',
+            });
+            items.push({
+                name: 'Labour unloading charge ',
+            });
+            items.push({
+                name: 'Transportation Scanning Charge & VAT',
+            });
+        } else if(isHightechImportSeaLcl) {
+            items.push({
+                name: 'Documentation',
+                price: 1000
+            });
+            items.push({
+                name: 'Agent & NOC charge',
+            });
+            items.push({
+                name: 'Berth Operator',
+            });
+            items.push({
+                name: 'Port Charge',
+            });
+            items.push({
+                name: 'Photocopy Bill of lading ',
+            });
+            items.push({
+                name: 'Wrong/Nill Mark',
+                price: 300
+            });
+            items.push({
+                name: 'Scanning Charge & VAT',
+            });
+            items.push({
+                name: 'Transportation',
+            });
+        } else if(isHightechImportByTruck){
+            items.push({
+                name: 'Documentation',
+                price: 500
+            });
+            items.push({
+                name: 'DTI Charge',
+                price: 250
+            });
+        }else if(isHightechExportByTruck){
+            items.push({
+                name: 'Documentation',
+                price: 500
+            });
+            items.push({
+                name: 'DTI Charge',
+                price: 250
+            });
 
+            const expTruckLabourCalc = (2.5 * qty).toFixed(2); 
+            items.push({
+                name: 'Labour Loading Charge',
+                desc: `2.5 x ${qty} Quantities`,
+                price: expTruckLabourCalc
+            });
         }
+
         // 1. RULE: Import By Sea - FCL
         else if (category.includes('import') && category.includes('sea') && type === 'fcl') {
             items.push({
@@ -728,7 +820,6 @@
                 desc: "Stamp Duty"
             });
         }
-
         // 2. RULE: Import By Sea - LCL
         else if (category.includes('import') && category.includes('sea') && type === 'lcl') {
             items.push({
