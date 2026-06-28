@@ -50,7 +50,7 @@ class Staff extends Model
         $count = 0;
         for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
             // 5 = Friday, 6 = Saturday in Carbon (ISO: 5=Fri, 6=Sat)
-            if (!in_array($d->dayOfWeek, [6])) { // 5=Fri,6=Sat
+            if (!in_array($d->dayOfWeek, [])) { // 5=Fri,6=Sat
                 $count++;
             }
         }

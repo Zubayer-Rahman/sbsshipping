@@ -7,6 +7,7 @@ use App\Models\Item;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\PaymentAccount;
+use App\Models\AccountTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -180,8 +181,40 @@ class PurchaseController extends Controller
     // ── Delete ─────────────────────────────────────────────────────────────────
     public function destroy(Purchase $purchase)
     {
-        $purchase->delete();
-        return back()->with('success', 'Purchase deleted.');
+        try {
+            DB::transaction(function () use ($purchase) {
+
+                $transactions = AccountTransaction::where('source_type', 'purchase')
+                    ->where('source_id', $purchase->id)
+                    ->get();
+
+                foreach ($transactions as $transaction) {
+                    $account = PaymentAccount::find($transaction->payment_account_id);
+
+                    if ($account) {
+                        $refundType = $transaction->transaction_type === 'credit' ? 'debit' : 'credit';
+
+                        $account->recordTransaction(
+                            $refundType,
+                            $transaction->amount,
+                            'refund',
+                            $purchase->id,
+                            'Refund: Purchase #' . $purchase->id . ' deleted',
+                            now(),
+                            Auth::id()
+                        );
+                    }
+
+                    $transaction->delete();
+                }
+
+                $purchase->delete();
+            });
+
+            return back()->with('success', 'Purchase deleted and amount refunded to account.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error deleting purchase: ' . $e->getMessage());
+        }
     }
 
     // ── AJAX item search ───────────────────────────────────────────────────────

@@ -620,7 +620,10 @@
 <script>
     function generateBillItems(job, serviceCharge, percentage) {
         const category = (job.category || '').toLowerCase();
-        const type = (job.type || '').toUpperCase();
+        const type = (job.type || '').toLowerCase();
+        const client = (job.client_name || '')
+            .toLowerCase()
+            .replace(/[-\s_]/g, '');;
         const qty = parseFloat(job.quantity) || 0;
         const items = [];
 
@@ -629,10 +632,46 @@
             !category.includes('fcl') &&
             !category.includes('lcl');
 
+        const isHightechExportSea = category.includes('export') &&
+            category.includes('sea') &&
+            client.includes('hitech');
+
+        const isIcdtechExportSea = category.includes('export') &&
+            category.includes('sea') &&
+            client.includes('icd');
+
+        const isHightechImportSeaFcl = category.includes('import') &&
+            category.includes('sea') &&
+            type.includes('fcl') &&
+            !type.includes('lcl') &&
+            client.includes('hitech');
+
+        const isHightechImportSeaLcl = category.includes('import') &&
+            category.includes('sea') &&
+            !type.includes('fcl') &&
+            type.includes('lcl') &&
+            client.includes('hitech');
+
+        const isHightechImportByTruck = category.includes('import') &&
+            category.includes('by truck') &&
+            client.includes('hitech');
+
+        const isHightechExportByTruck = category.includes('export') &&
+            category.includes('by truck') &&
+            client.includes('hitech');
+
         removeAutoBillRows(job.id);
 
+        // 8. RULE: Export By Sea, Client: hitech (not icd), No Types (FCL or LCL)
+        if (isHightechExportSea) {
+            items.push({
+                name: 'Documentation',
+                price: 675
+            });
+
+        }
         // 1. RULE: Import By Sea - FCL
-        if (category.includes('import') && category.includes('sea') && type === 'FCL') {
+        else if (category.includes('import') && category.includes('sea') && type === 'fcl') {
             items.push({
                 name: 'Documentation',
                 desc: "Documentation Processing & Handling Charge",
@@ -691,7 +730,7 @@
         }
 
         // 2. RULE: Import By Sea - LCL
-        else if (category.includes('import') && category.includes('sea') && type === 'LCL') {
+        else if (category.includes('import') && category.includes('sea') && type === 'lcl') {
             items.push({
                 name: 'Documentation',
                 desc: "Documentation Processing & Handling Charge",
@@ -821,10 +860,10 @@
         }
 
         // ✅ Debug logging
-        console.log('Job Category:', category);
-        console.log('Job Type:', type);
-        console.log('Is Import By Air:', isImportByAir);
-        console.log('Items Generated:', items.length);
+        // console.log('Job Category:', category);
+        // console.log('Job Type:', type);
+        // console.log('Is Import By Air:', isImportByAir);
+        // console.log('Items Generated:', items.length);
 
         items.forEach(item => {
             addBillRow({

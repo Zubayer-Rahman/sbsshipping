@@ -37,7 +37,7 @@ class SalaryController extends Controller
             'per_day_salary' => 'required|numeric|min:0',
         ]);
         $staff->update($data);
-        return back()->with('success', 'Staff updated.');
+        return response()->json(['ok' => true, 'message' => 'Staff updated.']);
     }
 
     public function staffDestroy(Staff $staff)
@@ -59,7 +59,7 @@ class SalaryController extends Controller
         // Build list of weekdays only (skip Fri=5, Sat=6)
         $weekdays = [];
         for ($d = $startOfMonth->copy(); $d->lte($endOfMonth); $d->addDay()) {
-            if (!in_array($d->dayOfWeek, [6])) {
+            if (!in_array($d->dayOfWeek, [])) {
                 $weekdays[] = $d->copy();
             }
         }
@@ -68,8 +68,8 @@ class SalaryController extends Controller
 
         // Load existing attendance as [staff_id][date] => status
         $existing = Attendance::where(function ($q) use ($year, $month) {
-                $q->whereYear('date', $year)->whereMonth('date', $month);
-            })
+            $q->whereYear('date', $year)->whereMonth('date', $month);
+        })
             ->whereIn('staff_id', $staffList->pluck('id'))
             ->get()
             ->groupBy('staff_id')
@@ -147,7 +147,7 @@ class SalaryController extends Controller
             'staff_id'   => 'required|exists:staff,id',
             'year'       => 'required|integer',
             'month'      => 'required|integer|min:1|max:12',
-            'advance_cut'=> 'required|numeric',
+            'advance_cut' => 'required|numeric',
             'remarks'    => 'nullable|string|max:255',
         ]);
 

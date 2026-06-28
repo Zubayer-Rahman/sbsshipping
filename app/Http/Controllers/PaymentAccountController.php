@@ -77,10 +77,6 @@ class PaymentAccountController extends Controller
 
     public function destroy(PaymentAccount $account)
     {
-        // // Safety Check: Prevent deletion if account has transaction history
-        // if ($account->transactions()->count() > 0) {
-        //     return redirect()->back()->with('error', 'Cannot delete account because it has transaction history. Try deactivating it instead.');
-        // }
 
         $account->delete();
 
@@ -210,6 +206,46 @@ class PaymentAccountController extends Controller
             ->with('success', '৳' . number_format($validated['amount'], 2) . ' transferred from ' . $fromAccount->account_name . ' to ' . $toAccount->account_name . ' successfully!');
     }
 
+    public static function refundTransactions(string $sourceType, int $sourceId, string $description = null): void
+    {
+        // Find all transactions linked to this source
+        $transactions = AccountTransaction::where('source_type', $sourceType)
+            ->where('source_id', $sourceId)
+            ->get();
+
+        if ($transactions->isEmpty()) {
+            return;
+        }
+
+        foreach ($transactions as $transaction) {
+            $account = PaymentAccount::find($transaction->payment_account_id);
+
+            if (!$account) {
+                continue;
+            }
+
+            // Reverse the transaction type
+            $refundType = $transaction->transaction_type === 'credit' ? 'debit' : 'credit';
+
+            $account->recordTransaction(
+                $refundType,
+                $transaction->amount,
+                'refund',
+                $sourceId,
+                $description ?? 'Refund: ' . ucfirst($sourceType) . ' #' . $sourceId . ' deleted',
+                now(),
+                Auth::id() ?? $transaction->created_by
+            );
+
+            // Delete the original transaction
+            $transaction->delete();
+        }
+    }
+
+    private function generateReference($sourceType, $sourceId)
+    {
+        return strtoupper(substr($sourceType, 0, 3)) . '-' . str_pad($sourceId, 6, '0', STR_PAD_LEFT);
+    }
     // Toggle active status
     public function toggleActive(PaymentAccount $account)
     {

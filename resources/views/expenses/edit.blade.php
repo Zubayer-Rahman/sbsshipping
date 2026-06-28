@@ -304,15 +304,17 @@
                     </div>
                 </div>
 
-                <div class="form-group" style="max-width:380px;margin-bottom:20px">
+                <div class="form-group" style="max-width: 400px;">
                     <label class="form-label">Payment Account:</label>
                     <div style="display:flex;align-items:center;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
                         <span style="padding:0 10px;border-right:1px solid var(--border);height:40px;display:flex;align-items:center">
                             <i class="bi bi-cash-stack" style="color:var(--text-muted)"></i>
                         </span>
-                        <select name="payment_account" class="form-select" style="border:none;border-radius:0;flex:1">
-                            @foreach(['None','Cash in Hand','Bank Account'] as $a)
-                            <option value="{{ $a }}" {{ $expense->payment_account == $a ? 'selected' : '' }}>{{ $a }}</option>
+                        <select name="payment_account_id" required class="form-control">
+                            @foreach(\App\Models\PaymentAccount::where('is_active', true)->orderBy('account_name')->get() as $acc)
+                            <option value="{{ $acc->id }}" {{ old('payment_account_id') == $acc->id ? 'selected' : '' }}>
+                                {{ $acc->account_name }} (Balance: ৳{{ number_format($acc->current_balance, 2) }})
+                            </option>
                             @endforeach
                         </select>
                     </div>
@@ -379,22 +381,19 @@
         @php $ref = $job->job_no ?? $job->job_id; @endphp
         <label class="job-option" data-ref="{{ $ref }}"
             style="display:flex;align-items:center;gap:10px;padding:9px 12px;
-                      cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s"
+               cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s"
             onmouseover="this.style.background='var(--primary-light)'"
             onmouseout="this.style.background=''">
-            <input type="checkbox" name="job_ids[]"
+            <input type="checkbox"
                 value="{{ $job->id }}"
                 data-ref="{{ $ref }}"
                 class="job-check"
-                {{ $expense->job_id == $job->id ? 'checked' : '' }}
+                {{ $expense->jobs->contains('id', $job->id) ? 'checked' : '' }}
                 style="accent-color:var(--primary);width:15px;height:15px;flex-shrink:0"
                 onchange="syncTags()" onclick="event.stopPropagation()">
             <span style="font-size:13px;font-weight:600;color:var(--primary)">{{ $ref }}</span>
             @if(!empty($job->client_name))
-            <span style="font-size:12px;color:var(--text-muted);margin-left:auto;
-                             white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px">
-                {{ $job->client_name }}
-            </span>
+            <span style="font-size:12px;color:var(--text-muted);margin-left:auto">{{ $job->client_name }}</span>
             @endif
         </label>
         @endforeach
@@ -552,6 +551,7 @@
         jobTags.innerHTML = '';
         const refs = [],
             ids = [];
+
         checked.forEach(cb => {
             refs.push(cb.dataset.ref);
             ids.push(cb.value);
@@ -562,12 +562,14 @@
                 'padding:3px 10px;font-size:12px;font-weight:600';
             tag.innerHTML = cb.dataset.ref +
                 `<button type="button" onclick="removeJob('${cb.value}')"
-                style="background:none;border:none;cursor:pointer;color:var(--primary);
-                       font-size:15px;line-height:1;padding:0">&times;</button>`;
+            style="background:none;border:none;cursor:pointer;color:var(--primary);
+                   font-size:15px;line-height:1;padding:0">&times;</button>`;
             jobTags.appendChild(tag);
         });
+
         document.getElementById('jobIdSingle').value = ids[0] || '';
         document.getElementById('jobRefNo').value = refs.join(', ');
+        console.log('Selected jobs:', ids);
     }
 
     function removeJob(id) {
@@ -589,6 +591,32 @@
         document.getElementById('jobSearch').value = '';
         filterJobs('');
     }
+    document.getElementById('expenseForm').addEventListener('submit', function(e) {
+        const form = this;
+
+        // Remove previously injected inputs
+        form.querySelectorAll('input.job-hidden').forEach(el => el.remove());
+
+        // Add job_ids_submitted marker
+        const marker = document.createElement('input');
+        marker.type = 'hidden';
+        marker.name = 'job_ids_submitted';
+        marker.value = '1';
+        marker.classList.add('job-hidden');
+        form.appendChild(marker);
+
+        // Inject each selected job as hidden input
+        document.querySelectorAll('.job-check:checked').forEach(cb => {
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'job_ids[]';
+            hidden.value = cb.value;
+            hidden.classList.add('job-hidden');
+            form.appendChild(hidden);
+        });
+
+        console.log('Submitting job_ids:', [...document.querySelectorAll('.job-check:checked')].map(cb => cb.value));
+    });
 
     // Pre-populate tags for already-selected job on load
     syncTags();

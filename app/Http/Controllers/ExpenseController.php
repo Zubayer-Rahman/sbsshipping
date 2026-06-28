@@ -6,6 +6,7 @@ use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\User;
 use App\Models\Contact;
+use App\Models\AccountTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -165,6 +166,8 @@ class ExpenseController extends Controller
     // ── Edit ──────────────────────────────────────────────────────────────────
     public function edit(Expense $expense)
     {
+        $expense->load('jobs');
+
         $users      = User::orderBy('name')->get();
         $contacts   = Contact::where('is_active', true)->orderBy('business_name')->get();
         $jobs       = DB::table('sbs_jobs')->orderByDesc('id')->get(['id', 'job_no', 'job_id']);
@@ -181,7 +184,7 @@ class ExpenseController extends Controller
             'expense_date'       => 'required',
             'payment_account_id' => 'required|exists:payment_accounts,id',
             'job_ids'            => 'nullable|array',
-            'job_ids.*'          => 'exists:jobs,id',
+            'job_ids.*'          => 'exists:sbs_jobs,id',
         ]);
 
         try {
@@ -211,14 +214,17 @@ class ExpenseController extends Controller
                 // ✅ Sync pivot table
                 $jobIds = array_filter((array) $request->input('job_ids', []));
 
-                \App\Models\ExpenseJob::where('expense_id', $expense->id)->delete();
-
-                if (!empty($jobIds)) {
-                    foreach ($jobIds as $jobId) {
-                        \App\Models\ExpenseJob::create([
-                            'expense_id' => $expense->id,
-                            'job_id'     => $jobId,
-                        ]);
+                if (!$request->has('job_ids_submitted')) {
+                    // Job section not touched — keep existing pivot records
+                } else {
+                    \App\Models\ExpenseJob::where('expense_id', $expense->id)->delete();
+                    if (!empty($jobIds)) {
+                        foreach ($jobIds as $jobId) {
+                            \App\Models\ExpenseJob::create([
+                                'expense_id' => $expense->id,
+                                'job_id'     => $jobId,
+                            ]);
+                        }
                     }
                 }
             });
@@ -236,11 +242,36 @@ class ExpenseController extends Controller
     {
         try {
             DB::transaction(function () use ($expense) {
+
+                $transactions = AccountTransaction::where('source_type', 'expense')
+                    ->where('source_id', $expense->id)
+                    ->get();
+
+                foreach ($transactions as $transaction) {
+                    $account = PaymentAccount::find($transaction->payment_account_id);
+
+                    if ($account) {
+                        $refundType = $transaction->transaction_type === 'credit' ? 'debit' : 'credit';
+
+                        $account->recordTransaction(
+                            $refundType,
+                            $transaction->amount,
+                            'refund',
+                            $expense->id,
+                            'Refund: Expense #' . $expense->id . ' deleted',
+                            now(),
+                            Auth::id()
+                        );
+                    }
+
+                    $transaction->delete();
+                }
+
                 \App\Models\ExpenseJob::where('expense_id', $expense->id)->delete();
                 $expense->delete();
             });
 
-            return back()->with('success', 'Expense deleted.');
+            return back()->with('success', 'Expense deleted and amount refunded to account.');
         } catch (\Exception $e) {
             return back()->with('error', 'Error deleting expense: ' . $e->getMessage());
         }

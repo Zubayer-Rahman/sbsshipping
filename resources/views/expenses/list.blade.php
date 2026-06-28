@@ -21,6 +21,8 @@
     <div id="filterPanel" style="display:none;padding:0 20px 16px">
         <form method="GET" action="{{ route('expenses.list') }}"
             style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+            <!-- @csrf
+            @method('PUT') -->
             <div class="form-group" style="min-width:180px;flex:1;margin:0">
                 <label class="form-label" style="font-size:12px">Search</label>
                 <input type="text" name="search" class="form-control"

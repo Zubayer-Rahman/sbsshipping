@@ -7,8 +7,12 @@ use App\Helpers\JobChargeCalculator;
 use App\Models\Bill;
 use App\Models\Job;
 use App\Models\BillPayment;
+use App\Models\PaymentAccount;
 use App\Models\Contact;
 use App\Models\Item;
+use App\Models\AccountTransaction;
+use App\Models\Iou;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -248,8 +252,40 @@ class BillController extends Controller
     // ── Delete ────────────────────────────────────────────────────────────────
     public function destroy(Bill $bill)
     {
-        $bill->delete();
-        return back()->with('success', 'Bill deleted.');
+        try {
+            DB::transaction(function () use ($bill) {
+
+                $transactions = AccountTransaction::where('source_type', 'bill')
+                    ->where('source_id', $bill->id)
+                    ->get();
+
+                foreach ($transactions as $transaction) {
+                    $account = PaymentAccount::find($transaction->payment_account_id);
+
+                    if ($account) {
+                        $refundType = $transaction->transaction_type === 'credit' ? 'debit' : 'credit';
+
+                        $account->recordTransaction(
+                            $refundType,
+                            $transaction->amount,
+                            'refund',
+                            $bill->id,
+                            'Refund: Bill #' . $bill->id . ' deleted',
+                            now(),
+                            Auth::id()
+                        );
+                    }
+
+                    $transaction->delete();
+                }
+
+                $bill->delete();
+            });
+
+            return back()->with('success', 'Bill deleted and amount refunded to account.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error deleting bill: ' . $e->getMessage());
+        }
     }
 
     // ── Add payment ───────────────────────────────────────────────────────────

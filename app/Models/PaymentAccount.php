@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class PaymentAccount extends Model
 {
@@ -43,7 +44,7 @@ class PaymentAccount extends Model
      */
     public function recordTransaction($type, $amount, $sourceType, $sourceId, $description, $date, $userId)
     {
-        \DB::transaction(function () use ($type, $amount, $sourceType, $sourceId, $description, $date, $userId) {
+        DB::transaction(function () use ($type, $amount, $sourceType, $sourceId, $description, $date, $userId) {
             // Calculate new balance
             if ($type === 'credit') {
                 $this->current_balance += $amount;

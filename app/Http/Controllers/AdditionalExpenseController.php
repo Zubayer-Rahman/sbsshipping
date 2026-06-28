@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AdditionalExpense;
 use App\Models\Contact;
 use App\Models\Job;
+use App\Models\AccountTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -157,8 +158,43 @@ class AdditionalExpenseController extends Controller
             return redirect()->back()->with('error', 'Cannot delete an already billed expense.');
         }
 
-        $additionalExpense->delete();
-        return redirect()->route('additional-expenses.index')->with('success', 'Deleted!');
+        try {
+            DB::transaction(function () use ($additionalExpense) {
+
+                // Find all transactions linked to this additional expense
+                $transactions = AccountTransaction::where('source_type', 'additional_expense')
+                    ->where('source_id', $additionalExpense->id)
+                    ->get();
+
+                foreach ($transactions as $transaction) {
+                    $account = PaymentAccount::find($transaction->payment_account_id);
+
+                    if ($account) {
+                        $refundType = $transaction->transaction_type === 'credit' ? 'debit' : 'credit';
+
+                        $account->recordTransaction(
+                            $refundType,
+                            $transaction->amount,
+                            'refund',
+                            $additionalExpense->id,
+                            'Refund: Additional Expense #' . $additionalExpense->id . ' deleted',
+                            now(),
+                            Auth::id()
+                        );
+                    }
+
+                    $transaction->delete();
+                }
+
+                $additionalExpense->delete();
+            });
+
+            return redirect()->route('additional-expenses.index')
+                ->with('success', 'Additional expense deleted and amount refunded to account.');
+        } catch (\Exception $e) {
+            return redirect()->route('additional-expenses.index')
+                ->with('error', 'Error deleting additional expense: ' . $e->getMessage());
+        }
     }
 
     // ★★★ AJAX: Get pending expenses by job IDs (for Bill creation) ★★★

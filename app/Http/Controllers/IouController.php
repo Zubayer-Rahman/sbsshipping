@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\PaymentAccount;
+use App\Models\AccountTransaction;
 use App\Models\Job;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -446,14 +447,49 @@ class IouController extends Controller
                 ->with('error', 'Cannot delete IOU with payments. Delete payments first.');
         }
 
-        if ($iou->document) {
-            Storage::disk('public')->delete($iou->document);
+        try {
+            DB::transaction(function () use ($iou) {
+
+                // Find all transactions linked to this IOU
+                $transactions = AccountTransaction::where('source_type', 'iou_creation')
+                    ->where('source_id', $iou->id)
+                    ->get();
+
+                foreach ($transactions as $transaction) {
+                    $account = PaymentAccount::find($transaction->payment_account_id);
+
+                    if ($account) {
+                        // Reverse the transaction
+                        $refundType = $transaction->transaction_type === 'credit' ? 'debit' : 'credit';
+
+                        $account->recordTransaction(
+                            $refundType,
+                            $transaction->amount,
+                            'refund',
+                            $iou->id,
+                            'Refund: IOU #' . $iou->id . ' deleted',
+                            now(),
+                            Auth::id()
+                        );
+                    }
+
+                    $transaction->delete();
+                }
+
+                // Delete document if exists
+                if ($iou->document) {
+                    Storage::disk('public')->delete($iou->document);
+                }
+
+                $iou->delete();
+            });
+
+            return redirect()->route('ious.index')
+                ->with('success', 'IOU deleted and amount refunded to account.');
+        } catch (\Exception $e) {
+            return redirect()->route('ious.index')
+                ->with('error', 'Error deleting IOU: ' . $e->getMessage());
         }
-
-        $iou->delete();
-
-        return redirect()->route('ious.index')
-            ->with('success', 'IOU deleted successfully!');
     }
 
 
