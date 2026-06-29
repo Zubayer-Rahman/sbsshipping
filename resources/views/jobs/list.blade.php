@@ -223,9 +223,8 @@
         </table>
     </div>
 
-    {{-- Pagination --}}
     @if($jobs->hasPages())
-    <div class="pagination-wrapper" style="display:flex;align-items:center;justify-content:space-between">
+    <div class="pagination-wrapper">
         <div style="font-size:13px;color:var(--text-muted)">
             Showing {{ $jobs->firstItem() }}–{{ $jobs->lastItem() }} of {{ $jobs->total() }} jobs
         </div>
@@ -238,6 +237,16 @@
 
 @push('styles')
 <style>
+    .pagination-wrapper {
+        padding: 16px 22px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
     nav[role="navigation"] {
         display: flex;
         align-items: center;
@@ -249,6 +258,8 @@
         gap: 4px;
         list-style: none;
         margin: 0;
+        padding: 0;
+        flex-wrap: wrap;
     }
 
     .pagination li a,
@@ -256,26 +267,46 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 8px;
+        border-radius: 8px;
         font-size: 13px;
         font-weight: 600;
-        border: 1px solid var(--border);
+        border: 1.5px solid var(--border);
         color: var(--text-muted);
         text-decoration: none;
         transition: all .15s;
+        background: #fff;
+        white-space: nowrap;
     }
 
     .pagination li a:hover {
         border-color: var(--primary);
         color: var(--primary);
+        background: var(--primary-light);
     }
 
     .pagination li.active span {
         background: var(--primary);
         color: #fff;
         border-color: var(--primary);
+        box-shadow: 0 2px 8px rgba(26, 86, 219, .25);
+    }
+
+    /* Disabled prev/next */
+    .pagination li span[aria-disabled="true"],
+    .pagination li span.disabled {
+        opacity: .4;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    /* Hide the "..." dots styling weirdness */
+    .pagination li span[aria-label="..."] {
+        border-color: transparent;
+        background: transparent;
+        pointer-events: none;
     }
 </style>
 @endpush
@@ -283,11 +314,12 @@
 
 @push('scripts')
 <script>
-    const jobsByClient = @json(\App\Models\Job::whereNotNull('job_no')
+    const jobsByClient = @json(
+    \App\Models\Job::whereNotNull('job_no')
         ->get(['id', 'job_no', 'client_name'])
         ->groupBy('client_name')
         ->map(fn($jobs) => $jobs->pluck('job_no'))
-    );
+);
 
     function filterJobsByClient(client) {
         const jobSelect = document.getElementById('jobBillFilter');
