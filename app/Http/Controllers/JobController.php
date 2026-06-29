@@ -26,6 +26,10 @@ class JobController extends Controller
         if ($request->filled('date_from')) {
             $query->whereDate('receive_date', '>=', $request->date_from);
         }
+        if ($request->boolean('today')) {
+            $query->whereDate('created_at', today());
+        }
+        
         if ($request->filled('date_to')) {
             $query->whereDate('receive_date', '<=', $request->date_to);
         }

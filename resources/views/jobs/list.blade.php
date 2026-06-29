@@ -17,11 +17,13 @@
 <div class="card" style="margin-bottom:20px">
     <div class="card-body" style="padding:18px 22px">
         <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:14px">Filter Jobs</div>
-        <form method="GET" action="{{ route('jobs.list') }}"
+        <form method="GET" action="{{ route('jobs.list') }}" id="filterForm"
             style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
 
             {{-- Select Client --}}
-            <select name="client" class="form-select" style="flex:1;min-width:180px;max-width:260px">
+            <select name="client" id="clientFilter" class="form-select"
+                style="flex:1;min-width:180px;max-width:260px"
+                onchange="filterJobsByClient(this.value)">
                 <option value="">Select Client</option>
                 @foreach($clients as $client)
                 <option value="{{ $client }}" {{ request('client') == $client ? 'selected' : '' }}>
@@ -30,11 +32,13 @@
                 @endforeach
             </select>
 
-            {{-- Job Bill Number --}}
-            <select name="job_bill" class="form-select" style="flex:1;min-width:180px;max-width:220px">
+            {{-- Job Bill Number (filtered by client) --}}
+            <select name="job_bill" id="jobBillFilter" class="form-select"
+                style="flex:1;min-width:180px;max-width:220px">
                 <option value="">Job Bill Number</option>
                 @foreach($jobNos as $jno)
-                <option value="{{ $jno }}" {{ request('job_bill') == $jno ? 'selected' : '' }}>
+                <option value="{{ $jno }}"
+                    {{ request('job_bill') == $jno ? 'selected' : '' }}>
                     {{ $jno }}
                 </option>
                 @endforeach
@@ -51,28 +55,40 @@
                 <option value="cancelled" {{ request('status')=='cancelled'    ?'selected':'' }}>Cancelled</option>
             </select>
 
-            {{-- Date From --}}
+            {{-- Single Date --}}
             <input type="date" name="date_from" class="form-control"
                 style="flex:1;min-width:150px;max-width:180px"
                 value="{{ request('date_from') }}">
 
-            {{-- Date To --}}
-            <input type="date" name="date_to" class="form-control"
-                style="flex:1;min-width:150px;max-width:180px"
-                value="{{ request('date_to') }}">
+            {{-- Today only checkbox --}}
+            <label style="display:flex;align-items:center;gap:7px;font-size:13px;
+                          font-weight:600;color:var(--text-primary);cursor:pointer;
+                          white-space:nowrap;padding:8px 12px;border:1.5px solid var(--border);
+                          border-radius:var(--radius-sm);background:#fff;
+                          {{ request('today') ? 'border-color:var(--primary);background:var(--primary-light);color:var(--primary)' : '' }}">
+                <input type="checkbox" name="today" value="1"
+                    {{ request('today') ? 'checked' : '' }}
+                    onchange="this.form.submit()"
+                    style="accent-color:var(--primary);width:15px;height:15px">
+                Today only
+            </label>
 
             <button type="submit" class="btn btn-primary" style="min-width:90px">
-                Filter
+                <i class="bi bi-funnel"></i> Filter
             </button>
 
-            <!-- LIVE SEARCH -->
-            <input type="text" id="liveSearch" placeholder="Search ..."
-                class="form-control" style="width:auto;padding:6px 20px;font-size:13px;justify-self:flex-end;min-width:200px"
+            {{-- Live Search --}}
+            <input type="text" id="liveSearch" placeholder="Search..."
+                class="form-control"
+                style="width:auto;padding:6px 20px;font-size:13px;min-width:200px"
                 value="{{ request('search') }}">
 
-            @if(request()->hasAny(['client','job_bill','status','date_from','date_to']))
-            <a href="{{ route('jobs.list') }}" class="btn btn-outline">Clear</a>
+            @if(request()->hasAny(['client','job_bill','status','date_from','today']))
+            <a href="{{ route('jobs.list') }}" class="btn btn-outline">
+                <i class="bi bi-x-lg"></i> Clear
+            </a>
             @endif
+
         </form>
     </div>
 </div>
@@ -103,24 +119,24 @@
             </thead>
             <tbody>
                 @forelse($jobs as $job)
-                    @php
-                        // Normal Expenses (through pivot)
-                        $normalExpenses = $job->expenses()->sum('total_amount');
+                @php
+                // Normal Expenses (through pivot)
+                $normalExpenses = $job->expenses()->sum('total_amount');
 
-                        // Additional Expenses (direct only - no pivot)
-                        $additionalExpenses = \App\Models\AdditionalExpense::where('job_id', $job->id)
-                        ->sum('to_be_billed');
+                // Additional Expenses (direct only - no pivot)
+                $additionalExpenses = \App\Models\AdditionalExpense::where('job_id', $job->id)
+                ->sum('to_be_billed');
 
-                        // IOUs (through pivot)
-                        $iouExpenses = $job->ious()->sum('amount');
+                // IOUs (through pivot)
+                $iouExpenses = $job->ious()->sum('amount');
 
-                        $expense = $normalExpenses + $additionalExpenses + $iouExpenses;
-                        $billed = $job->imp_exp_value ?? 0;
-                        $profitLoss = $billed - $expense;
+                $expense = $normalExpenses + $additionalExpenses + $iouExpenses;
+                $billed = $job->imp_exp_value ?? 0;
+                $profitLoss = $billed - $expense;
 
-                        $sl = $jobs->total() - (($jobs->currentPage() - 1) * $jobs->perPage()) - $loop->index;
-                        $category = $job->category ?? '';
-                    @endphp
+                $sl = $jobs->total() - (($jobs->currentPage() - 1) * $jobs->perPage()) - $loop->index;
+                $category = $job->category ?? '';
+                @endphp
                 <tr>
                     <td style="color:var(--text-muted);font-size:13px">{{ $sl }}</td>
                     <td>
@@ -267,6 +283,36 @@
 
 @push('scripts')
 <script>
+    const jobsByClient = @json(\App\Models\Job::whereNotNull('job_no')
+        ->get(['id', 'job_no', 'client_name'])
+        ->groupBy('client_name')
+        ->map(fn($jobs) => $jobs->pluck('job_no'))
+    );
+
+    function filterJobsByClient(client) {
+        const jobSelect = document.getElementById('jobBillFilter');
+        const current = "{{ request('job_bill') }}";
+
+        // Reset
+        jobSelect.innerHTML = '<option value="">Job Bill Number</option>';
+
+        if (!client || !jobsByClient[client]) return;
+
+        jobsByClient[client].forEach(jobNo => {
+            const opt = document.createElement('option');
+            opt.value = jobNo;
+            opt.textContent = jobNo;
+            if (jobNo === current) opt.selected = true;
+            jobSelect.appendChild(opt);
+        });
+    }
+
+    // Run on page load to restore job list if client is pre-selected
+    document.addEventListener('DOMContentLoaded', () => {
+        const client = document.getElementById('clientFilter').value;
+        if (client) filterJobsByClient(client);
+    });
+
     // Live Search
     document.getElementById('liveSearch').addEventListener('input', function() {
         const searchTerm = this.value.toLowerCase();

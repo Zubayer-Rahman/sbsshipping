@@ -354,8 +354,17 @@
                     <label class="form-label">Password</label>
                     <div class="input-wrapper">
                         <i class="bi bi-lock input-icon"></i>
-                        <input type="password" name="password" class="form-control"
-                            placeholder="••••••••" autocomplete="current-password">
+                        <input type="password" name="password" id="passwordInput"
+                            class="form-control"
+                            placeholder="••••••••" autocomplete="current-password"
+                            style="padding-right:44px">
+                        <button type="button" onclick="togglePassword()"
+                            style="position:absolute;right:14px;top:50%;transform:translateY(-50%);
+                   background:none;border:none;cursor:pointer;color:#94a3b8;
+                   font-size:17px;padding:0;display:flex;align-items:center"
+                            id="toggleBtn">
+                            <i class="bi bi-eye" id="eyeIcon"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="form-options">
@@ -366,17 +375,26 @@
                 <button type="submit" class="btn-login">
                     <i class="bi bi-box-arrow-in-right"></i> Sign In
                 </button>
-                <div class="divider">or</div>
-
-                <div style="text-align:center; font-size:13px; color:#64748b">
-                    Not registered?
-                    <a href="/register" style="color:#1a56db;font-weight:600;text-decoration:none">
-                        Sign up to your dashboard →
-                    </a>
-                </div>
             </form>
         </div>
     </div>
+
+
+
+
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'bi bi-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'bi bi-eye';
+            }
+        }
+    </script>
 </body>
 
 </html>
