@@ -141,17 +141,37 @@
                 <tr style="border-bottom:1px solid var(--border);transition:background .12s; cursor: pointer;"
                     onmouseover="this.style.background='#f8faff'" onmouseout="this.style.background=''">
                     <td class="bill-td">
-                        <div style="position:relative;display:inline-block">
-                            <button type="button" class="bill-act-btn" onclick="billToggle(this)"
+                        <div style="position: relative; display: inline-block;">
+                            <button
+                                type="button"
+                                class="bill-act-btn"
+                                onclick="billToggle(this)"
                                 style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;
-                                           border-radius:20px;border:1.5px solid var(--primary);
-                                           background:#fff;color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">
+                   border-radius:20px;border:1.5px solid var(--primary);
+                   background:#fff;color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">
                                 Actions <i class="bi bi-chevron-down" style="font-size:10px"></i>
                             </button>
-                            <div class="bill-dd" style="display:none">
-                                <a href="{{ route('bills.show', $bill) }}" class="bill-dd-item"><i class="bi bi-eye" style="color:var(--primary)"></i> View</a>
-                                @csrf @method('DELETE')
-                                <button type="submit" class="bill-dd-item bill-dd-btn"><i class="bi bi-trash" style="color:var(--danger)"></i> Delete</button>
+
+                            <div class="bill-dd" style="display:none;">
+                                <a href="{{ route('bills.show', $bill) }}" class="bill-dd-item">
+                                    <i class="bi bi-eye" style="color:var(--primary)"></i> View
+                                </a>
+
+                                <a href="{{ route('bills.edit', $bill) }}" class="bill-dd-item">
+                                    <i class="bi bi-pencil" style="color:var(--warning)"></i> Edit
+                                </a>
+
+                                <form method="POST" action="{{ route('bills.destroy', $bill) }}"
+                                    onsubmit="return confirm('Delete this bill?')"
+                                    style="margin:0;">
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <button type="submit"
+                                        class="bill-dd-item bill-dd-btn"
+                                        style="width:100%; text-align:left; background:none; border:none;">
+                                        <i class="bi bi-trash" style="color:var(--danger)"></i> Delete
+                                    </button>
                                 </form>
                             </div>
                         </div>

@@ -211,7 +211,7 @@ Route::middleware('auth')->group(function () {
     });
 
 
-    Route::prefix('salary')->name('salary.')->middleware('module:staffs')->group(function () {
+    Route::prefix('salary')->name('salary.')->middleware('module:salary')->group(function () {
 
         // Staff management
         Route::get('staff',               [SalaryController::class, 'staffIndex'])->name('staff.index');

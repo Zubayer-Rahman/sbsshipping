@@ -25,7 +25,7 @@ class ModulePermission extends Model
             'additional-expenses' => 'Additional Expenses',
             'items'               => 'Items',
             'purchases'           => 'Purchases',
-            'salary'              => 'Salary'
+            'salary'              => 'Salary Manager'
         ];
     }
 
