@@ -89,33 +89,39 @@ class PaymentAccountController extends Controller
     // Cash flow page - shows transactions across all accounts
     public function cashFlow(Request $request)
     {
-        $query = AccountTransaction::with(['account', 'creator']);
+        // ── Base filters ──────────────────────────────────────────────────────
+        $filters = function ($query) use ($request) {
+            if ($request->filled('from_date')) {
+                $query->whereDate('transaction_date', '>=', $request->from_date);
+            }
+            if ($request->filled('to_date')) {
+                $query->whereDate('transaction_date', '<=', $request->to_date);
+            }
+            if ($request->filled('account_id')) {
+                $query->where('payment_account_id', $request->account_id);
+            }
+            if ($request->filled('type')) {
+                $query->where('transaction_type', $request->type);
+            }
+        };
 
-        // Filter by date range
-        if ($request->has('from_date') && $request->from_date) {
-            $query->whereDate('transaction_date', '>=', $request->from_date);
-        }
-        if ($request->has('to_date') && $request->to_date) {
-            $query->whereDate('transaction_date', '<=', $request->to_date);
-        }
+        // ── Paginated results ─────────────────────────────────────────────────
+        $transactions = AccountTransaction::with(['account', 'creator'])
+            ->tap($filters)
+            ->latest('transaction_date')
+            ->latest('id')
+            ->paginate(30);
 
-        // Filter by account
-        if ($request->has('account_id') && $request->account_id) {
-            $query->where('payment_account_id', $request->account_id);
-        }
+        // ── Totals — separate fresh queries without type filter ───────────────
+        $totalCredit = AccountTransaction::tap($filters)
+            ->where('transaction_type', 'credit')
+            ->sum('amount');
 
-        // Filter by type
-        if ($request->has('type') && $request->type) {
-            $query->where('transaction_type', $request->type);
-        }
-
-        $transactions = $query->latest('transaction_date')->latest('id')->paginate(30);
+        $totalDebit = AccountTransaction::tap($filters)
+            ->where('transaction_type', 'debit')
+            ->sum('amount');
 
         $accounts = PaymentAccount::where('is_active', true)->get();
-
-        // Calculate totals
-        $totalCredit = $query->where('transaction_type', 'credit')->sum('amount');
-        $totalDebit = $query->where('transaction_type', 'debit')->sum('amount');
 
         return view('accounts.cashflow', compact('transactions', 'accounts', 'totalCredit', 'totalDebit'));
     }
