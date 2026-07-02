@@ -6,22 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('user_module_permission', function (Blueprint $table) {
+        Schema::create('user_module_permissions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('module');
+            $table->boolean('allowed')->default(false);
             $table->timestamps();
+
+            $table->unique(['user_id', 'module']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('user_module_permission');
+        Schema::dropIfExists('user_module_permissions');
     }
 };

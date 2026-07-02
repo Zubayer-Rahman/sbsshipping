@@ -198,16 +198,6 @@
     <!-- Account Information -->
     <div class="account-info-card">
         <div class="info-grid">
-            <!-- <div>
-                <p class="info-item-label">Account Type</p>
-                <p class="info-item-value">
-                    @if($account->account_type == 'bank') 🏦 Bank Account
-                    @elseif($account->account_type == 'cash') 💵 Cash in Hand
-                    @elseif($account->account_type == 'mobile_banking') 📱 Mobile Banking
-                    @else 💳 Other
-                    @endif
-                </p>
-            </div> -->
 
             <div>
                 <p class="info-item-label">Current Balance</p>
@@ -256,6 +246,40 @@
             </div>
         </div>
 
+        {{-- ── Credit / Debit Summary ── --}}
+        @php
+        $totalCredit = $account->transactions->where('transaction_type', 'credit')->sum('amount');
+        $totalDebit = $account->transactions->where('transaction_type', 'debit')->sum('amount');
+        @endphp
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px">
+
+            <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:18px 22px">
+                <p style="font-size:12px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">
+                    <i class="bi bi-arrow-down-circle-fill" style="margin-right:5px"></i>Total Credited
+                </p>
+                <p style="font-size:24px;font-weight:800;color:#10b981;margin:0">
+                    +৳{{ number_format($totalCredit, 2) }}
+                </p>
+                <p style="font-size:12px;color:#065f46;margin-top:4px">
+                    {{ $account->transactions->where('transaction_type', 'credit')->count() }} transactions
+                </p>
+            </div>
+
+            <div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;padding:18px 22px">
+                <p style="font-size:12px;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">
+                    <i class="bi bi-arrow-up-circle-fill" style="margin-right:5px"></i>Total Debited
+                </p>
+                <p style="font-size:24px;font-weight:800;color:#ef4444;margin:0">
+                    -৳{{ number_format($totalDebit, 2) }}
+                </p>
+                <p style="font-size:12px;color:#991b1b;margin-top:4px">
+                    {{ $account->transactions->where('transaction_type', 'debit')->count() }} transactions
+                </p>
+            </div>
+
+        </div>
+
         @if($account->description)
         <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
             <p class="info-item-label">Description</p>
@@ -282,7 +306,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($account->transactions as $transaction)
+                    @forelse($account->transactions->sortByDesc('transaction_date') as $transaction)
                     <tr>
                         <td>{{ $transaction->transaction_date->format('d M Y') }}</td>
                         <td>
@@ -292,9 +316,9 @@
                         </td>
                         <td>
                             @if($transaction->transaction_type == 'credit')
-                                <span class="badge badge-success">Credit</span>
+                            <span class="badge badge-success">Credit</span>
                             @else
-                                <span class="badge badge-danger">Debit</span>
+                            <span class="badge badge-danger">Debit</span>
                             @endif
                         </td>
                         <td>{{ $transaction->description }}</td>

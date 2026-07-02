@@ -170,7 +170,7 @@
                     </td>
                     <td class="pur-td" style="font-size:12px">
                         @php $due = $purchase->grand_total - $purchase->payment_amount; @endphp
-                        <span style="color: {{ $due > 0 ? 'var(--danger)' : 'var(--success)' }};font-weight:600">
+                        <span style="color: {{ $due > 0 ? 'var(--danger)' : 'var(--success)' }} ;font-weight:600">
                             ৳ {{ number_format(max(0,$due), 2) }}
                         </span>
                     </td>

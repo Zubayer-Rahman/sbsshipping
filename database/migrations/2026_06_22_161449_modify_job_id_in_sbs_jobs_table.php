@@ -6,23 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('sbs_jobs', function (Blueprint $table) {
-            //
+            // First, drop the unique index
+            $table->dropUnique('sbs_jobs_job_id_unique');
+
+            // Then, ensure the column is nullable
+            $table->string('job_id')->nullable()->change();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('sbs_jobs', function (Blueprint $table) {
-            //
+            // Reverse the changes
+            $table->string('job_id')->unique()->change();
         });
     }
 };

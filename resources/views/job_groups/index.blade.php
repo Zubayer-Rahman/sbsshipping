@@ -34,8 +34,8 @@
                     </td>
                     <td style="padding:14px;text-align:center">
                         @php
-                        $statusColors = ['active' => ['#d1fae5', '#065f46'], 'completed' => ['#dbeafe', '#1e40af'], 'archived' => ['#f1f5f9', '#64748b']];
-                        $colors = $statusColors[$group->status] ?? ['#f1f5f9', '#64748b'];
+                            $statusColors = ['active' => ['#d1fae5', '#065f46'], 'completed' => ['#dbeafe', '#1e40af'], 'archived' => ['#f1f5f9', '#64748b']];
+                            $colors = $statusColors[$group->status] ?? ['#f1f5f9', '#64748b'];
                         @endphp
                         <span style="padding:4px 10px;border-radius:12px;background:{{ $colors[0] }};color:{{ $colors[1] }};font-size:10px;font-weight:700;text-transform:uppercase">{{ $group->status }}</span>
                     </td>

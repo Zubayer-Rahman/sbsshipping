@@ -6,19 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        //
+        Schema::table('ious', function (Blueprint $table) {
+            $table->dropForeign('ious_contact_id_foreign');
+            $table->foreign('contact_id')
+                ->references('id')->on('users')
+                ->onDelete('cascade');
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        //
+        Schema::table('ious', function (Blueprint $table) {
+            $table->dropForeign('ious_contact_id_foreign');
+            $table->foreign('contact_id')
+                ->references('id')->on('contacts')
+                ->onDelete('cascade');
+        });
     }
 };

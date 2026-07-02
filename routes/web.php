@@ -211,6 +211,7 @@ Route::middleware('auth')->group(function () {
     });
 
 
+    // ── Salary Management ─────────────────────────────────────────────────────
     Route::prefix('salary')->name('salary.')->middleware('module:salary')->group(function () {
 
         // Staff management

@@ -70,7 +70,10 @@ class PaymentAccountController extends Controller
     // Show single account with transaction history
     public function show(PaymentAccount $account)
     {
-        $account->load(['transactions.creator']);
+        $account->load(['transactions' => function ($query) {
+            $query->orderBy('transaction_date', 'desc')
+                ->orderBy('id', 'desc'); // tiebreaker for same-day transactions
+        }]);
 
         return view('accounts.show', compact('account'));
     }

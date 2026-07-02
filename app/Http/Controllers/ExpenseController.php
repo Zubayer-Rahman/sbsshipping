@@ -143,12 +143,16 @@ class ExpenseController extends Controller
                 }
 
                 // REAL-TIME DEDUCTION
+                $jobCount    = count($jobIds) > 0 ? count($jobIds) : 1;
+                $totalDeduct = $request->total_amount * $jobCount;
+
                 $account->recordTransaction(
                     'debit',
-                    $request->total_amount,
+                    $totalDeduct,
                     'expense',
                     $expense->id,
-                    "Expense: " . ($request->expense_for ?? 'Business Expense'),
+                    "Expense: " . ($request->expense_for ?? 'Business Expense') .
+                        ($jobCount > 1 ? " (৳{$request->total_amount} × {$jobCount} jobs)" : ''),
                     $request->expense_date ?? now()->toDateString(),
                     Auth::id()
                 );
