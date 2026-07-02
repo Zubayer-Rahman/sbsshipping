@@ -288,10 +288,50 @@
         @endif
     </div>
 
+
+
     <!-- Transaction History -->
     <h2 class="section-title">Transaction History</h2>
 
     <div class="transactions-card">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+
+            {{-- Live Search --}}
+            <div style="position:relative;flex:1;min-width:200px">
+                <i class="bi bi-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:14px"></i>
+                <input type="text" id="txnSearch" placeholder="Search transactions..."
+                    style="width:100%;padding:9px 12px 9px 36px;border:1.5px solid var(--border);
+                   border-radius:8px;font-size:13px;outline:none;font-family:inherit"
+                    oninput="filterTransactions()"
+                    onfocus="this.style.borderColor='var(--primary)'"
+                    onblur="this.style.borderColor='var(--border)'">
+            </div>
+
+            {{-- Today Filter --}}
+            <label style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
+                  color:var(--text-primary);cursor:pointer;white-space:nowrap;
+                  padding:9px 14px;border:1.5px solid var(--border);border-radius:8px;
+                  background:#fff;transition:all .15s;user-select:none"
+                id="todayLabel">
+                <input type="checkbox" id="todayOnly" onchange="filterTransactions()"
+                    style="accent-color:var(--primary);width:15px;height:15px">
+                <i class="bi bi-calendar-check" style="color:var(--primary)"></i>
+                Today only
+            </label>
+
+            {{-- Clear --}}
+            <button type="button" onclick="clearTxnFilters()"
+                style="padding:9px 16px;border:1.5px solid var(--border);border-radius:8px;
+               background:#fff;font-size:13px;font-weight:600;color:var(--text-muted);
+               cursor:pointer;white-space:nowrap;font-family:inherit"
+                id="clearTxnBtn" style="display:none">
+                <i class="bi bi-x-lg"></i> Clear
+            </button>
+
+            {{-- Result count --}}
+            <span id="txnCount" style="font-size:13px;color:var(--text-muted);white-space:nowrap"></span>
+
+        </div>
         <div class="table-wrapper">
             <table class="data-table">
                 <thead>
@@ -305,10 +345,10 @@
                         <th>Recorded By</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="txnTableBody">
                     @forelse($account->transactions->sortByDesc('transaction_date') as $transaction)
-                    <tr>
-                        <td>{{ $transaction->transaction_date->format('d M Y') }}</td>
+                    <tr data-date="{{ $transaction->transaction_date->format('Y-m-d') }}">
+                        <td>{{ $transaction->transaction_date->format('d M Y') }}</td>  
                         <td>
                             <span style="font-family: monospace; font-size: 0.875rem; color: var(--text-muted);">
                                 {{ $transaction->reference_number }}
@@ -343,3 +383,47 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+    function filterTransactions() {
+        const search = document.getElementById('txnSearch').value.toLowerCase().trim();
+        const todayOn = document.getElementById('todayOnly').checked;
+        const rows = document.querySelectorAll('#txnTableBody tr[data-date]');
+        let visible = 0;
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const rowDate = row.dataset.date; // e.g. "2026-06-28"
+            const matchSearch = !search || text.includes(search);
+            const matchToday = !todayOn || rowDate === today;
+
+            if (matchSearch && matchToday) {
+                row.style.display = '';
+                visible++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Update count
+        const total = rows.length;
+        document.getElementById('txnCount').textContent =
+            (search || todayOn) ? `Showing ${visible} of ${total}` : '';
+
+        // Style today label when active
+        const label = document.getElementById('todayLabel');
+        label.style.borderColor = todayOn ? 'var(--primary)' : 'var(--border)';
+        label.style.background = todayOn ? 'var(--primary-light)' : '#fff';
+        label.style.color = todayOn ? 'var(--primary)' : 'var(--text-primary)';
+    }
+
+    function clearTxnFilters() {
+        document.getElementById('txnSearch').value = '';
+        document.getElementById('todayOnly').checked = false;
+        filterTransactions();
+    }
+</script>
+@endpush
